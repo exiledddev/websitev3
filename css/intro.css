@@ -1,0 +1,244 @@
+/* ============================================================
+   MarkedExiled — intro sequence
+   ============================================================ */
+
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+
+  /* sizing */
+  --logo-size: clamp(58px, 15vw, 180px);
+  --brand-size: clamp(1.9rem, 9.4vw, 5.4rem);
+  --row-gap: clamp(14px, 2.4vw, 38px);
+
+  /* easings */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  /* timings (set from js/intro.js) */
+  --t-slide: 880ms;
+  --t-letter: 720ms;
+  --t-wipe: 1000ms;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+body[data-intro="done"] {
+  overflow: auto;
+}
+
+.mark-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- stage ---------- */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  z-index: 100;
+  /* Comfortably clear of the viewport corners (which sit at ~70.7%), so
+     nothing is clipped until the wipe actually runs. */
+  clip-path: circle(80% at 50% 50%);
+}
+
+/* The same circle that takes the lockup away also lifts this whole layer
+   off the page underneath it. */
+.intro[data-state="wipe"],
+.intro[data-state="done"] {
+  clip-path: circle(0% at 50% -30%);
+  transition: clip-path var(--t-wipe) var(--ease-in-out-quart);
+}
+
+/* Once it has closed there is nothing left to show. */
+.intro[data-state="done"] {
+  display: none;
+}
+
+/* ---------- zoom layer ---------- */
+/* Full-bleed. Its viewBox is driven frame by frame in JS, so the mark stays
+   vector-sharp from "fills the screen" all the way down to the lockup. */
+
+.intro__zoom {
+  position: absolute;
+  inset: 0;
+  display: none;
+  width: 100%;
+  height: 100%;
+  color: var(--fg);
+}
+
+.intro[data-state="idle"] .intro__zoom,
+.intro[data-state="zoom"] .intro__zoom {
+  display: block;
+}
+
+/* The element the circle mask is applied to. It spans the whole
+   viewport so the circle's radius is measured against the screen,
+   not against the width of the lockup. */
+.intro__stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* Big enough to clear the lockup, small enough that the shrink
+     starts cutting almost immediately. The stage is transparent, so
+     clipping the empty corners is invisible. */
+  clip-path: circle(50% at 50% 50%);
+  will-change: clip-path, transform;
+}
+
+.intro__row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--row-gap);
+  /* Offset set by JS so the logo alone reads as centred. */
+  transform: translate3d(var(--row-shift, 0px), 0, 0);
+  will-change: transform;
+}
+
+/* ---------- logo ---------- */
+
+.intro__logo {
+  flex: none;
+  line-height: 0;
+  /* Hidden until the zoom layer lands exactly on this slot. */
+  opacity: 0;
+}
+
+.logo {
+  display: block;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  color: var(--fg);
+}
+
+/* ---------- brand text ---------- */
+
+.intro__brand {
+  flex: none;
+  margin: 0;
+  font-size: var(--brand-size);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.brand__letters {
+  display: block;
+}
+
+/* One mask per glyph — the inner span rises up through it. */
+.brand__ch {
+  display: inline-block;
+  overflow: hidden;
+  /* room for ascenders/descenders so the mask doesn't shave glyphs */
+  padding: 0.1em 0 0.16em;
+  margin: -0.1em 0 -0.16em;
+  vertical-align: top;
+}
+
+.brand__ch--space {
+  width: 0.28em;
+}
+
+.brand__in {
+  display: inline-block;
+  transform: translate3d(0, 115%, 0);
+  will-change: transform;
+}
+
+/* ============================================================
+   Timeline states — each step is driven by data-state on .intro
+   ============================================================ */
+
+/* 1 — the zoom layer has arrived: swap it for the real logo. No fade —
+   the two are pixel-identical at this instant, so the cut is invisible. */
+.intro[data-state="logo"] .intro__logo,
+.intro[data-state="slide"] .intro__logo,
+.intro[data-state="letters"] .intro__logo,
+.intro[data-state="wipe"] .intro__logo,
+.intro[data-state="done"] .intro__logo {
+  opacity: 1;
+}
+
+/* 2 — row slides left so logo + text end up centred together */
+.intro[data-state="slide"] .intro__row,
+.intro[data-state="letters"] .intro__row,
+.intro[data-state="wipe"] .intro__row,
+.intro[data-state="done"] .intro__row {
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--t-slide) var(--ease-in-out-cubic);
+}
+
+/* 3 — letters rise, bottom to top, staggered (delay set inline by JS) */
+.intro[data-state="letters"] .brand__in,
+.intro[data-state="wipe"] .brand__in,
+.intro[data-state="done"] .brand__in {
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--t-letter) var(--ease-out-expo);
+  transition-delay: var(--d, 0ms);
+}
+
+/* 4 — circle mask closes upward and carries everything out of frame */
+.intro[data-state="wipe"] .intro__stage,
+.intro[data-state="done"] .intro__stage {
+  clip-path: circle(0% at 50% -30%);
+  transform: translate3d(0, -26vh, 0) scale(0.94);
+  transition:
+    clip-path var(--t-wipe) var(--ease-in-out-quart),
+    transform var(--t-wipe) var(--ease-in-out-quart);
+}
+
+.intro[data-state="done"] {
+  pointer-events: none;
+}
+
+/* ---------- reduced motion: show the end frame, skip the theatre ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .intro__logo,
+  .intro__row,
+  .brand__in,
+  .intro__stage {
+    transition: none !important;
+  }
+  .intro[data-state="idle"] .intro__logo { opacity: 1; }
+  .intro[data-state="idle"] .intro__row  { transform: none; }
+  .intro[data-state="idle"] .brand__in   { transform: none; }
+}

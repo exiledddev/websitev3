@@ -1,0 +1,483 @@
+/* ============================================================
+   MarkedExiled — main page
+
+   Two panels share one fixed screen: the headline and the cards.
+   A scroll gesture swaps which one is centred (see js/site.js);
+   the document itself never scrolls.
+   ============================================================ */
+
+:root {
+  --nav-h: 68px;
+  --accent: #FF2E63;
+  --edge: clamp(18px, 4vw, 56px);
+
+  --ink: #ffffff;
+  --ink-60: rgba(255, 255, 255, 0.62);
+  --ink-40: rgba(255, 255, 255, 0.42);
+  --hairline: rgba(255, 255, 255, 0.12);
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  /* settling back in as the mask lifts off the incoming page */
+  transition:
+    transform 640ms var(--ease-out-expo, ease),
+    opacity 420ms ease;
+}
+
+/* pulled away under the mask on the way out */
+body[data-swipe="cover"] .page {
+  transform: scale(0.94);
+  opacity: 0;
+  transition:
+    transform 460ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 380ms ease 60ms;
+}
+
+body[data-swipe="uncover"] .page {
+  transform: scale(0.985);
+}
+
+/* Home is one fixed screen with two swapping panels; Promote is an
+   ordinary scrolling document. */
+body[data-route="home"] .page { height: 100dvh; overflow: hidden; }
+body[data-route="home"][data-intro="done"] { overflow: hidden; }
+body[data-route="pyb"][data-intro="done"]  { overflow: auto; }
+
+.route[hidden] { display: none !important; }
+
+/* The home route has to hand its height down to the stage so the two
+   absolutely-positioned panels have a box to fill. */
+.routes {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.route--home {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---------- nav ---------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--bg, #000);
+  display: flex;
+  align-items: center;
+  flex: none;
+  height: var(--nav-h);
+  padding: 0 var(--edge);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav__mark {
+  width: 30px;
+  height: 30px;
+  color: currentColor;
+  display: block;
+}
+
+.nav__word {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* Dead centre of the bar, whatever the logo's width. JetBrains' nav
+   items are plain text, not buttons. */
+.nav__cta {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+
+.nav__cta:hover {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+/* A pulsing dot on the button and a caret beneath it, both pointing at the
+   one thing on this page a business is here to click. Home route only. */
+.nav__dot {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.nav__dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: dotPulse 2s ease-out infinite;
+}
+
+@keyframes dotPulse {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  70%  { transform: scale(3.4); opacity: 0; }
+  100% { transform: scale(3.4); opacity: 0; }
+}
+
+.nav__point {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 7px);
+  transform: translateX(-50%);
+  font-size: 15px;
+  line-height: 1;
+  color: var(--accent);
+  animation: pointNudge 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pointNudge {
+  0%, 100% { transform: translate(-50%, 3px); opacity: 0.55; }
+  50%      { transform: translate(-50%, -1px); opacity: 1; }
+}
+
+body[data-route="pyb"] .nav__dot,
+body[data-route="pyb"] .nav__point { display: none; }
+
+.nav__cta:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------- the stage and its two panels ---------- */
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+body[data-route="pyb"] .routes { flex: none; }
+
+.panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 5vh, 72px) var(--edge);
+  transition:
+    opacity 620ms var(--ease-out-expo, ease),
+    transform 760ms var(--ease-out-expo, ease);
+}
+
+/* whichever panel isn't showing is parked off-centre and untouchable */
+.panel[inert] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body[data-view="cards"] .hero { transform: translate3d(0, -7vh, 0); }
+body[data-view="hero"]  .work { transform: translate3d(0,  7vh, 0); }
+
+/* ---------- hero panel ---------- */
+
+.hero {
+  /* biased above the middle — extra room underneath lifts the headline */
+  padding-bottom: clamp(56px, 15vh, 170px);
+  text-align: center;
+  overflow: hidden;
+  /* a breath of light behind the headline so pure black doesn't read flat */
+  background:
+    radial-gradient(62% 52% at 50% 38%, rgba(255, 255, 255, 0.075), transparent 72%);
+}
+
+/* the mark again, very faint, holding the space behind the type.
+   Masked to a soft disc so its hard edges never read as smudges. */
+.hero__watermark {
+  position: absolute;
+  top: 43%;
+  left: 50%;
+  width: min(104vh, 86vw);
+  height: min(104vh, 86vw);
+  transform: translate(-50%, -54%);
+  color: var(--ink);
+  opacity: 0.02;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(closest-side, #000 38%, transparent 76%);
+          mask-image: radial-gradient(closest-side, #000 38%, transparent 76%);
+}
+
+.hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 4vh, 44px);
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.2);
+  transition: opacity 400ms ease;
+}
+
+.hero__scroll-arrow {
+  display: inline-block;
+  margin-left: 8px;
+  animation: scrollNudge 2.1s ease-in-out infinite;
+}
+
+@keyframes scrollNudge {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(3px); }
+}
+
+/* it has done its job once you are on the cards */
+body[data-view="cards"] .hero__scroll { opacity: 0; }
+
+.hero__title {
+  position: relative;
+  margin: 0;
+  font-size: clamp(2.9rem, 10.5vw, 8.5rem);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+}
+
+/* ---------- cards panel ---------- */
+
+.work__inner {
+  width: 100%;
+  max-width: 1080px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.4vw, 20px);
+  text-align: left;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  min-height: 208px;
+  padding: clamp(22px, 2.2vw, 30px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
+  color: var(--ink);
+  text-decoration: none;
+
+  /* staggered in behind their panel */
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity 620ms var(--ease-out-expo, ease) var(--rd, 0ms),
+    transform 720ms var(--ease-out-expo, ease) var(--rd, 0ms),
+    border-color 220ms ease;
+}
+
+body[data-view="cards"] .card {
+  opacity: 1;
+  transform: none;
+}
+
+body[data-view="cards"] .card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translate3d(0, -2px, 0);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* dark grounds, tinted towards each card's artwork */
+.card--yt {
+  background:
+    radial-gradient(118% 132% at 100% 4%, rgba(255, 46, 99, 0.20), transparent 56%),
+    linear-gradient(170deg, #150a0d 0%, #090507 100%);
+}
+
+.card--ir {
+  background:
+    radial-gradient(118% 132% at 100% 4%, rgba(124, 92, 255, 0.22), transparent 56%),
+    linear-gradient(170deg, #0b0d1c 0%, #06070f 100%);
+}
+
+.card__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 64%;
+}
+
+.card__label {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.card__title {
+  margin: 0;
+  font-size: clamp(1.25rem, 1.7vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.card__text {
+  margin: 10px 0 22px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-60);
+}
+
+/* the artwork bleeds off the right edge, JetBrains-style */
+.card__art {
+  position: absolute;
+  right: -5%;
+  top: 50%;
+  width: 44%;
+  max-width: 186px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.card__art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 14px 38px rgba(0, 0, 0, 0.55));
+}
+
+.card .btn--pill {
+  margin-top: auto;
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  --btn-bg: transparent;
+  --btn-fg: var(--ink);
+  --btn-bd: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--btn-bd);
+  border-radius: 4px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.btn--pill {
+  --btn-bg: var(--ink);
+  --btn-fg: #000;
+  --btn-bd: var(--ink);
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 999px;
+}
+
+.card:hover .btn--pill {
+  --btn-bg: rgba(255, 255, 255, 0.86);
+  --btn-bd: rgba(255, 255, 255, 0.86);
+}
+
+/* ============================================================
+   Entrance — runs while the intro's mask is lifting, so the page
+   is already assembled by the time the mask is gone.
+   ============================================================ */
+
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+}
+
+body[data-page="in"] .reveal {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 620ms var(--ease-out-expo, ease) var(--rd, 0ms),
+    transform 760ms var(--ease-out-expo, ease) var(--rd, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+  .nav__dot::after, .nav__point, .hero__scroll-arrow { animation: none; }
+  body[data-page="in"] .reveal { transition: none; }
+  .panel, .card { transition: none; }
+}
+
+/* ---------- short viewports ---------- */
+
+@media (max-height: 700px) {
+  .panel { padding: clamp(16px, 3vh, 40px) var(--edge); }
+
+  .card {
+    min-height: 0;
+    padding: clamp(18px, 2vw, 24px);
+  }
+
+  .card__label { margin-bottom: 8px; }
+  .card__text  { margin: 8px 0 14px; }
+}
+
+/* ---------- narrow screens ---------- */
+
+@media (max-width: 760px) {
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  .card { min-height: 180px; }
+  .card__body { max-width: 68%; }
+  .card__art { max-width: 150px; }
+}
+
+@media (max-width: 520px) {
+  .nav__word { display: none; }
+  .card__art { max-width: 120px; right: -8%; }
+}

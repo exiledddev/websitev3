@@ -1,0 +1,511 @@
+/* ============================================================
+   MarkedExiled — Promote Your Business
+   A normal scrolling document, unlike the home route.
+   ============================================================ */
+
+.route--pyb {
+  padding-bottom: clamp(64px, 12vh, 140px);
+}
+
+/* ---------- hero ---------- */
+
+.pyb-hero {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: clamp(56px, 13vh, 150px) var(--edge) clamp(36px, 7vh, 80px);
+  text-align: center;
+}
+
+.pyb-hero__title {
+  margin: 0 auto;
+  max-width: 18ch;
+  font-size: clamp(2.1rem, 5.6vw, 4.4rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+}
+
+.pyb-hero__note {
+  margin: clamp(18px, 3vh, 28px) 0 0;
+  font-size: 15px;
+  color: var(--ink-40);
+}
+
+.pyb-hero__cue {
+  margin: clamp(26px, 4vh, 40px) 0 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink-60);
+}
+
+.pyb-hero__arrow {
+  display: inline-block;
+  margin-left: 6px;
+  animation: cueNudge 1.8s ease-in-out infinite;
+}
+
+@keyframes cueNudge {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(4px); }
+}
+
+/* ---------- tabs: just the words, on one shared line ---------- */
+
+.offers {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 var(--edge);
+  text-align: center;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* each button carries its own slice of the underline, and they sit flush,
+   so the line reads as one rule across the whole row */
+.tab {
+  flex: 1 1 auto;
+  padding: 0 14px 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  background: none;
+  color: var(--ink-40);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+
+.tab:hover { color: var(--ink-60); }
+
+.tab[aria-selected="true"] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+
+/* ---------- a single offer, centred ---------- */
+
+.offer {
+  padding: clamp(32px, 5.5vh, 64px) 0 0;
+  animation: offerIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.offer[hidden] { display: none; }
+
+@keyframes offerIn {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+.offer__title {
+  margin: 0 auto;
+  max-width: 20ch;
+  font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  line-height: 1.15;
+}
+
+.offer__text {
+  margin: 18px auto 0;
+  max-width: 56ch;
+  font-size: clamp(0.95rem, 1.15vw, 1.05rem);
+  line-height: 1.65;
+  color: var(--ink-60);
+}
+
+.offer__list {
+  margin: 26px auto 0;
+  padding: 0;
+  max-width: 54ch;
+  list-style: none;
+}
+
+.offer__list li {
+  margin-bottom: 8px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-60);
+}
+
+/* the partnership examples are paragraphs, not one-liners */
+.offer__list--long {
+  max-width: 58ch;
+  text-align: left;
+}
+
+.offer__list--long li {
+  position: relative;
+  margin-bottom: 14px;
+  padding-left: 20px;
+}
+
+.offer__list--long li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.66em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.offer__list b { color: var(--ink); font-weight: 600; }
+
+.offer__note {
+  margin: 22px auto 0;
+  max-width: 54ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-40);
+}
+
+.offer__price {
+  margin: clamp(30px, 5vh, 52px) auto 0;
+  padding-top: clamp(24px, 4vh, 36px);
+  max-width: 44ch;
+  border-top: 1px solid var(--hairline);
+}
+
+.offer__price-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.offer__price-value {
+  margin: 12px 0 0;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.offer__price-note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-40);
+}
+
+/* ---------- how payment works ---------- */
+
+.currency {
+  max-width: 640px;
+  margin: clamp(56px, 10vh, 110px) auto 0;
+  padding: 0 var(--edge);
+  text-align: center;
+}
+
+.currency__label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.currency__lead {
+  margin: 14px 0 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+}
+
+.currency__text {
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-60);
+}
+
+.currency__text b { color: var(--ink); font-weight: 600; }
+
+.currency__terms {
+  margin: 22px auto 0;
+  padding: 14px 20px;
+  max-width: 52ch;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* ---------- agreement ---------- */
+
+.agreement {
+  max-width: 1080px;
+  margin: clamp(56px, 11vh, 120px) auto 0;
+  padding: clamp(32px, 5vh, 56px) var(--edge) 0;
+  border-top: 1px solid var(--hairline);
+  text-align: center;
+}
+
+.agreement__eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.agreement__title {
+  margin: 14px 0 0;
+  font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.agreement__lead {
+  margin: 18px auto 0;
+  max-width: 56ch;
+  font-size: clamp(1rem, 1.3vw, 1.15rem);
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+/* chapter outline */
+
+.toc {
+  margin: clamp(26px, 4vh, 40px) auto 0;
+  max-width: 760px;
+}
+
+.toc__label {
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.toc__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: toc;
+}
+
+.toc__list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--ink-60);
+  text-decoration: none;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.toc__list a::before {
+  counter-increment: toc;
+  content: counter(toc);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-40);
+}
+
+.toc__list a:hover {
+  color: var(--ink);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* the sticky nav must not cover a jumped-to chapter */
+.doc h3 { scroll-margin-top: calc(var(--nav-h) + 24px); }
+
+/* the document body itself */
+.doc {
+  max-width: 72ch;
+  margin: clamp(28px, 4vh, 44px) auto 0;
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink-60);
+}
+
+.doc h3 {
+  margin: 44px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.doc h4 {
+  margin: 26px 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.doc p { margin: 12px 0 0; }
+
+.doc ul {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
+
+.doc li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.68em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.doc b { color: var(--ink); font-weight: 600; }
+
+/* ---------- contact ---------- */
+
+.contact {
+  max-width: 900px;
+  margin: clamp(56px, 11vh, 120px) auto 0;
+  padding: clamp(40px, 7vh, 80px) var(--edge) 0;
+  border-top: 1px solid var(--hairline);
+  text-align: center;
+}
+
+.contact__label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.contact__email {
+  display: inline-block;
+  margin: 18px 0 0;
+  font-size: clamp(1.35rem, 4.4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--ink);
+  text-decoration: none;
+  word-break: break-word;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+  transition: border-color 200ms ease;
+}
+
+.contact__email:hover { border-bottom-color: var(--ink); }
+
+.contact__note {
+  margin: 22px 0 0;
+  font-size: 15px;
+  color: var(--ink-40);
+}
+
+/* ---------- narrow ---------- */
+
+@media (max-width: 620px) {
+  .tab {
+    flex: 1 1 40%;
+    padding: 0 8px 12px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    white-space: normal;
+  }
+}
+
+/* ============================================================
+   Route transition — the mark floods the screen, then lifts away
+   ============================================================ */
+
+.swipe {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: #000;
+  clip-path: circle(0% at 50% 118%);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.swipe[data-state="cover"],
+.swipe[data-state="uncover"] {
+  visibility: visible;
+  pointer-events: auto;   /* swallow clicks mid-swap */
+}
+
+.swipe[data-state="cover"] {
+  clip-path: circle(145% at 50% 50%);
+  transition: clip-path 480ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.swipe[data-state="uncover"] {
+  clip-path: circle(0% at 50% -28%);
+  transition: clip-path 620ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.swipe__mark {
+  width: clamp(84px, 11vw, 158px);
+  height: auto;
+  color: #fff;
+  opacity: 0;
+  transform: translate3d(0, 26px, 0) scale(0.74);
+}
+
+.swipe[data-state="cover"] .swipe__mark {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 280ms ease 60ms,
+    transform 560ms cubic-bezier(0.16, 1, 0.3, 1) 40ms;
+}
+
+.swipe[data-state="uncover"] .swipe__mark {
+  opacity: 0;
+  transform: scale(1.3) translate3d(0, -12vh, 0);
+  transition:
+    opacity 320ms ease 60ms,
+    transform 620ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe, .swipe__mark { transition: none; }
+  .offer { animation: none; }
+  .pyb-hero__arrow { animation: none; }
+}
