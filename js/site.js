@@ -571,7 +571,7 @@
     if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
 
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
-    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); buildAgreeRing(); }
     if (stage === 3 && word) {
       word.classList.remove('is-selecting', 'is-clearing');
       void word.offsetWidth;
@@ -674,7 +674,7 @@
     if (route !== 'pyb') return;
     buildHint();
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
-    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); buildAgreeRing(); }
   });
 
   window.__fitOffers = fitOffers;
@@ -906,7 +906,7 @@
     if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
 
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
-    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); buildAgreeRing(); }
     if (stage === 3 && word) {
       word.classList.remove('is-selecting', 'is-clearing');
       void word.offsetWidth;
@@ -1009,7 +1009,7 @@
     if (route !== 'pyb') return;
     buildHint();
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
-    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); buildAgreeRing(); }
   });
 
   window.__fitOffers = fitOffers;
@@ -1072,6 +1072,67 @@
     agreeBtn.addEventListener('click', function () { setStage(3, 'seal'); });
   }
 
+  /* The hover ring is a pill traced from the top centre, clockwise, back to
+     the top centre - so the stroke draws away from and returns to the same
+     point. Built from the measured box, since the button's width follows
+     its text. */
+  function buildAgreeRing() {
+    var svg = document.getElementById('agreeRing');
+    if (!svg || !agreeBtn) return;
+
+    var path = svg.querySelector('path');
+
+    /* Take the svg out of flow before measuring. While it is still an
+       in-flow child it pads the button out by its own width, and the ring
+       gets built around a box twice the size it should be. */
+    svg.style.position = 'absolute';
+    svg.style.pointerEvents = 'none';
+    svg.style.overflow = 'visible';
+
+    var b = agreeBtn.getBoundingClientRect();
+    if (b.width <= 0 || b.height <= 0) return;
+
+    var gap = 9;                       // distance from the button's edge
+    var w = b.width + gap * 2;
+    var h = b.height + gap * 2;
+    var r = h / 2;
+    var cx = w / 2;
+
+    /* Size and place the box here rather than in CSS. An <svg> with no
+       explicit box falls back to 300x150, and if the stylesheet has not
+       landed yet the ring is built against that instead of the button -
+       which draws an enormous pill across the page. */
+    svg.setAttribute('width', w.toFixed(1));
+    svg.setAttribute('height', h.toFixed(1));
+    svg.setAttribute('viewBox', '0 0 ' + w.toFixed(1) + ' ' + h.toFixed(1));
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.style.left = -gap + 'px';
+    svg.style.top = -gap + 'px';
+    svg.style.width = w.toFixed(1) + 'px';
+    svg.style.height = h.toFixed(1) + 'px';
+
+    // traced from the top centre, clockwise, back to the top centre
+    path.setAttribute('d',
+      'M' + cx.toFixed(1) + ' 0' +
+      ' H' + (w - r).toFixed(1) +
+      ' A' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 0 1 ' + (w - r).toFixed(1) + ' ' + h.toFixed(1) +
+      ' H' + r.toFixed(1) +
+      ' A' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 0 1 ' + r.toFixed(1) + ' 0' +
+      ' H' + cx.toFixed(1));
+
+    // px matters: stroke-dashoffset takes a length, and a bare number is
+    // invalid there, so it computes to 0 and leaves the ring drawn
+    var len = path.getTotalLength().toFixed(1) + 'px';
+
+    // land it without animating, or the ring draws itself once on load
+    path.style.transition = 'none';
+    svg.style.setProperty('--ring-len', len);
+    path.getBoundingClientRect();
+    window.requestAnimationFrame(function () { path.style.transition = ''; });
+  }
+
+  window.addEventListener('resize', buildAgreeRing);
+
   function resetDeck() {
     stage = 0;
     body.setAttribute('data-stage', '0');
@@ -1122,4 +1183,5 @@
   paintRoute();
   paintView();
   resetDeck();
+  buildAgreeRing();
 })();
