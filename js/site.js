@@ -443,51 +443,30 @@
     };
   }
 
+  /* Three octaves of wander summed together. A sum of sinusoids is smooth
+     everywhere by construction, so the line never corners - the randomness
+     lives in the frequencies and phases rather than in the turns. */
   function freehand(w, h) {
     var rand = rng(railSeed);
     var cx   = w / 2;
-    var maxA = (w / 2) - 2.5;
+    var maxA = (w / 2) - 3;
+    var base = Math.PI * 2 / Math.max(300, h * 0.62);   // longest wave
 
-    var pts = [[cx + (rand() - 0.5) * maxA * 0.4, 0]];
-    var dir = rand() < 0.5 ? -1 : 1;
-    var y   = 0;
+    var waves = [
+      { a: 0.62, f: base * (0.85 + rand() * 0.45), p: rand() * Math.PI * 2 },
+      { a: 0.27, f: base * (1.70 + rand() * 0.80), p: rand() * Math.PI * 2 },
+      { a: 0.11, f: base * (3.10 + rand() * 1.30), p: rand() * Math.PI * 2 }
+    ];
 
-    // turn length scales with the lane so a wide squiggle sweeps rather
-    // than zigzags, with a floor so a narrow phone lane still wanders
-    var run = Math.max(h * 0.11, maxA * 0.85);
-
-    while (y < h - 6) {
-      y = Math.min(h, y + run * (0.75 + rand() * 0.9));
-
-      var x;
-      if (rand() < 0.2) {
-        x = cx + (rand() - 0.5) * maxA * 0.5;         // sometimes just wanders
-      } else {
-        x = cx + dir * maxA * (0.45 + rand() * 0.55); // otherwise swings over
-        dir *= -1;
+    var d = '';
+    for (var y = 0; y <= h; y += 5) {
+      var o = 0;
+      for (var i = 0; i < waves.length; i++) {
+        o += waves[i].a * Math.sin(y * waves[i].f + waves[i].p);
       }
-      pts.push([Math.max(2, Math.min(w - 2, x)), y]);
+      d += (y === 0 ? 'M' : 'L') + (cx + maxA * o).toFixed(2) + ' ' + y.toFixed(2) + ' ';
     }
-    if (pts[pts.length - 1][1] < h) pts.push([cx + (rand() - 0.5) * maxA * 0.5, h]);
-
-    // Catmull-Rom through the points, emitted as cubic beziers
-    var d = 'M' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
-    for (var i = 0; i < pts.length - 1; i++) {
-      var p0 = pts[i - 1] || pts[i];
-      var p1 = pts[i];
-      var p2 = pts[i + 1];
-      var p3 = pts[i + 2] || p2;
-
-      var c1x = p1[0] + (p2[0] - p0[0]) / 6;
-      var c1y = p1[1] + (p2[1] - p0[1]) / 6;
-      var c2x = p2[0] - (p3[0] - p1[0]) / 6;
-      var c2y = p2[1] - (p3[1] - p1[1]) / 6;
-
-      d += ' C' + c1x.toFixed(2) + ' ' + c1y.toFixed(2) +
-           ' '  + c2x.toFixed(2) + ' ' + c2y.toFixed(2) +
-           ' '  + p2[0].toFixed(2) + ' ' + p2[1].toFixed(2);
-    }
-    return d;
+    return d.trim();
   }
 
   function buildRail() {
@@ -523,7 +502,7 @@
       // sit the dot on the line wherever it happens to be at that height
       var onLine = railLine.getPointAtLength(railLine.getTotalLength() * at);
       mark.style.setProperty('--x', onLine.x.toFixed(2) + 'px');
-      mark.innerHTML = '<i></i><span>' + section.getAttribute('data-rail') + '</span>';
+      mark.innerHTML = '<i></i>';
       railMarks.appendChild(mark);
       railItems.push({ el: mark, at: at });
     });
@@ -581,18 +560,22 @@
     return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   }
 
+  var freeFrom = Infinity;             // past the last stop, scrolling is normal
+
   function buildSteps() {
     var els = document.querySelectorAll('#route-pyb [data-step]');
     var top = maxScroll();
 
-    steps = Array.prototype.map.call(els, function (el) {
-      return Math.min(top, Math.max(0, el.offsetTop - 96));
+    steps = [0];
+    Array.prototype.forEach.call(els, function (el) {
+      steps.push(Math.min(top, Math.max(0, el.offsetTop - 96)));
     });
-    steps.push(top);                     // the foot of the page is a stop too
     steps.sort(function (a, b) { return a - b; });
-
-    // drop stops that sit almost on top of each other
     steps = steps.filter(function (y, i) { return i === 0 || y - steps[i - 1] > 40; });
+
+    // the agreement is the last stop: once you are reading it, and all the
+    // way down through the contact block, the wheel behaves normally again
+    freeFrom = steps.length ? steps[steps.length - 1] : Infinity;
   }
 
   function easeInOutCubic(t) {
@@ -628,15 +611,24 @@
     trip.raf = window.requestAnimationFrame(tripStep);
   }
 
-  function travel(dir) {
+  /* true while the wheel should still be hopping between sections */
+  function stepping(dir) {
     if (!steps.length) buildSteps();
+    var y = window.scrollY;
 
+    // heading down: stop stepping once the last stop is reached
+    if (dir > 0) return y < freeFrom - 12;
+    // heading up: free until back at the last stop, then step again
+    return y <= freeFrom + 12;
+  }
+
+  function travel(dir) {
     var y = window.scrollY;
     var next;
 
     if (dir > 0) {
       next = steps.find(function (s) { return s > y + 12; });
-      if (next === undefined) next = maxScroll();
+      if (next === undefined) return;
     } else {
       for (var i = steps.length - 1; i >= 0; i--) {
         if (steps[i] < y - 12) { next = steps[i]; break; }
@@ -649,19 +641,24 @@
   window.addEventListener('wheel', function (e) {
     if (reduced || route !== 'pyb') return;
     if (e.ctrlKey) return;                          // pinch zoom
-    e.preventDefault();
-
-    if (trip.running || Date.now() < tripCooldown) return;
     if (Math.abs(e.deltaY) < 4) return;
 
-    travel(e.deltaY > 0 ? 1 : -1);
+    var dir = e.deltaY > 0 ? 1 : -1;
+    if (!stepping(dir)) return;                     // let the page scroll itself
+
+    e.preventDefault();
+    if (trip.running || Date.now() < tripCooldown) return;
+
+    travel(dir);
   }, { passive: false });
 
   window.addEventListener('keydown', function (e) {
     if (reduced || route !== 'pyb') return;
     if (e.key === 'PageDown' || e.key === 'PageUp') {
+      var dir = e.key === 'PageDown' ? 1 : -1;
+      if (!stepping(dir)) return;
       e.preventDefault();
-      travel(e.key === 'PageDown' ? 1 : -1);
+      travel(dir);
     }
   });
 
