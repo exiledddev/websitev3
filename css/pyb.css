@@ -848,6 +848,11 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  /* Reserve the scrollbar on both sides. Without this, a layer that
+     overflows shifts its content left by the scrollbar's width while the
+     hero - which sits outside the scroller - stays on the true centre, and
+     the two no longer line up. */
+  scrollbar-gutter: stable both-edges;
 }
 
 /* stage 1 starts below the shrunken hero */
