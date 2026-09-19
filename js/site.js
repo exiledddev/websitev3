@@ -571,7 +571,7 @@
     if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
 
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
-    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); buildAgreeRing(); }
     if (stage === 3 && word) {
       word.classList.remove('is-selecting', 'is-clearing');
       void word.offsetWidth;
@@ -674,7 +674,7 @@
     if (route !== 'pyb') return;
     buildHint();
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
-    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); buildAgreeRing(); }
   });
 
   window.__fitOffers = fitOffers;
@@ -906,7 +906,7 @@
     if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
 
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
-    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); buildAgreeRing(); }
     if (stage === 3 && word) {
       word.classList.remove('is-selecting', 'is-clearing');
       void word.offsetWidth;
@@ -1009,7 +1009,7 @@
     if (route !== 'pyb') return;
     buildHint();
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
-    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); buildAgreeRing(); }
   });
 
   window.__fitOffers = fitOffers;
@@ -1072,6 +1072,46 @@
     agreeBtn.addEventListener('click', function () { setStage(3, 'seal'); });
   }
 
+  /* The hover ring is a pill traced from the top centre, clockwise, back to
+     the top centre - so the stroke draws away from and returns to the same
+     point. Built from the measured box, since the button's width follows
+     its text. */
+  function buildAgreeRing() {
+    var svg = document.getElementById('agreeRing');
+    if (!svg) return;
+
+    var path = svg.querySelector('path');
+    var box = svg.getBoundingClientRect();
+    var w = box.width;
+    var h = box.height;
+    if (w <= 0 || h <= 0) return;
+
+    var r = h / 2;
+    var cx = w / 2;
+
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    path.setAttribute('d',
+      'M' + cx.toFixed(1) + ' 0' +
+      ' H' + (w - r).toFixed(1) +
+      ' A' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 0 1 ' + (w - r).toFixed(1) + ' ' + h.toFixed(1) +
+      ' H' + r.toFixed(1) +
+      ' A' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 0 1 ' + r.toFixed(1) + ' 0' +
+      ' H' + cx.toFixed(1));
+
+    // the px matters: stroke-dashoffset takes a length, and a bare number
+    // is invalid there, so it would compute to 0 and leave the ring drawn
+    var len = path.getTotalLength().toFixed(1) + 'px';
+
+    // land the length without animating it, or the ring draws itself once
+    // on load as the value moves off its fallback
+    path.style.transition = 'none';
+    svg.style.setProperty('--ring-len', len);
+    path.getBoundingClientRect();
+    window.requestAnimationFrame(function () { path.style.transition = ''; });
+  }
+
+  window.addEventListener('resize', buildAgreeRing);
+
   function resetDeck() {
     stage = 0;
     body.setAttribute('data-stage', '0');
@@ -1122,4 +1162,5 @@
   paintRoute();
   paintView();
   resetDeck();
+  buildAgreeRing();
 })();
