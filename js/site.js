@@ -424,22 +424,65 @@
   var railLen   = 0;
   var railTick  = 0;
 
-  /* a sine running down the rail, sampled into a path */
-  function squiggle(w, h) {
-    var cx   = w / 2;
-    var amp  = (w / 2) - 3;
-    var wave = 74;                       // px per full wobble
-    var d    = '';
+  /* A freehand squiggle down the rail: segment lengths and amplitudes both
+     wander, it occasionally drifts back near the middle instead of turning,
+     and the points are smoothed through with Catmull-Rom so it reads as
+     drawn rather than plotted. Seeded once per load, so a resize rebuilds
+     the same line instead of reshuffling it. */
+  var railSeed = Math.floor(Math.random() * 1e9);
 
-    for (var y = 0; y <= h; y += 4) {
-      var x = cx + Math.sin((y / wave) * Math.PI * 2) * amp;
-      d += (y === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
-    }
-    return { d: d.trim(), cx: cx, amp: amp, wave: wave };
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a += 0x6D2B79F5;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
   }
 
-  function railX(y, sq) {
-    return sq.cx + Math.sin((y / sq.wave) * Math.PI * 2) * sq.amp;
+  function freehand(w, h) {
+    var rand = rng(railSeed);
+    var cx   = w / 2;
+    var maxA = (w / 2) - 2.5;
+
+    var pts = [[cx + (rand() - 0.5) * maxA * 0.4, 0]];
+    var dir = rand() < 0.5 ? -1 : 1;
+    var y   = 0;
+
+    while (y < h - 6) {
+      y = Math.min(h, y + 34 + rand() * 62);          // uneven segments
+
+      var x;
+      if (rand() < 0.2) {
+        x = cx + (rand() - 0.5) * maxA * 0.5;         // sometimes just wanders
+      } else {
+        x = cx + dir * maxA * (0.45 + rand() * 0.55); // otherwise swings over
+        dir *= -1;
+      }
+      pts.push([Math.max(2, Math.min(w - 2, x)), y]);
+    }
+    if (pts[pts.length - 1][1] < h) pts.push([cx + (rand() - 0.5) * maxA * 0.5, h]);
+
+    // Catmull-Rom through the points, emitted as cubic beziers
+    var d = 'M' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[i - 1] || pts[i];
+      var p1 = pts[i];
+      var p2 = pts[i + 1];
+      var p3 = pts[i + 2] || p2;
+
+      var c1x = p1[0] + (p2[0] - p0[0]) / 6;
+      var c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      var c2x = p2[0] - (p3[0] - p1[0]) / 6;
+      var c2y = p2[1] - (p3[1] - p1[1]) / 6;
+
+      d += ' C' + c1x.toFixed(2) + ' ' + c1y.toFixed(2) +
+           ' '  + c2x.toFixed(2) + ' ' + c2y.toFixed(2) +
+           ' '  + p2[0].toFixed(2) + ' ' + p2[1].toFixed(2);
+    }
+    return d;
   }
 
   function buildRail() {
@@ -448,13 +491,14 @@
     var box = rail.getBoundingClientRect();
     if (box.height <= 0) return;
 
-    var sq = squiggle(box.width, box.height);
+    var d = freehand(box.width, box.height);
     railSvg.setAttribute('viewBox', '0 0 ' + box.width + ' ' + box.height);
-    railSvg.querySelector('.rail__track').setAttribute('d', sq.d);
-    railLine.setAttribute('d', sq.d);
+    railSvg.querySelector('.rail__track').setAttribute('d', d);
+    railLine.setAttribute('d', d);
 
     railLen = railLine.getTotalLength();
     railLine.style.strokeDasharray = railLen;
+    railLine.style.strokeDashoffset = railLen;
 
     railMarks.innerHTML = '';
     railItems = [];
@@ -471,7 +515,9 @@
       var mark = document.createElement('div');
       mark.className = 'rail__mark';
       mark.style.setProperty('--at', at.toFixed(4));
-      mark.style.setProperty('--x', railX(at * box.height, sq).toFixed(2) + 'px');
+      // sit the dot on the line wherever it happens to be at that height
+      var onLine = railLine.getPointAtLength(railLine.getTotalLength() * at);
+      mark.style.setProperty('--x', onLine.x.toFixed(2) + 'px');
       mark.innerHTML = '<i></i><span>' + section.getAttribute('data-rail') + '</span>';
       railMarks.appendChild(mark);
       railItems.push({ el: mark, at: at });

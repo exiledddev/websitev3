@@ -807,10 +807,10 @@
 
 .rail {
   position: fixed;
-  left: clamp(10px, 2vw, 26px);
+  left: clamp(8px, 1.8vw, 24px);
   top: calc(var(--nav-h) + 40px);
   bottom: 48px;
-  width: 22px;
+  width: 30px;
   z-index: 4;
   opacity: 0;
   pointer-events: none;
