@@ -761,13 +761,20 @@
 
 body[data-stage="1"] .deck__hero {
   top: 0;
-  transform: translateY(clamp(6px, 1.4vh, 16px)) scale(0.34);
+  transform: translateY(clamp(6px, 1.4vh, 16px)) scale(var(--hero-scale, 0.34));
+}
+
+/* one line so it can stay bigger; the scale that makes it fit is measured
+   in js/site.js, because it depends on the viewport width */
+body[data-stage="1"] .deck__hero .pyb-hero__title {
+  max-width: none;
+  white-space: nowrap;
 }
 
 body[data-stage="2"] .deck__hero,
 body[data-stage="3"] .deck__hero {
   top: 0;
-  transform: translateY(-14vh) scale(0.4);
+  transform: translateY(-9vh) scale(var(--hero-scale, 0.34));
   opacity: 0;
   pointer-events: none;
 }
@@ -810,17 +817,23 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   opacity: 0;
   visibility: hidden;
   transform: translate3d(0, 40px, 0) scale(0.985);
+  /* leaving: starts at once and is gone quickly */
   transition:
-    opacity 520ms cubic-bezier(0.16, 1, 0.3, 1) 140ms,
-    transform 700ms cubic-bezier(0.16, 1, 0.3, 1) 140ms,
-    visibility 0s linear 760ms;
+    opacity 300ms cubic-bezier(0.4, 0, 1, 1),
+    transform 420ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 420ms;
 }
 
 .deck__layer.is-live {
   opacity: 1;
   visibility: visible;
   transform: none;
-  transition-delay: 140ms, 140ms, 0s;
+  /* arriving: overlaps the tail of the outgoing one, so there is no gap
+     of black between the two */
+  transition:
+    opacity 560ms cubic-bezier(0.16, 1, 0.3, 1) 200ms,
+    transform 760ms cubic-bezier(0.16, 1, 0.3, 1) 200ms,
+    visibility 0s linear 0s;
 }
 
 /* a layer that has been left behind drops away downward */
@@ -901,10 +914,13 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   justify-content: center;
   padding: 0 clamp(20px, 3vw, 34px);
   height: 54px;
-  border: 1px solid rgb(var(--glow));
+  border: 1px solid rgba(var(--glow), 0.55);
   border-radius: 999px;
-  background: rgba(var(--glow), 0.12);
-  color: #8CFFD0;
+  /* glass: the agreement stays visible through it */
+  background: rgba(var(--glow), 0.13);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+          backdrop-filter: blur(16px) saturate(150%);
+  color: #B6FFE2;
   font: inherit;
   font-size: clamp(0.9rem, 1.4vw, 1.02rem);
   font-weight: 700;
@@ -912,7 +928,8 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   cursor: pointer;
   box-shadow:
     0 0 18px rgba(var(--glow), 0.34),
-    inset 0 0 22px rgba(var(--glow), 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 22px rgba(var(--glow), 0.10);
   animation: agreeGlow 2.6s ease-in-out infinite;
   transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
 }
@@ -1004,9 +1021,9 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 
 .doc-seal {
   position: absolute;
-  left: clamp(10px, 2.4vw, 42px);
+  left: var(--doc-left, 42px);
   top: 50%;
-  width: clamp(28px, 3.4vw, 46px);
+  width: clamp(26px, 3vw, 40px);
   height: auto;
   transform: translateY(-50%);
   color: var(--accent);
@@ -1018,7 +1035,7 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 
 .doc-track {
   position: absolute;
-  right: clamp(12px, 2.6vw, 46px);
+  left: var(--doc-right, calc(100% - 46px));
   top: clamp(40px, 9vh, 96px);
   bottom: clamp(40px, 9vh, 96px);
   width: 2px;
@@ -1052,20 +1069,19 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 
 .doc-track__mark {
   position: absolute;
-  right: 0;
+  left: 0;
   top: calc(var(--at) * 100%);
   display: flex;
   align-items: center;
   gap: 9px;
-  transform: translateY(-50%);
+  transform: translate(-3.5px, -50%);
 }
 
 .doc-track__mark b {
-  order: 1;
   display: block;
+  flex: none;
   width: 9px;
   height: 9px;
-  margin-right: -3.5px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.2);
   background: #000;
@@ -1093,11 +1109,7 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 }
 
 /* the document itself gets out of the chrome's way */
-.deck__layer--doc .agreement,
-.deck__layer--doc .agree {
-  padding-left: clamp(54px, 7vw, 110px);
-  padding-right: clamp(54px, 7vw, 110px);
-}
+
 
 /* ---------- the gate, pinned to the foot of the layer ---------- */
 
@@ -1107,25 +1119,23 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   margin-top: clamp(30px, 6vh, 64px);
   padding-top: clamp(20px, 3.4vh, 34px);
   padding-bottom: clamp(18px, 3vh, 30px);
-  border-top: 1px solid var(--hairline);
-  background: #000;
+  background: none;
+  border: 0;
   z-index: 3;
+  pointer-events: none;      /* the document still scrolls behind it */
 }
 
-/* a scrim above the bar so the document fades out under it rather than
-   colliding with it */
-.agree::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  height: clamp(40px, 7vh, 80px);
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000 92%);
-  pointer-events: none;
-}
+.agree > * { pointer-events: auto; }
 
-.agree__note { margin-top: 12px; }
+.agree__note {
+  margin-top: 12px;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+}
 
 /* ============================================================
    Contact stage

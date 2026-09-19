@@ -456,6 +456,49 @@
     els.forEach(function (el) { el.classList.add('is-in'); });
   }
 
+  /* The hero is one line at stage 1, so the scale that makes it fit depends
+     on the viewport width. Measure it, then hand the offers layer the room
+     the hero actually takes rather than a guessed padding. */
+  function fitHero() {
+    var hero  = document.getElementById('deckHero');
+    var title = hero && hero.querySelector('.pyb-hero__title');
+    var offers = layers[1] && layers[1].querySelector('.deck__scroll');
+    if (!hero || !title) return;
+
+    // offsetWidth is the untransformed layout width, so it is safe to read
+    // while the hero is mid-scale
+    var natural = title.offsetWidth;
+    var room = window.innerWidth * 0.86;
+    var scale = natural > 0 ? Math.min(0.42, room / natural) : 0.34;
+
+    hero.style.setProperty('--hero-scale', scale.toFixed(4));
+
+    if (offers) {
+      /* Work the headline's foot out from layout numbers rather than
+         measuring: the hero is mid-transition when this runs, so a
+         getBoundingClientRect here reads an intermediate size. The hero
+         scales from its own top, so untransformed offsets scale linearly. */
+      var lift = Math.min(16, Math.max(6, window.innerHeight * 0.014));
+      var foot = lift + (title.offsetTop + title.offsetHeight) * scale;
+
+      offers.style.paddingTop =
+        Math.round(foot + Math.max(24, window.innerHeight * 0.04)) + 'px';
+    }
+  }
+
+  /* the seal and the chapter track belong beside the text column */
+  function fitDocChrome() {
+    var layer = layers[2];
+    var doc   = layer && layer.querySelector('.doc');
+    if (!layer || !doc) return;
+
+    var lr = layer.getBoundingClientRect();
+    var dr = doc.getBoundingClientRect();
+
+    layer.style.setProperty('--doc-left',  Math.round(dr.left - lr.left - 58) + 'px');
+    layer.style.setProperty('--doc-right', Math.round(dr.right - lr.left + 34) + 'px');
+  }
+
   function setStage(n) {
     n = Math.max(0, Math.min(3, n));
     if (n === stage) return;
@@ -473,7 +516,8 @@
     var scroller = layers[stage] && layers[stage].querySelector('.deck__scroll');
     if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
 
-    if (stage === 2) { buildDocTrack(); paintDocTrack(); }
+    if (stage === 1) fitHero();
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
     if (stage === 3 && word) {
       word.classList.remove('is-in');
       void word.offsetWidth;
@@ -552,7 +596,8 @@
   window.addEventListener('resize', function () {
     if (route !== 'pyb') return;
     buildHint();
-    if (stage === 2) { buildDocTrack(); paintDocTrack(); }
+    if (stage === 1) fitHero();
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
   });
 
   /* ---------- the agreement's chapter track ---------- */
