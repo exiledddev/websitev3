@@ -396,6 +396,8 @@
 
   var stage = 0;
   var stageLock = 0;
+  var selectIn = 0;
+  var selectOut = 0;
 
   /* what animates in when a stage arrives */
   var ENTERS = {
@@ -500,7 +502,7 @@
   /* Stage changes play a quick mark wipe instead of a crossfade; agreeing
      gets the longer one. Both drive the same overlay. */
   var WIPES = {
-    fast: { klass: 'swipe--fast', cover: 230, hold: 60,  uncover: 290 },
+    fast: { klass: 'swipe--fast', cover: 400, hold: 120, uncover: 520 },
     seal: { klass: 'swipe--seal', cover: 620, hold: 420, uncover: 700 }
   };
 
@@ -551,9 +553,21 @@
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
     if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
     if (stage === 3 && word) {
-      word.classList.remove('is-in');
+      word.classList.remove('is-in', 'is-selected');
       void word.offsetWidth;
       word.classList.add('is-in');
+
+      // once the letters have landed, flash it as if it were selected
+      window.clearTimeout(selectIn);
+      window.clearTimeout(selectOut);
+      if (!reduced) {
+        selectIn = window.setTimeout(function () {
+          word.classList.add('is-selected');
+          selectOut = window.setTimeout(function () {
+            word.classList.remove('is-selected');
+          }, 1000);
+        }, 1150);
+      }
     }
 
     playEnters(stage);
