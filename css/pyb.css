@@ -501,6 +501,7 @@
   place-items: center;
   background: #000;
   clip-path: circle(0% at 50% 118%);
+  opacity: 0;
   visibility: hidden;
   pointer-events: none;
 }
@@ -513,12 +514,18 @@
 
 .swipe[data-state="cover"] {
   clip-path: circle(145% at 50% 50%);
-  transition: clip-path 480ms cubic-bezier(0.65, 0, 0.35, 1);
+  opacity: 1;
+  transition:
+    clip-path 480ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 200ms ease;
 }
 
 .swipe[data-state="uncover"] {
   clip-path: circle(0% at 50% -28%);
-  transition: clip-path 620ms cubic-bezier(0.76, 0, 0.24, 1);
+  opacity: 0;
+  transition:
+    clip-path 620ms cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 420ms ease 200ms;
 }
 
 .swipe__mark {
@@ -657,36 +664,32 @@
 }
 
 .route--pyb.is-hinting .hint-burst b {
-  animation: burst 1700ms 1.12s infinite;
+  animation: burst 1500ms 1.12s forwards;
 }
 
 @keyframes burst {
   0% {
     opacity: 0;
     transform: translate3d(0, 0, 0) rotate(var(--r0, 0deg)) scale(0.5);
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-timing-function: cubic-bezier(0.1, 0.9, 0.3, 1);
   }
-  14% {
+  10% {
     opacity: 1;
     transform:
-      translate3d(calc(var(--dx) * 0.4), var(--lift, -16px), 0)
-      rotate(calc(var(--r0, 0deg) + 40deg)) scale(1);
-    /* from here on it is falling, and it never stops falling */
-    animation-timing-function: cubic-bezier(0.45, 0, 0.9, 0.5);
+      translate3d(calc(var(--dx) * 0.34), var(--lift, -16px), 0)
+      rotate(calc(var(--r0, 0deg) + 34deg)) scale(1);
+    /* and from here it is falling, accelerating, with no pause */
+    animation-timing-function: cubic-bezier(0.34, 0, 0.9, 0.42);
   }
-  70% {
-    opacity: 1;
-    transform:
-      translate3d(calc(var(--dx) * 0.85), calc(var(--fall, 240px) * 0.62), 0)
-      rotate(calc(var(--spin, 260deg) * 0.7)) scale(0.96);
-  }
+  88% { opacity: 1; }
   100% {
     opacity: 0;
     transform:
       translate3d(var(--dx), var(--fall, 240px), 0)
-      rotate(var(--spin, 260deg)) scale(0.9);
+      rotate(var(--spin, 260deg)) scale(0.86);
   }
 }
+
 
 /* the price keeps its own underline sweep */
 .offer__price-value::after {
@@ -1256,8 +1259,10 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   display: inline-block;
   opacity: 0;
   transform: translate3d(0, 0.5em, 0) rotate(6deg);
-  color: var(--accent);
-  text-shadow: 0 0 22px rgba(255, 46, 99, 0.6);
+  color: #4BFFB0;
+  text-shadow:
+    0 0 20px rgba(0, 214, 132, 0.75),
+    0 0 52px rgba(0, 214, 132, 0.4);
 }
 
 .is-live .contact__word.is-in span {
@@ -1306,11 +1311,15 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 /* --- fast: between stages --- */
 
 .swipe--fast[data-state="cover"] {
-  transition: clip-path 230ms cubic-bezier(0.65, 0, 0.35, 1);
+  transition:
+    clip-path 230ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 150ms ease;
 }
 
 .swipe--fast[data-state="uncover"] {
-  transition: clip-path 290ms cubic-bezier(0.76, 0, 0.24, 1);
+  transition:
+    clip-path 290ms cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 240ms ease 60ms;
 }
 
 .swipe--fast .swipe__mark { width: clamp(52px, 6vw, 96px); }
@@ -1328,12 +1337,13 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
     transform 290ms cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-/* --- seal: the one you get for agreeing --- */
+/* --- seal: the button becomes the transition --- */
 
 .swipe--seal {
   background:
-    radial-gradient(circle at 50% 50%, rgba(0, 214, 132, 0.16) 0%, transparent 58%),
-    #000;
+    radial-gradient(circle at var(--seal-x, 50%) var(--seal-y, 50%),
+      rgba(0, 214, 132, 0.22) 0%, rgba(0, 32, 20, 0.9) 45%, #000 72%);
+  clip-path: circle(0% at var(--seal-x, 50%) var(--seal-y, 50%));
 }
 
 .swipe--seal .swipe__mark {
@@ -1343,40 +1353,61 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
     drop-shadow(0 0 60px rgba(0, 214, 132, 0.5));
 }
 
+/* grows out of where the button was */
 .swipe--seal[data-state="cover"] {
-  transition: clip-path 520ms cubic-bezier(0.65, 0, 0.35, 1);
+  clip-path: circle(150% at var(--seal-x, 50%) var(--seal-y, 50%));
+  opacity: 1;
+  transition:
+    clip-path 620ms cubic-bezier(0.62, 0, 0.3, 1),
+    opacity 160ms ease;
 }
 
 .swipe--seal[data-state="cover"] .swipe__mark {
   transform: scale(1);
   transition:
-    opacity 260ms ease,
-    transform 620ms cubic-bezier(0.34, 1.4, 0.4, 1);   /* lands with a kick */
+    opacity 300ms ease 180ms,
+    transform 640ms cubic-bezier(0.34, 1.35, 0.4, 1) 140ms;
 }
 
 .swipe--seal[data-state="cover"] .swipe__ring {
-  animation: sealRing 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms 2;
+  left: var(--seal-x, 50%);
+  top: var(--seal-y, 50%);
+  animation: sealRing 1000ms cubic-bezier(0.16, 1, 0.3, 1) 140ms 2;
 }
 
-/* then the whole thing is pulled away through the mark */
+/* then the mark shrinks away and takes the green with it */
 .swipe--seal[data-state="uncover"] {
   clip-path: circle(0% at 50% 50%);
-  transition: clip-path 620ms cubic-bezier(0.76, 0, 0.24, 1);
+  opacity: 0;
+  transition:
+    clip-path 700ms cubic-bezier(0.7, 0, 0.25, 1),
+    opacity 300ms ease 400ms;
 }
 
 .swipe--seal[data-state="uncover"] .swipe__mark {
   opacity: 0;
-  transform: scale(14);
+  transform: scale(0.12);
   transition:
-    opacity 420ms ease 120ms,
-    transform 620ms cubic-bezier(0.7, 0, 0.3, 1);
+    opacity 360ms ease 260ms,
+    transform 700ms cubic-bezier(0.7, 0, 0.25, 1);
 }
 
 @keyframes sealRing {
   0%   { opacity: 0;   transform: scale(0.2); border-width: 3px; }
   12%  { opacity: 0.9; }
-  100% { opacity: 0;   transform: scale(22);  border-width: 1px; }
+  100% { opacity: 0;   transform: scale(24);  border-width: 1px; }
 }
+
+/* the button itself swells into the circle as it goes */
+.agree__btn.is-morphing {
+  transform: scale(2.6);
+  opacity: 0;
+  transition:
+    transform 520ms cubic-bezier(0.62, 0, 0.3, 1),
+    opacity 380ms ease;
+}
+
+
 
 @media (prefers-reduced-motion: reduce) {
   .swipe--fast .swipe__mark,

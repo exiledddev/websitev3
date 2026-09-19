@@ -385,6 +385,8 @@
      only move you cannot scroll into: it needs the agree button.
      ============================================================ */
 
+  var agreeBtn = document.getElementById('agreeBtn');   /* the gate */
+
   var STAGES = ['deckHero', 'stageOffers', 'stageDoc', 'stageContact'];
   var layers = {
     1: document.getElementById('stageOffers'),
@@ -499,7 +501,7 @@
      gets the longer one. Both drive the same overlay. */
   var WIPES = {
     fast: { klass: 'swipe--fast', cover: 230, hold: 60,  uncover: 290 },
-    seal: { klass: 'swipe--seal', cover: 520, hold: 380, uncover: 620 }
+    seal: { klass: 'swipe--seal', cover: 620, hold: 420, uncover: 700 }
   };
 
   function runWipe(kind, swap) {
@@ -507,6 +509,14 @@
 
     if (reduced || swiping) { swap(); return; }
     swiping = true;
+
+    if (kind === 'seal' && agreeBtn) {
+      // the circle opens from the button, so it reads as the button swelling
+      var r = agreeBtn.getBoundingClientRect();
+      swipe.style.setProperty('--seal-x', Math.round(r.left + r.width / 2) + 'px');
+      swipe.style.setProperty('--seal-y', Math.round(r.top + r.height / 2) + 'px');
+      agreeBtn.classList.add('is-morphing');
+    }
 
     swipe.classList.add(w.klass);
     swipe.setAttribute('data-state', 'cover');
@@ -518,6 +528,7 @@
       window.setTimeout(function () {
         swipe.setAttribute('data-state', 'idle');
         swipe.classList.remove(w.klass);
+        if (agreeBtn) agreeBtn.classList.remove('is-morphing');
         swiping = false;
       }, w.uncover);
     }, w.cover + w.hold);
@@ -694,8 +705,6 @@
     }).join('');
   }
 
-  /* the gate */
-  var agreeBtn = document.getElementById('agreeBtn');
   if (agreeBtn) {
     agreeBtn.addEventListener('click', function () { setStage(3, 'seal'); });
   }
