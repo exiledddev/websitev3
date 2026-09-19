@@ -47,11 +47,10 @@ body[data-swipe="uncover"] .page {
   transform: scale(0.985);
 }
 
-/* Home is one fixed screen with two swapping panels; Promote is an
-   ordinary scrolling document. */
-body[data-route="home"] .page { height: 100dvh; overflow: hidden; }
-body[data-route="home"][data-intro="done"] { overflow: hidden; }
-body[data-route="pyb"][data-intro="done"]  { overflow: auto; }
+/* Both routes are one fixed screen now: home swaps two panels, promote
+   runs a four-stage deck that scrolls inside its own layers. */
+.page { height: 100dvh; overflow: hidden; }
+body[data-intro="done"] { overflow: hidden; }
 
 .route[hidden] { display: none !important; }
 
@@ -64,7 +63,8 @@ body[data-route="pyb"][data-intro="done"]  { overflow: auto; }
   min-height: 0;
 }
 
-.route--home {
+.route--home,
+.route--pyb {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -191,7 +191,7 @@ body[data-route="pyb"] .nav__point { display: none; }
   min-height: 0;
 }
 
-body[data-route="pyb"] .routes { flex: none; }
+
 
 .panel {
   position: absolute;

@@ -87,42 +87,63 @@
     burst.style.top  = cy + 'px';
     paintBurst(burst, Math.max(96, g.width * 0.5));
 
-    // a curve across two different lines would slash through the type
-    if (Math.abs(w.top - g.top) > 4) {
-      fx.style.display = 'none';
-      return;
-    }
     fx.style.display = '';
-
     fx.setAttribute('width', t.width);
     fx.setAttribute('height', t.height + 90);
     fx.setAttribute('viewBox', '0 0 ' + t.width + ' ' + (t.height + 90));
 
-    // out and back: drops below the line from "engagement", swings right,
-    // and comes back up into "deserves"
+    var sameLine = Math.abs(w.top - g.top) < 4;
     var x0 = w.left - t.left + w.width * 0.45;
     var y0 = w.bottom - t.top + 6;
-    var x3 = g.left - t.left + g.width * 0.42;
-    var y3 = g.bottom - t.top + 7;
-    var dip = Math.max(24, g.height * 0.46);
+    var d;
 
-    var d = 'M' + x0 + ' ' + y0 +
-            ' C' + (x0 - dip * 0.55) + ' ' + (y0 + dip * 0.95) +
-            ' '  + (x3 - dip * 0.30) + ' ' + (y3 + dip * 1.15) +
-            ' '  + x3 + ' ' + y3;
+    if (sameLine) {
+      // out and back: drops below the line from "engagement", swings right,
+      // and comes back up into "deserves"
+      var x3 = g.left - t.left + g.width * 0.42;
+      var y3 = g.bottom - t.top + 7;
+      var dip = Math.max(24, g.height * 0.46);
+
+      d = 'M' + x0 + ' ' + y0 +
+          ' C' + (x0 - dip * 0.55) + ' ' + (y0 + dip * 0.95) +
+          ' '  + (x3 - dip * 0.30) + ' ' + (y3 + dip * 1.15) +
+          ' '  + x3 + ' ' + y3;
+    } else {
+      // wrapped onto separate lines: swing out to the left of the column,
+      // drop past the line break, and come back in on "deserves" side-on
+      // swing out to the left of the column, drop below the line break and
+      // come back in under "deserves", so it never crosses the line above
+      var gx = g.left - t.left;
+      var gy = g.bottom - t.top + 8;
+      var out = Math.max(42, g.height * 0.7);
+
+      d = 'M' + x0 + ' ' + y0 +
+          ' C' + (x0 - out * 1.1) + ' ' + (y0 + out * 0.55) +
+          ' '  + (gx - out * 1.2) + ' ' + (gy + out * 0.45) +
+          ' '  + (gx + g.width * 0.32) + ' ' + gy;
+    }
     curve.setAttribute('d', d);
 
     var len = curve.getTotalLength();
     curve.style.strokeDasharray  = len;
     curve.style.setProperty('--dash', len + 'px');
     curve.style.strokeDashoffset = len;
+    headAt(curve, head);
+  }
 
-    // a chevron on the end, turned along the curve's final tangent, so the
-    // head reads as part of the same stroke rather than a pasted-on triangle
+  /* the chevron sits on the curve's end, turned along its final tangent,
+     so the head reads as part of the same stroke */
+  function headAt(curve, head) {
+    var len = curve.getTotalLength();
+    if (!len) return;
+
+    var tip  = curve.getPointAtLength(len);
     var back = curve.getPointAtLength(Math.max(0, len - 10));
-    var ang  = Math.atan2(y3 - back.y, x3 - back.x) * 180 / Math.PI;
+    var ang  = Math.atan2(tip.y - back.y, tip.x - back.x) * 180 / Math.PI;
+
     head.setAttribute('d', 'M-11 -7 L0 0 L-11 7');
-    head.setAttribute('transform', 'translate(' + x3 + ' ' + y3 + ') rotate(' + ang + ')');
+    head.setAttribute('transform',
+      'translate(' + tip.x.toFixed(2) + ' ' + tip.y.toFixed(2) + ') rotate(' + ang.toFixed(1) + ')');
   }
 
   /* confetti: pills thrown out of the word that then fall */
@@ -226,9 +247,7 @@
       if (route === 'home') {
         setView(0);
       } else {
-        buildRail();
-        paintRail();
-        buildSteps();
+        resetDeck();
         playHints();
       }
     });
@@ -382,285 +401,162 @@
     var target = document.querySelector(link.getAttribute('href'));
     if (!target) return;
 
-    var y = window.scrollY + target.getBoundingClientRect().top - 96;
-    if (reduced) window.scrollTo(0, y);
-    else tripTo(y);
+    var sc = activeScroller();
+    if (!sc) return;
+    sc.scrollTo({ top: target.offsetTop - 24, behavior: reduced ? 'auto' : 'smooth' });
   });
 
 
   /* ============================================================
-     Scroll entry — sections animate in as they arrive and back out
-     as they leave, in both directions.
+     Deck — the promote route is four stages on one screen.
+     Each stage scrolls inside itself; hitting a boundary and
+     carrying on moves you to the next one. Stage 2 -> 3 is the
+     only move you cannot scroll into: it needs the agree button.
      ============================================================ */
 
-  function armScrollAnim() {
-    var items = document.querySelectorAll('[data-anim]');
+  var STAGES = ['deckHero', 'stageOffers', 'stageDoc', 'stageContact'];
+  var layers = {
+    1: document.getElementById('stageOffers'),
+    2: document.getElementById('stageDoc'),
+    3: document.getElementById('stageContact')
+  };
 
-    if (reduced || !('IntersectionObserver' in window)) {
-      Array.prototype.forEach.call(items, function (el) { el.classList.add('is-in'); });
-      return;
-    }
+  var stage = 0;
+  var stageLock = 0;
 
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        // no unobserve: scrolling back up runs the same move in reverse
-        entry.target.classList.toggle('is-in', entry.isIntersecting);
-      });
-    }, { rootMargin: '-10% 0px -12% 0px', threshold: 0 });
+  /* what animates in when a stage arrives */
+  var ENTERS = {
+    1: '.notice, .tabs, .offer__title, .offer__text, .offer__list li, .offer__note,' +
+       '.offer__price, .currency__label, .currency__lead, .currency__text, .currency__terms',
+    2: '.agreement__eyebrow, .agreement__title, .agreement__lead, .toc, .doc > h3,' +
+       '.doc > h4, .doc > p, .doc > ul, .agree',
+    3: '.contact__label, .contact__email, .contact__note'
+  };
 
-    Array.prototype.forEach.call(items, function (el) { io.observe(el); });
-  }
+  function tagEnters(n) {
+    var layer = layers[n];
+    if (!layer || !ENTERS[n]) return [];
 
-  /* ============================================================
-     Scroll rail — extends with scroll progress and lights up each
-     section as the head reaches it. Runs backwards on the way up.
-     ============================================================ */
-
-  var rail      = document.getElementById('rail');
-  var railSvg   = document.getElementById('railSvg');
-  var railLine  = document.getElementById('railLine');
-  var railHead  = document.getElementById('railHead');
-  var railMarks = document.getElementById('railMarks');
-  var railItems = [];
-  var railLen   = 0;
-  var railTick  = 0;
-
-  /* A freehand squiggle down the rail: segment lengths and amplitudes both
-     wander, it occasionally drifts back near the middle instead of turning,
-     and the points are smoothed through with Catmull-Rom so it reads as
-     drawn rather than plotted. Seeded once per load, so a resize rebuilds
-     the same line instead of reshuffling it. */
-  var railSeed = Math.floor(Math.random() * 1e9);
-
-  function rng(seed) {
-    var a = seed >>> 0;
-    return function () {
-      a += 0x6D2B79F5;
-      var t = a;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  /* Three octaves of wander summed together. A sum of sinusoids is smooth
-     everywhere by construction, so the line never corners - the randomness
-     lives in the frequencies and phases rather than in the turns. */
-  function freehand(w, h) {
-    var rand = rng(railSeed);
-    var cx   = w / 2;
-    var maxA = (w / 2) - 3;
-    var base = Math.PI * 2 / Math.max(300, h * 0.62);   // longest wave
-
-    var waves = [
-      { a: 0.62, f: base * (0.85 + rand() * 0.45), p: rand() * Math.PI * 2 },
-      { a: 0.27, f: base * (1.70 + rand() * 0.80), p: rand() * Math.PI * 2 },
-      { a: 0.11, f: base * (3.10 + rand() * 1.30), p: rand() * Math.PI * 2 }
-    ];
-
-    var d = '';
-    for (var y = 0; y <= h; y += 5) {
-      var o = 0;
-      for (var i = 0; i < waves.length; i++) {
-        o += waves[i].a * Math.sin(y * waves[i].f + waves[i].p);
-      }
-      d += (y === 0 ? 'M' : 'L') + (cx + maxA * o).toFixed(2) + ' ' + y.toFixed(2) + ' ';
-    }
-    return d.trim();
-  }
-
-  function buildRail() {
-    if (!rail || !railSvg || !railLine) return;
-
-    var box = rail.getBoundingClientRect();
-    if (box.height <= 0) return;
-
-    var d = freehand(box.width, box.height);
-    railSvg.setAttribute('viewBox', '0 0 ' + box.width + ' ' + box.height);
-    railSvg.querySelector('.rail__track').setAttribute('d', d);
-    railLine.setAttribute('d', d);
-
-    railLen = railLine.getTotalLength();
-    railLine.style.strokeDasharray = railLen;
-    railLine.style.strokeDashoffset = railLen;
-
-    railMarks.innerHTML = '';
-    railItems = [];
-
-    var sections = document.querySelectorAll('#route-pyb [data-rail]');
-    var span = document.documentElement.scrollHeight - window.innerHeight;
-    if (span <= 0) return;
-
-    Array.prototype.forEach.call(sections, function (section) {
-      // where this section sits on the same 0-1 scale as scroll progress
-      var at = Math.min(1, Math.max(0,
-        (section.offsetTop - window.innerHeight * 0.45) / span));
-
-      var mark = document.createElement('div');
-      mark.className = 'rail__mark';
-      mark.style.setProperty('--at', at.toFixed(4));
-      // sit the dot on the line wherever it happens to be at that height
-      var onLine = railLine.getPointAtLength(railLine.getTotalLength() * at);
-      mark.style.setProperty('--x', onLine.x.toFixed(2) + 'px');
-      mark.innerHTML = '<i></i>';
-      railMarks.appendChild(mark);
-      railItems.push({ el: mark, at: at });
+    var els = Array.prototype.slice.call(layer.querySelectorAll(ENTERS[n]));
+    els.forEach(function (el, i) {
+      el.setAttribute('data-in', '');
+      el.style.setProperty('--i', Math.min(i, 14));   // cap the stagger
     });
+    return els;
   }
 
-  function paintRail() {
-    railTick = 0;
-    if (!rail || route !== 'pyb' || !railLen) return;
+  function playEnters(n) {
+    var els = tagEnters(n);
+    els.forEach(function (el) { el.classList.remove('is-in'); });
+    if (!els.length) return;
 
-    var span = document.documentElement.scrollHeight - window.innerHeight;
-    var p = span > 0 ? Math.min(1, Math.max(0, window.scrollY / span)) : 0;
+    void els[0].offsetWidth;                          // restart the stagger
+    els.forEach(function (el) { el.classList.add('is-in'); });
+  }
 
-    railLine.style.strokeDashoffset = (railLen * (1 - p)).toFixed(2);
+  function setStage(n) {
+    n = Math.max(0, Math.min(3, n));
+    if (n === stage) return;
 
-    // chevron rides the drawn end, turned along the local tangent
-    if (p > 0.004) {
-      var at   = railLen * p;
-      var tip  = railLine.getPointAtLength(at);
-      var back = railLine.getPointAtLength(Math.max(0, at - 9));
-      var ang  = Math.atan2(tip.y - back.y, tip.x - back.x) * 180 / Math.PI;
-      railHead.setAttribute('d', 'M-7 -5 L0 0 L-7 5');
-      railHead.setAttribute('transform',
-        'translate(' + tip.x.toFixed(2) + ' ' + tip.y.toFixed(2) + ') rotate(' + ang.toFixed(1) + ')');
-      railHead.style.opacity = 1;
-    } else {
-      railHead.style.opacity = 0;
-    }
+    var previous = stage;
+    stage = n;
+    body.setAttribute('data-stage', String(stage));
 
-    railItems.forEach(function (item) {
-      item.el.classList.toggle('is-on', p >= item.at - 0.01);
+    [1, 2, 3].forEach(function (i) {
+      if (!layers[i]) return;
+      layers[i].classList.toggle('is-live', i === stage);
+      layers[i].classList.toggle('is-past', i < stage);
     });
+
+    var scroller = layers[stage] && layers[stage].querySelector('.deck__scroll');
+    if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
+
+    playEnters(stage);
+    stageLock = Date.now() + 780;
   }
 
-  window.addEventListener('scroll', function () {
-    if (railTick) return;
-    railTick = window.requestAnimationFrame(paintRail);
-  }, { passive: true });
-
-  window.addEventListener('resize', function () {
-    buildRail();
-    paintRail();
-    buildSteps();
-  });
-
-  /* ============================================================
-     Scrolling — a wheel gesture carries you to the next section
-     rather than nudging the page by the raw delta.
-     ============================================================ */
-
-  var steps = [];
-  var trip  = { from: 0, to: 0, t0: 0, dur: 0, raf: 0, running: false };
-  var tripCooldown = 0;
-
-  function maxScroll() {
-    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  function activeScroller() {
+    return layers[stage] ? layers[stage].querySelector('.deck__scroll') : null;
   }
 
-  var freeFrom = Infinity;             // past the last stop, scrolling is normal
+  /* true when the active layer still has room to scroll that way */
+  function canScroll(dir) {
+    var sc = activeScroller();
+    if (!sc) return false;
 
-  function buildSteps() {
-    var els = document.querySelectorAll('#route-pyb [data-step]');
-    var top = maxScroll();
-
-    steps = [0];
-    Array.prototype.forEach.call(els, function (el) {
-      steps.push(Math.min(top, Math.max(0, el.offsetTop - 96)));
-    });
-    steps.sort(function (a, b) { return a - b; });
-    steps = steps.filter(function (y, i) { return i === 0 || y - steps[i - 1] > 40; });
-
-    // the agreement is the last stop: once you are reading it, and all the
-    // way down through the contact block, the wheel behaves normally again
-    freeFrom = steps.length ? steps[steps.length - 1] : Infinity;
+    if (dir > 0) return sc.scrollTop + sc.clientHeight < sc.scrollHeight - 2;
+    return sc.scrollTop > 1;
   }
 
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
+  function nudge(dir) {
+    if (route !== 'pyb') return false;
+    if (canScroll(dir)) return false;                 // let the layer scroll
 
-  function tripStep(now) {
-    if (!trip.t0) trip.t0 = now;
+    if (dir > 0 && stage === 2) return true;          // the gate: button only
+    var next = stage + dir;
+    if (next < 0 || next > 3) return false;
 
-    var p = Math.min(1, (now - trip.t0) / trip.dur);
-    window.scrollTo(0, trip.from + (trip.to - trip.from) * easeInOutCubic(p));
-
-    if (p < 1) {
-      trip.raf = window.requestAnimationFrame(tripStep);
-    } else {
-      trip.running = false;
-      trip.raf = 0;
-      tripCooldown = Date.now() + 90;
-    }
-  }
-
-  function tripTo(y) {
-    y = Math.min(maxScroll(), Math.max(0, y));
-    var from = window.scrollY;
-    if (Math.abs(y - from) < 2) return;
-
-    trip.from = from;
-    trip.to = y;
-    trip.t0 = 0;
-    // longer hops take a little longer, but never drag
-    trip.dur = Math.min(1150, Math.max(520, Math.abs(y - from) * 0.55));
-    trip.running = true;
-    trip.raf = window.requestAnimationFrame(tripStep);
-  }
-
-  /* true while the wheel should still be hopping between sections */
-  function stepping(dir) {
-    if (!steps.length) buildSteps();
-    var y = window.scrollY;
-
-    // heading down: stop stepping once the last stop is reached
-    if (dir > 0) return y < freeFrom - 12;
-    // heading up: free until back at the last stop, then step again
-    return y <= freeFrom + 12;
-  }
-
-  function travel(dir) {
-    var y = window.scrollY;
-    var next;
-
-    if (dir > 0) {
-      next = steps.find(function (s) { return s > y + 12; });
-      if (next === undefined) return;
-    } else {
-      for (var i = steps.length - 1; i >= 0; i--) {
-        if (steps[i] < y - 12) { next = steps[i]; break; }
-      }
-      if (next === undefined) next = 0;
-    }
-    tripTo(next);
+    if (Date.now() < stageLock) return true;
+    setStage(next);
+    return true;
   }
 
   window.addEventListener('wheel', function (e) {
     if (reduced || route !== 'pyb') return;
-    if (e.ctrlKey) return;                          // pinch zoom
-    if (Math.abs(e.deltaY) < 4) return;
-
-    var dir = e.deltaY > 0 ? 1 : -1;
-    if (!stepping(dir)) return;                     // let the page scroll itself
-
-    e.preventDefault();
-    if (trip.running || Date.now() < tripCooldown) return;
-
-    travel(dir);
+    if (e.ctrlKey || Math.abs(e.deltaY) < 4) return;
+    if (nudge(e.deltaY > 0 ? 1 : -1)) e.preventDefault();
   }, { passive: false });
 
   window.addEventListener('keydown', function (e) {
-    if (reduced || route !== 'pyb') return;
-    if (e.key === 'PageDown' || e.key === 'PageUp') {
-      var dir = e.key === 'PageDown' ? 1 : -1;
-      if (!stepping(dir)) return;
-      e.preventDefault();
-      travel(dir);
+    if (route !== 'pyb') return;
+    if (e.key === 'PageDown' || e.key === 'ArrowDown') {
+      if (nudge(1)) e.preventDefault();
+    } else if (e.key === 'PageUp' || e.key === 'ArrowUp') {
+      if (nudge(-1)) e.preventDefault();
     }
   });
+
+  /* touch: native scrolling stays, a swipe at the boundary turns the page */
+  var deckTouchY = null;
+  var deckTouchEdge = 0;
+
+  document.addEventListener('touchstart', function (e) {
+    if (route !== 'pyb') return;
+    deckTouchY = e.touches[0].clientY;
+    deckTouchEdge = (canScroll(1) ? 0 : 1) | (canScroll(-1) ? 0 : 2);
+  }, { passive: true });
+
+  document.addEventListener('touchend', function (e) {
+    if (route !== 'pyb' || deckTouchY === null) return;
+    var dy = deckTouchY - e.changedTouches[0].clientY;
+    deckTouchY = null;
+    if (Math.abs(dy) < 60) return;
+
+    var dir = dy > 0 ? 1 : -1;
+    // only if it was already against that edge when the swipe started
+    if (dir > 0 && !(deckTouchEdge & 1)) return;
+    if (dir < 0 && !(deckTouchEdge & 2)) return;
+    nudge(dir);
+  }, { passive: true });
+
+  // the words move when the column does, so the curve is re-measured
+  window.addEventListener('resize', function () {
+    if (route === 'pyb') buildHint();
+  });
+
+  /* the gate */
+  var agreeBtn = document.getElementById('agreeBtn');
+  if (agreeBtn) {
+    agreeBtn.addEventListener('click', function () { setStage(3); });
+  }
+
+  function resetDeck() {
+    stage = 0;
+    body.setAttribute('data-stage', '0');
+    [1, 2, 3].forEach(function (i) {
+      if (layers[i]) layers[i].classList.remove('is-live', 'is-past');
+    });
+  }
 
   /* ============================================================
      Reach counter on the home hero
@@ -697,11 +593,11 @@
     var counter = document.querySelector('[data-count-to]');
     if (counter) countUp(counter);
 
-    if (route === 'pyb') { buildRail(); paintRail(); buildSteps(); playHints(); }
+    if (route === 'pyb') { resetDeck(); playHints(); }
   });
 
   route = routeFromHash();
   paintRoute();
   paintView();
-  armScrollAnim();
+  resetDeck();
 })();
