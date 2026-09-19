@@ -60,6 +60,20 @@
 
   var navCta = document.getElementById('navCta');
   var route  = 'home';
+  var hintTimer = 0;
+
+  /* A few glowing pointers when the promote page opens, gone after ~4s. */
+  function playHints() {
+    if (reduced) return;
+    var el = ROUTES.pyb.el;
+    window.clearTimeout(hintTimer);
+    el.classList.remove('is-hinting');
+    void el.offsetWidth;                 // restart the animations
+    el.classList.add('is-hinting');
+    hintTimer = window.setTimeout(function () {
+      el.classList.remove('is-hinting');
+    }, 4600);
+  }
 
   function routeFromHash() {
     return /promote/.test(window.location.hash) ? 'pyb' : 'home';
@@ -82,6 +96,7 @@
       paintRoute();
       // the home route re-enters on its headline
       if (route === 'home') setView(0);
+      else playHints();
     });
 
     if (push !== false && window.location.hash !== ROUTES[name].hash) {
@@ -245,6 +260,8 @@
   document.addEventListener('intro:done', function () {
     body.setAttribute('data-intro', 'done');
     armed = true;
+    // landed straight on /promote: the hints wait for the intro to clear
+    if (route === 'pyb') playHints();
   });
 
   route = routeFromHash();
