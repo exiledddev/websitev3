@@ -92,22 +92,25 @@
     fx.setAttribute('height', t.height + 190);
     fx.setAttribute('viewBox', '0 0 ' + t.width + ' ' + (t.height + 190));
 
-    /* "deserves" is the last word of the headline, so it is always on the
-       last line and the space directly below it is empty. The curve leaves
-       sideways past the edge of the text block, travels below the whole
-       block, and comes back up into the word from underneath - so it never
-       crosses a line of type, however many lines the headline wraps to. */
-    var x0 = w.left - t.left + w.width * 0.45;
-    var y0 = w.bottom - t.top + 6;
-    var x3 = g.left - t.left + g.width * 0.45;
-    var y3 = g.bottom - t.top + 10;
+    /* Every line of the headline is centred, so there is empty space down
+       both sides of it. The curve leaves from the LEFT EDGE of "engagement"
+       - immediately into that empty margin - drops past the remaining lines
+       out there, then runs along under the whole block and comes up into
+       "deserves" from below, which is always clear because it is the last
+       word of the last line. */
+    var x0 = w.left - t.left;
+    var y0 = w.bottom - t.top + 2;
 
-    var spread = Math.max(96, t.width * 0.24);
-    var floor  = t.height + Math.max(40, g.height * 0.6);
+    var x3 = g.left - t.left + g.width * 0.5;
+    var gap = Math.max(30, g.height * 0.46);
+    var y3 = g.bottom - t.top + gap;
+
+    var outX  = -Math.max(34, t.width * 0.09);
+    var floor = y3 + Math.max(58, g.height * 0.72);
 
     var d = 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) +
-            ' C' + (x0 - spread).toFixed(1) + ' ' + (y0 + (floor - y0) * 0.62).toFixed(1) +
-            ' '  + (x3 - spread * 0.85).toFixed(1) + ' ' + floor.toFixed(1) +
+            ' C' + (outX - 30).toFixed(1) + ' ' + (y0 + 6).toFixed(1) +
+            ' '  + (outX - 10).toFixed(1) + ' ' + floor.toFixed(1) +
             ' '  + x3.toFixed(1) + ' ' + y3.toFixed(1);
 
     curve.setAttribute('d', d);
@@ -142,8 +145,8 @@
       var t     = i / COUNT;
       var side  = (t * 2 - 1);                          // -1 .. 1 across the word
       var dx    = side * radius * (1.15 + (i % 3) * 0.42);
-      var lift  = -(18 + (i % 4) * 13);                 // a small pop up first
-      var fall  = 90 + (i % 5) * 34;                    // then down, well past it
+      var lift  = -(16 + (i % 4) * 11);                 // a small pop up first
+      var fall  = 240 + (i % 5) * 90;                   // keeps going, well off the word
       var len   = 9 + (i % 3) * 4;
 
       html += '<b style="' +
@@ -467,9 +470,10 @@
 
     var natural = fit.getBoundingClientRect().height;
     var cs = getComputedStyle(sc);
-    var avail = sc.clientHeight
-              - parseFloat(cs.paddingTop || 0)
-              - parseFloat(cs.paddingBottom || 0);
+    // the notice and the tab row sit above the scaled block and keep their
+    // own size, so only what is left under them is available
+    var above = fit.getBoundingClientRect().top - sc.getBoundingClientRect().top;
+    var avail = sc.clientHeight - above - parseFloat(cs.paddingBottom || 0);
 
     var k = (natural > 0 && avail > 0) ? Math.min(1, avail / natural) : 1;
     fit.style.setProperty('--fit', k.toFixed(4));
