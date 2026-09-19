@@ -1078,18 +1078,40 @@
      its text. */
   function buildAgreeRing() {
     var svg = document.getElementById('agreeRing');
-    if (!svg) return;
+    if (!svg || !agreeBtn) return;
 
     var path = svg.querySelector('path');
-    var box = svg.getBoundingClientRect();
-    var w = box.width;
-    var h = box.height;
-    if (w <= 0 || h <= 0) return;
 
+    /* Take the svg out of flow before measuring. While it is still an
+       in-flow child it pads the button out by its own width, and the ring
+       gets built around a box twice the size it should be. */
+    svg.style.position = 'absolute';
+    svg.style.pointerEvents = 'none';
+    svg.style.overflow = 'visible';
+
+    var b = agreeBtn.getBoundingClientRect();
+    if (b.width <= 0 || b.height <= 0) return;
+
+    var gap = 9;                       // distance from the button's edge
+    var w = b.width + gap * 2;
+    var h = b.height + gap * 2;
     var r = h / 2;
     var cx = w / 2;
 
-    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    /* Size and place the box here rather than in CSS. An <svg> with no
+       explicit box falls back to 300x150, and if the stylesheet has not
+       landed yet the ring is built against that instead of the button -
+       which draws an enormous pill across the page. */
+    svg.setAttribute('width', w.toFixed(1));
+    svg.setAttribute('height', h.toFixed(1));
+    svg.setAttribute('viewBox', '0 0 ' + w.toFixed(1) + ' ' + h.toFixed(1));
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.style.left = -gap + 'px';
+    svg.style.top = -gap + 'px';
+    svg.style.width = w.toFixed(1) + 'px';
+    svg.style.height = h.toFixed(1) + 'px';
+
+    // traced from the top centre, clockwise, back to the top centre
     path.setAttribute('d',
       'M' + cx.toFixed(1) + ' 0' +
       ' H' + (w - r).toFixed(1) +
@@ -1098,12 +1120,11 @@
       ' A' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 0 1 ' + r.toFixed(1) + ' 0' +
       ' H' + cx.toFixed(1));
 
-    // the px matters: stroke-dashoffset takes a length, and a bare number
-    // is invalid there, so it would compute to 0 and leave the ring drawn
+    // px matters: stroke-dashoffset takes a length, and a bare number is
+    // invalid there, so it computes to 0 and leaves the ring drawn
     var len = path.getTotalLength().toFixed(1) + 'px';
 
-    // land the length without animating it, or the ring draws itself once
-    // on load as the value moves off its fallback
+    // land it without animating, or the ring draws itself once on load
     path.style.transition = 'none';
     svg.style.setProperty('--ring-len', len);
     path.getBoundingClientRect();

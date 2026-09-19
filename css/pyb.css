@@ -1600,8 +1600,11 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 }
 
 .agree__ring {
+  /* out of flow here as well as in js: an in-flow svg pads the button out
+     by its own default 300x150 before the script has run */
   position: absolute;
-  inset: -9px;                 /* the gap between button and ring */
+  left: -9px;
+  top: -9px;
   overflow: visible;
   color: rgba(var(--glow), 0.95);
   pointer-events: none;
