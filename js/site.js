@@ -85,7 +85,7 @@
     var cy = g.top  - t.top  + g.height / 2;
     burst.style.left = cx + 'px';
     burst.style.top  = cy + 'px';
-    paintBurst(burst, Math.max(74, g.height * 1.2));
+    paintBurst(burst, Math.max(96, g.width * 0.5));
 
     // a curve across two different lines would slash through the type
     if (Math.abs(w.top - g.top) > 4) {
@@ -132,9 +132,9 @@
     for (var i = 0; i < COUNT; i++) {
       var t     = i / COUNT;
       var side  = (t * 2 - 1);                          // -1 .. 1 across the word
-      var dx    = side * radius * (0.55 + (i % 3) * 0.2);
-      var lift  = -(14 + (i % 4) * 9);                  // a small pop up first
-      var fall  = 70 + (i % 5) * 26;                    // then down, well past it
+      var dx    = side * radius * (1.15 + (i % 3) * 0.42);
+      var lift  = -(18 + (i % 4) * 13);                 // a small pop up first
+      var fall  = 90 + (i % 5) * 34;                    // then down, well past it
       var len   = 9 + (i % 3) * 4;
 
       html += '<b style="' +
@@ -228,6 +228,7 @@
       } else {
         buildRail();
         paintRail();
+        buildSteps();
         playHints();
       }
     });
@@ -381,9 +382,9 @@
     var target = document.querySelector(link.getAttribute('href'));
     if (!target) return;
 
-    var y = window.scrollY + target.getBoundingClientRect().top - 90;
+    var y = window.scrollY + target.getBoundingClientRect().top - 96;
     if (reduced) window.scrollTo(0, y);
-    else glideTo(y);
+    else tripTo(y);
   });
 
 
@@ -451,8 +452,12 @@
     var dir = rand() < 0.5 ? -1 : 1;
     var y   = 0;
 
+    // turn length scales with the lane so a wide squiggle sweeps rather
+    // than zigzags, with a floor so a narrow phone lane still wanders
+    var run = Math.max(h * 0.11, maxA * 0.85);
+
     while (y < h - 6) {
-      y = Math.min(h, y + 34 + rand() * 62);          // uneven segments
+      y = Math.min(h, y + run * (0.75 + rand() * 0.9));
 
       var x;
       if (rand() < 0.2) {
@@ -560,63 +565,105 @@
   window.addEventListener('resize', function () {
     buildRail();
     paintRail();
+    buildSteps();
   });
 
   /* ============================================================
-     Smooth scrolling — the wheel sets a target and the page eases
-     toward it, rather than jumping by the raw delta.
+     Scrolling — a wheel gesture carries you to the next section
+     rather than nudging the page by the raw delta.
      ============================================================ */
 
-  var glide = { target: 0, current: 0, raf: 0, running: false };
+  var steps = [];
+  var trip  = { from: 0, to: 0, t0: 0, dur: 0, raf: 0, running: false };
+  var tripCooldown = 0;
 
   function maxScroll() {
     return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   }
 
-  function glideStep() {
-    var d = glide.target - glide.current;
+  function buildSteps() {
+    var els = document.querySelectorAll('#route-pyb [data-step]');
+    var top = maxScroll();
 
-    if (Math.abs(d) < 0.5) {
-      glide.current = glide.target;
-      window.scrollTo(0, glide.current);
-      glide.running = false;
-      glide.raf = 0;
-      return;
-    }
+    steps = Array.prototype.map.call(els, function (el) {
+      return Math.min(top, Math.max(0, el.offsetTop - 96));
+    });
+    steps.push(top);                     // the foot of the page is a stop too
+    steps.sort(function (a, b) { return a - b; });
 
-    glide.current += d * 0.09;           // the easing itself
-    window.scrollTo(0, glide.current);
-    glide.raf = window.requestAnimationFrame(glideStep);
+    // drop stops that sit almost on top of each other
+    steps = steps.filter(function (y, i) { return i === 0 || y - steps[i - 1] > 40; });
   }
 
-  function glideTo(y) {
-    glide.target = Math.min(maxScroll(), Math.max(0, y));
-    if (!glide.running) {
-      glide.running = true;
-      glide.current = window.scrollY;
-      glide.raf = window.requestAnimationFrame(glideStep);
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function tripStep(now) {
+    if (!trip.t0) trip.t0 = now;
+
+    var p = Math.min(1, (now - trip.t0) / trip.dur);
+    window.scrollTo(0, trip.from + (trip.to - trip.from) * easeInOutCubic(p));
+
+    if (p < 1) {
+      trip.raf = window.requestAnimationFrame(tripStep);
+    } else {
+      trip.running = false;
+      trip.raf = 0;
+      tripCooldown = Date.now() + 90;
     }
+  }
+
+  function tripTo(y) {
+    y = Math.min(maxScroll(), Math.max(0, y));
+    var from = window.scrollY;
+    if (Math.abs(y - from) < 2) return;
+
+    trip.from = from;
+    trip.to = y;
+    trip.t0 = 0;
+    // longer hops take a little longer, but never drag
+    trip.dur = Math.min(1150, Math.max(520, Math.abs(y - from) * 0.55));
+    trip.running = true;
+    trip.raf = window.requestAnimationFrame(tripStep);
+  }
+
+  function travel(dir) {
+    if (!steps.length) buildSteps();
+
+    var y = window.scrollY;
+    var next;
+
+    if (dir > 0) {
+      next = steps.find(function (s) { return s > y + 12; });
+      if (next === undefined) next = maxScroll();
+    } else {
+      for (var i = steps.length - 1; i >= 0; i--) {
+        if (steps[i] < y - 12) { next = steps[i]; break; }
+      }
+      if (next === undefined) next = 0;
+    }
+    tripTo(next);
   }
 
   window.addEventListener('wheel', function (e) {
     if (reduced || route !== 'pyb') return;
-    if (e.ctrlKey) return;               // pinch zoom
+    if (e.ctrlKey) return;                          // pinch zoom
     e.preventDefault();
 
-    // some browsers report lines or pages rather than pixels
-    var delta = e.deltaY;
-    if (e.deltaMode === 1) delta *= 16;
-    else if (e.deltaMode === 2) delta *= window.innerHeight;
+    if (trip.running || Date.now() < tripCooldown) return;
+    if (Math.abs(e.deltaY) < 4) return;
 
-    glideTo((glide.running ? glide.target : window.scrollY) + delta);
+    travel(e.deltaY > 0 ? 1 : -1);
   }, { passive: false });
 
-  // anything that scrolls by other means (keyboard, scrollbar, touch)
-  window.addEventListener('scroll', function () {
-    if (!glide.running) {
-      glide.target = glide.current = window.scrollY;
+  window.addEventListener('keydown', function (e) {
+    if (reduced || route !== 'pyb') return;
+    if (e.key === 'PageDown' || e.key === 'PageUp') {
+      e.preventDefault();
+      travel(e.key === 'PageDown' ? 1 : -1);
     }
-  }, { passive: true });
+  });
 
   /* ============================================================
      Reach counter on the home hero
@@ -653,7 +700,7 @@
     var counter = document.querySelector('[data-count-to]');
     if (counter) countUp(counter);
 
-    if (route === 'pyb') { buildRail(); paintRail(); playHints(); }
+    if (route === 'pyb') { buildRail(); paintRail(); buildSteps(); playHints(); }
   });
 
   route = routeFromHash();
