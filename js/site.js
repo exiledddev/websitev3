@@ -502,7 +502,7 @@
   /* Stage changes play a quick mark wipe instead of a crossfade; agreeing
      gets the longer one. Both drive the same overlay. */
   var WIPES = {
-    fast: { klass: 'swipe--fast', cover: 400, hold: 120, uncover: 520 },
+    fast: { klass: 'swipe--fast', cover: 580, hold: 160, uncover: 720 },
     seal: { klass: 'swipe--seal', cover: 620, hold: 420, uncover: 700 }
   };
 
@@ -553,7 +553,7 @@
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
     if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
     if (stage === 3 && word) {
-      word.classList.remove('is-in', 'is-selected');
+      word.classList.remove('is-in', 'is-selecting', 'is-clearing');
       void word.offsetWidth;
       word.classList.add('is-in');
 
@@ -562,9 +562,14 @@
       window.clearTimeout(selectOut);
       if (!reduced) {
         selectIn = window.setTimeout(function () {
-          word.classList.add('is-selected');
+          word.classList.add('is-selecting');          // wipes in from the left
+
           selectOut = window.setTimeout(function () {
-            word.classList.remove('is-selected');
+            word.classList.remove('is-selecting');
+            word.classList.add('is-clearing');         // and off to the right
+            window.setTimeout(function () {
+              word.classList.remove('is-clearing');
+            }, 460);
           }, 1000);
         }, 1150);
       }

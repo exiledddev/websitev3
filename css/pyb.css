@@ -968,29 +968,30 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   height: 58px;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 9999px;
-  color: #DFFFF1;
+  color: #EFFFF8;
   font: inherit;
   font-size: clamp(0.92rem, 1.45vw, 1.06rem);
   font-weight: 700;
   letter-spacing: -0.01em;
   cursor: pointer;
 
-  /* barely any tint - glass is mostly what is behind it */
-  background: rgba(var(--glow), 0.07);
+  background: rgba(var(--glow), 0.14);
 
-  /* a light blur, not a milky one: the reference uses ~2px */
-  -webkit-backdrop-filter: blur(3px) saturate(1.5) brightness(1.06);
-          backdrop-filter: blur(3px) saturate(1.5) brightness(1.06);
+  /* light blur, but pushed contrast and saturation so what shows through
+     reads as refracted rather than fogged */
+  -webkit-backdrop-filter: blur(4px) saturate(2.4) contrast(1.18) brightness(1.12);
+          backdrop-filter: blur(4px) saturate(2.4) contrast(1.18) brightness(1.12);
 
   /* the look comes from stacked inset speculars, not from the blur */
   box-shadow:
     inset 2px -2px 1px -1px rgba(255, 255, 255, 0.85),
     inset -2px 2px 1px -1px rgba(255, 255, 255, 0.85),
-    inset 6px -6px 1px -6px rgba(var(--glow), 0.75),
-    inset -6px 6px 1px -6px rgba(var(--glow), 0.75),
-    inset 0 0 2px rgba(0, 0, 0, 0.7),
-    0 6px 26px rgba(var(--glow), 0.28),
-    0 0 46px rgba(var(--glow), 0.20);
+    inset 7px -7px 2px -7px rgba(var(--glow), 0.95),
+    inset -7px 7px 2px -7px rgba(var(--glow), 0.95),
+    inset 0 0 18px rgba(var(--glow), 0.22),
+    inset 0 0 2px rgba(0, 0, 0, 0.65),
+    0 6px 30px rgba(var(--glow), 0.42),
+    0 0 58px rgba(var(--glow), 0.30);
 
   transition:
     transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -998,17 +999,34 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
     background-color 220ms ease;
 }
 
-/* the caustic highlight that slides along the rim */
+/* a second, heavier blur pulled to the edges: glass bends most at its rim */
+.agree__btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  -webkit-backdrop-filter: blur(11px) saturate(1.7);
+          backdrop-filter: blur(11px) saturate(1.7);
+  -webkit-mask: radial-gradient(120% 150% at 50% 50%, transparent 38%, #000 82%);
+          mask: radial-gradient(120% 150% at 50% 50%, transparent 38%, #000 82%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* the caustic highlight that slides along the rim, softened so the white
+   and the green bleed into one another instead of banding */
 .agree__btn::after {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: -2px;
   border-radius: inherit;
-  background: linear-gradient(115deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.55) 46%,
-    rgba(var(--glow), 0.5) 52%,
-    transparent 68%);
+  background: linear-gradient(112deg,
+    transparent 26%,
+    rgba(255, 255, 255, 0.4) 42%,
+    rgba(150, 255, 214, 0.55) 50%,
+    rgba(var(--glow), 0.45) 58%,
+    transparent 74%);
+  filter: blur(9px);
   opacity: 0;
   mix-blend-mode: screen;
   animation: glassSheen 5s ease-in-out infinite;
@@ -1319,25 +1337,25 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 .swipe--fast .swipe__mark { width: clamp(48px, 5.5vw, 88px); }
 
 .swipe--fast[data-state="cover"] .swipe__veil {
-  transition: transform 400ms cubic-bezier(0.45, 0, 0.25, 1);
+  transition: transform 580ms cubic-bezier(0.42, 0, 0.3, 1);
 }
 
 .swipe--fast[data-state="cover"] .swipe__mark {
   transition:
-    opacity 180ms ease 280ms,
-    transform 360ms cubic-bezier(0.16, 1, 0.3, 1) 260ms;
+    opacity 220ms ease 400ms,
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1) 380ms;
 }
 
 .swipe--fast[data-state="uncover"] .swipe__veil {
   transition:
-    transform 520ms cubic-bezier(0.55, 0, 0.35, 1),
-    opacity 280ms ease 260ms;
+    transform 720ms cubic-bezier(0.5, 0, 0.35, 1),
+    opacity 340ms ease 380ms;
 }
 
 .swipe--fast[data-state="uncover"] .swipe__mark {
   transition:
-    opacity 220ms ease,
-    transform 460ms cubic-bezier(0.6, 0, 0.35, 1);
+    opacity 260ms ease,
+    transform 620ms cubic-bezier(0.55, 0, 0.35, 1);
 }
 
 /* --- seal: the button becomes the transition --- */
@@ -1464,34 +1482,48 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 }
 
 
-/* A beat where the word reads as selected text: green field, black type.
-   Fades in, holds about a second, fades out. */
+/* A beat where the word reads as selected text - the field wipes across
+   left to right, holds, then clears off the same way. No ring. */
 .contact__word {
   position: relative;
-  border-radius: 6px;
+  z-index: 0;
   padding: 0 0.06em;
-  transition:
-    background-color 200ms ease,
-    box-shadow 200ms ease;
 }
 
-.contact__word.is-selected {
-  background: #17E58F;
-  box-shadow:
-    0 0 0 3px rgba(0, 214, 132, 0.28),
-    0 0 34px rgba(0, 214, 132, 0.75),
-    0 0 90px rgba(0, 214, 132, 0.35);
+.contact__word::before {
+  content: "";
+  position: absolute;
+  inset: -0.06em -0.09em;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #12D886 0%, #21F3A0 55%, #12D886 100%);
+  box-shadow: 0 0 38px rgba(0, 214, 132, 0.45);
+  transform: scaleX(0);
+  transform-origin: left center;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.contact__word.is-selecting::before {
+  transform: scaleX(1);
+  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* leaves the way it came in, off to the right */
+.contact__word.is-clearing::before {
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 400ms cubic-bezier(0.55, 0, 0.35, 1);
 }
 
 .contact__word span {
-  transition: color 180ms ease, text-shadow 180ms ease;
+  transition: color 260ms ease, text-shadow 260ms ease;
 }
 
-.contact__word.is-selected span {
-  color: #001a10;
+.contact__word.is-selecting span {
+  color: #00170E;
   text-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .contact__word, .contact__word span { transition: none; }
+  .contact__word::before, .contact__word span { transition: none; }
 }
