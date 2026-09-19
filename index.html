@@ -466,6 +466,25 @@
 
           <!-- Stage 2 -->
           <div class="deck__layer deck__layer--doc" id="stageDoc">
+
+            <svg class="doc-seal" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+              <g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M24 6v34"/>
+                <path d="M11 12h26"/>
+                <path d="M11 12l-6 13h12z"/>
+                <path d="M37 12l6 13H31z"/>
+                <path d="M5 25a6 6 0 0 0 12 0"/>
+                <path d="M31 25a6 6 0 0 0 12 0"/>
+                <path d="M16 42h16"/>
+              </g>
+            </svg>
+
+            <div class="doc-track" id="docTrack" aria-hidden="true">
+              <span class="doc-track__line"></span>
+              <span class="doc-track__fill"></span>
+              <div class="doc-track__marks" id="docMarks"></div>
+            </div>
+
             <div class="deck__scroll" id="docScroll">
               <section class="agreement" id="agreement" aria-labelledby="agreementHeading">
                         <p class="agreement__eyebrow">Binding terms</p>
@@ -634,12 +653,22 @@
           <div class="deck__layer deck__layer--contact" id="stageContact">
             <div class="deck__scroll">
               <section class="contact" id="contact" aria-labelledby="contactHeading">
-                        <p class="contact__label" id="contactHeading">Ready for business?</p>
-                        <a class="contact__email" href="mailto:business@markedexiled.com?subject=Promote%20my%20business">business@markedexiled.com</a>
-                        <p class="contact__note">
-                          Tell me what you are promoting, your budget, and when you need it out.
-                        </p>
-                      </section>
+                <svg class="contact__icon" viewBox="0 0 48 34" aria-hidden="true" focusable="false">
+                  <rect x="1.4" y="1.4" width="45.2" height="31.2" rx="5"
+                        fill="none" stroke="currentColor" stroke-width="2.4"/>
+                  <path d="M3.5 4.5 24 19.5 44.5 4.5" fill="none" stroke="currentColor"
+                        stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+
+                <h2 class="contact__head" id="contactHeading">
+                  Let&rsquo;s do <span class="contact__word" data-word="business">business</span>
+                </h2>
+
+                <a class="contact__email" href="mailto:business@markedexiled.com?subject=Promote%20my%20business">business@markedexiled.com</a>
+                <p class="contact__note">
+                  Tell me what you are promoting, your budget, and when you need it out.
+                </p>
+              </section>
             </div>
           </div>
 

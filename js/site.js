@@ -100,13 +100,15 @@
     if (sameLine) {
       // out and back: drops below the line from "engagement", swings right,
       // and comes back up into "deserves"
+      // drop well clear of the baseline before coming back up, so the
+      // curve never runs through the words it passes
       var x3 = g.left - t.left + g.width * 0.42;
-      var y3 = g.bottom - t.top + 7;
-      var dip = Math.max(24, g.height * 0.46);
+      var y3 = g.bottom - t.top + 9;
+      var dip = Math.max(52, g.height * 1.05);
 
-      d = 'M' + x0 + ' ' + y0 +
-          ' C' + (x0 - dip * 0.55) + ' ' + (y0 + dip * 0.95) +
-          ' '  + (x3 - dip * 0.30) + ' ' + (y3 + dip * 1.15) +
+      d = 'M' + x0 + ' ' + (y0 + 4) +
+          ' C' + (x0 - dip * 0.42) + ' ' + (y0 + dip * 1.15) +
+          ' '  + (x3 - dip * 0.22) + ' ' + (y3 + dip * 1.35) +
           ' '  + x3 + ' ' + y3;
     } else {
       // wrapped onto separate lines: swing out to the left of the column,
@@ -471,6 +473,13 @@
     var scroller = layers[stage] && layers[stage].querySelector('.deck__scroll');
     if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
 
+    if (stage === 2) { buildDocTrack(); paintDocTrack(); }
+    if (stage === 3 && word) {
+      word.classList.remove('is-in');
+      void word.offsetWidth;
+      word.classList.add('is-in');
+    }
+
     playEnters(stage);
     stageLock = Date.now() + 780;
   }
@@ -541,8 +550,69 @@
 
   // the words move when the column does, so the curve is re-measured
   window.addEventListener('resize', function () {
-    if (route === 'pyb') buildHint();
+    if (route !== 'pyb') return;
+    buildHint();
+    if (stage === 2) { buildDocTrack(); paintDocTrack(); }
   });
+
+  /* ---------- the agreement's chapter track ---------- */
+
+  var docScroll = document.getElementById('docScroll');
+  var docTrack  = document.getElementById('docTrack');
+  var docMarks  = document.getElementById('docMarks');
+  var docItems  = [];
+  var docTick   = 0;
+
+  function buildDocTrack() {
+    if (!docScroll || !docMarks) return;
+
+    var span = docScroll.scrollHeight - docScroll.clientHeight;
+    docMarks.innerHTML = '';
+    docItems = [];
+    if (span <= 0) return;
+
+    var chapters = docScroll.querySelectorAll('.doc > h3');
+    Array.prototype.forEach.call(chapters, function (h, i) {
+      var at = Math.min(1, Math.max(0, (h.offsetTop - docScroll.clientHeight * 0.4) / span));
+
+      var mark = document.createElement('div');
+      mark.className = 'doc-track__mark';
+      mark.style.setProperty('--at', at.toFixed(4));
+      mark.innerHTML = '<i>' + String(i + 1).padStart(2, '0') + '</i><b></b>';
+      docMarks.appendChild(mark);
+      docItems.push({ el: mark, at: at });
+    });
+  }
+
+  function paintDocTrack() {
+    docTick = 0;
+    if (!docScroll || !docTrack) return;
+
+    var span = docScroll.scrollHeight - docScroll.clientHeight;
+    var p = span > 0 ? Math.min(1, Math.max(0, docScroll.scrollTop / span)) : 0;
+    docTrack.style.setProperty('--doc-p', p.toFixed(4));
+
+    docItems.forEach(function (item) {
+      item.el.classList.toggle('is-on', p >= item.at - 0.01);
+    });
+  }
+
+  if (docScroll) {
+    docScroll.addEventListener('scroll', function () {
+      if (docTick) return;
+      docTick = window.requestAnimationFrame(paintDocTrack);
+    }, { passive: true });
+  }
+
+  /* ---------- "business" comes in a letter at a time ---------- */
+
+  var word = document.querySelector('.contact__word');
+  if (word) {
+    var text = word.getAttribute('data-word') || word.textContent;
+    word.innerHTML = text.split('').map(function (c, i) {
+      return '<span style="--l:' + i + '">' + c + '</span>';
+    }).join('');
+  }
 
   /* the gate */
   var agreeBtn = document.getElementById('agreeBtn');
