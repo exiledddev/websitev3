@@ -17,6 +17,7 @@
 }
 
 .pyb-hero__title {
+  position: relative;
   margin: 0 auto;
   max-width: 18ch;
   font-size: clamp(2.1rem, 5.6vw, 4.4rem);
@@ -53,11 +54,11 @@
 
 .notice {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
+  align-items: center;
+  gap: 14px;
   max-width: 760px;
   margin: 0 auto;
-  padding: clamp(18px, 2.4vw, 24px);
+  padding: 14px clamp(16px, 2.2vw, 22px);
   border: 1px solid rgba(255, 46, 99, 0.35);
   border-radius: 16px;
   background:
@@ -68,46 +69,19 @@
 
 .notice__icon {
   flex: none;
-  width: 26px;
-  height: 26px;
-  margin-top: 1px;
+  width: 22px;
+  height: 22px;
   fill: var(--accent);
   filter: drop-shadow(0 0 10px rgba(255, 46, 99, 0.5));
 }
 
 .notice__title {
   margin: 0;
-  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+  font-size: clamp(0.88rem, 1.25vw, 1rem);
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.4;
   letter-spacing: -0.01em;
   color: var(--ink);
-}
-
-.notice__list {
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.notice__list li {
-  position: relative;
-  padding-left: 16px;
-  margin-bottom: 6px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--ink-60);
-}
-
-.notice__list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.62em;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(255, 46, 99, 0.7);
 }
 
 /* ---------- tabs: just the words, on one shared line ---------- */
@@ -585,22 +559,93 @@
 
 
 /* ============================================================
-   Entry hints — a few glowing pointers when the page opens,
-   gone again after about four seconds.
+   Entry hints — an underline under "engagement" that keeps going,
+   turning into an arrow that lands on "deserves" and lights it up.
+   Runs once on opening the page, then clears itself.
    ============================================================ */
 
-.hint-word {
+.hint-word,
+.hint-target {
   position: relative;
   display: inline-block;
 }
 
-.hint-word::after,
+/* Geometry comes from JS (the words move with the text wrap), so all the
+   stylesheet owns is the drawing. */
+.hint-arrow {
+  position: absolute;
+  left: var(--arrow-left, 0px);
+  top: var(--arrow-top, 100%);
+  width: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow:
+    0 0 10px rgba(255, 46, 99, 0.95),
+    0 0 28px rgba(255, 46, 99, 0.5);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hint-arrow i {
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 11px solid var(--accent);
+  opacity: 0;
+  transform: translateY(-50%) scale(0.5);
+  filter: drop-shadow(0 0 8px rgba(255, 46, 99, 0.9));
+}
+
+.route--pyb.is-hinting .hint-arrow   { animation: arrowDraw 4.8s ease forwards; }
+.route--pyb.is-hinting .hint-arrow i { animation: arrowHead 4.8s ease forwards; }
+.route--pyb.is-hinting .hint-target  { animation: targetGlow 4.8s ease forwards; }
+
+/* draw finishes at 25% — 1.2s in */
+@keyframes arrowDraw {
+  0%   { width: 0; opacity: 0; }
+  4%   { opacity: 1; }
+  25%  { width: var(--arrow-width, 0px); opacity: 1; }
+  88%  { width: var(--arrow-width, 0px); opacity: 1; }
+  100% { width: var(--arrow-width, 0px); opacity: 0; }
+}
+
+@keyframes arrowHead {
+  0%, 21% { opacity: 0; transform: translateY(-50%) scale(0.5); }
+  29%     { opacity: 1; transform: translateY(-50%) scale(1); }
+  88%     { opacity: 1; }
+  100%    { opacity: 0; }
+}
+
+/* lights up as the arrow lands, holds ~2.5s, settles back */
+@keyframes targetGlow {
+  0%, 22% {
+    color: #ffffff;
+    text-shadow: none;
+  }
+  30%, 75% {
+    color: var(--accent);
+    text-shadow:
+      0 0 18px rgba(255, 46, 99, 0.85),
+      0 0 46px rgba(255, 46, 99, 0.45);
+  }
+  100% {
+    color: #ffffff;
+    text-shadow: none;
+  }
+}
+
+/* the price keeps its own underline sweep */
 .offer__price-value::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -0.08em;
+  bottom: -10px;
   height: 3px;
   border-radius: 3px;
   background: var(--accent);
@@ -613,54 +658,21 @@
   pointer-events: none;
 }
 
-.offer__price-value::after { bottom: -10px; }
-
-.route--pyb.is-hinting .hint-word::after {
-  animation: hintSweep 4s ease forwards;
-}
-
 .route--pyb.is-hinting .offer__price-value::after {
-  animation: hintSweep 4s ease 0.55s forwards;
+  animation: hintSweep 4.2s ease 0.9s forwards;
 }
 
 @keyframes hintSweep {
   0%   { transform: scaleX(0); opacity: 0; }
-  6%   { opacity: 1; }
-  20%  { transform: scaleX(1); opacity: 1; }
+  8%   { opacity: 1; }
+  24%  { transform: scaleX(1); opacity: 1; }
   80%  { transform: scaleX(1); opacity: 1; }
   100% { transform: scaleX(1); opacity: 0; }
 }
 
-.hint-arrow {
-  position: absolute;
-  left: 50%;
-  top: -30px;
-  width: 26px;
-  height: 26px;
-  color: var(--accent);
-  opacity: 0;
-  pointer-events: none;
-  filter: drop-shadow(0 0 9px rgba(255, 46, 99, 0.85));
-}
-
-.hint-arrow svg { display: block; width: 100%; height: 100%; }
-
-.route--pyb.is-hinting .hint-arrow {
-  animation: hintArrow 4s ease forwards;
-}
-
-@keyframes hintArrow {
-  0%   { opacity: 0; transform: translate(-50%, -14px); }
-  10%  { opacity: 1; transform: translate(-50%, 0); }
-  30%  { transform: translate(-50%, 7px); }
-  50%  { transform: translate(-50%, 0); }
-  70%  { transform: translate(-50%, 7px); }
-  85%  { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, -8px); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .route--pyb.is-hinting .hint-word::after,
-  .route--pyb.is-hinting .offer__price-value::after,
-  .route--pyb.is-hinting .hint-arrow { animation: none; }
+  .route--pyb.is-hinting .hint-arrow,
+  .route--pyb.is-hinting .hint-arrow i,
+  .route--pyb.is-hinting .hint-target,
+  .route--pyb.is-hinting .offer__price-value::after { animation: none; }
 }

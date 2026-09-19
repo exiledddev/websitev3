@@ -62,17 +62,43 @@
   var route  = 'home';
   var hintTimer = 0;
 
-  /* A few glowing pointers when the promote page opens, gone after ~4s. */
+  /* The hint arrow runs from "engagement" to "deserves", and those words
+     move with the text wrap, so measure them and hand the geometry to CSS. */
+  function measureArrow() {
+    var title  = document.querySelector('.pyb-hero__title');
+    var word   = document.querySelector('.hint-word');
+    var target = document.querySelector('.hint-target');
+    if (!title || !word || !target) return false;
+
+    var t = title.getBoundingClientRect();
+    var w = word.getBoundingClientRect();
+    var g = target.getBoundingClientRect();
+
+    // if a narrow screen has wrapped them onto different lines, the arrow
+    // would cut across the type — underline the target instead
+    var sameLine = Math.abs(w.top - g.top) < 4;
+
+    var left  = (sameLine ? w.left : g.left) - t.left;
+    var right = sameLine ? g.left - t.left : g.right - t.left;
+
+    title.style.setProperty('--arrow-left',  left + 'px');
+    title.style.setProperty('--arrow-width', Math.max(0, right - left) + 'px');
+    title.style.setProperty('--arrow-top',   (g.bottom - t.top + 6) + 'px');
+    return true;
+  }
+
+  /* Glowing pointers when the promote page opens, gone after ~5s. */
   function playHints() {
     if (reduced) return;
     var el = ROUTES.pyb.el;
     window.clearTimeout(hintTimer);
     el.classList.remove('is-hinting');
     void el.offsetWidth;                 // restart the animations
+    measureArrow();
     el.classList.add('is-hinting');
     hintTimer = window.setTimeout(function () {
       el.classList.remove('is-hinting');
-    }, 4600);
+    }, 5000);
   }
 
   function routeFromHash() {
