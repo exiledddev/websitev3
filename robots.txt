@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Crawlers that only take the raw HTML still need to run the page's JS to
+# see the Promote Your Business content; it is rendered client-side.
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://www.markedexiled.com/sitemap.xml
