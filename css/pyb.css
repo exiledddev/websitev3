@@ -1037,6 +1037,8 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 .agree__btn:hover {
   transform: translateY(-2px);
   background: rgba(var(--glow), 0.12);
+  outline: 1px solid rgba(var(--glow), 0.75);
+  outline-offset: 7px;
   box-shadow:
     inset 2px -2px 1px -1px rgba(255, 255, 255, 0.95),
     inset -2px 2px 1px -1px rgba(255, 255, 255, 0.95),
@@ -1268,7 +1270,7 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 }
 
 .contact__head {
-  margin: clamp(24px, 4vh, 44px) 0 clamp(28px, 5vh, 52px);
+  margin: clamp(22px, 3.6vh, 40px) 0 clamp(12px, 2vh, 22px);
   font-size: clamp(2rem, 6.6vw, 6.4rem);
   white-space: nowrap;
   font-weight: 700;
@@ -1281,26 +1283,10 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   white-space: nowrap;
 }
 
-.contact__word span {
-  display: inline-block;
-  opacity: 0;
-  transform: translate3d(0, 0.5em, 0) rotate(6deg);
-  color: #4BFFB0;
+.contact__word-base {
   text-shadow:
-    0 0 20px rgba(0, 214, 132, 0.75),
-    0 0 52px rgba(0, 214, 132, 0.4);
-}
-
-.is-live .contact__word.is-in span {
-  opacity: 1;
-  transform: none;
-  transition:
-    opacity 460ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--l) * 55ms + 320ms),
-    transform 640ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--l) * 55ms + 320ms);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .contact__word span { opacity: 1; transform: none; }
+    0 0 20px rgba(0, 214, 132, 0.6),
+    0 0 52px rgba(0, 214, 132, 0.32);
 }
 
 
@@ -1337,25 +1323,27 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 .swipe--fast .swipe__mark { width: clamp(48px, 5.5vw, 88px); }
 
 .swipe--fast[data-state="cover"] .swipe__veil {
-  transition: transform 580ms cubic-bezier(0.42, 0, 0.3, 1);
+  transition: transform 780ms cubic-bezier(0.38, 0, 0.28, 1);
 }
 
+/* the mark starts coming in while the ellipse is still travelling, so a
+   slower sweep does not make the whole thing longer */
 .swipe--fast[data-state="cover"] .swipe__mark {
   transition:
-    opacity 220ms ease 400ms,
-    transform 420ms cubic-bezier(0.16, 1, 0.3, 1) 380ms;
+    opacity 260ms ease 200ms,
+    transform 460ms cubic-bezier(0.16, 1, 0.3, 1) 180ms;
 }
 
 .swipe--fast[data-state="uncover"] .swipe__veil {
   transition:
-    transform 720ms cubic-bezier(0.5, 0, 0.35, 1),
-    opacity 340ms ease 380ms;
+    transform 900ms cubic-bezier(0.45, 0, 0.32, 1),
+    opacity 380ms ease 460ms;
 }
 
 .swipe--fast[data-state="uncover"] .swipe__mark {
   transition:
-    opacity 260ms ease,
-    transform 620ms cubic-bezier(0.55, 0, 0.35, 1);
+    opacity 240ms ease,
+    transform 640ms cubic-bezier(0.5, 0, 0.35, 1);
 }
 
 /* --- seal: the button becomes the transition --- */
@@ -1482,48 +1470,51 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 }
 
 
-/* A beat where the word reads as selected text - the field wipes across
-   left to right, holds, then clears off the same way. No ring. */
+/* The word reads as selected text. A second copy of it sits on top,
+   black on green, clipped from the right - so as the field travels across,
+   exactly the letters it has reached turn black and the rest do not. */
 .contact__word {
   position: relative;
+  display: inline-block;
+  color: #4BFFB0;
+}
+
+.contact__word-base {
+  position: relative;
   z-index: 0;
-  padding: 0 0.06em;
 }
 
-.contact__word::before {
-  content: "";
+.contact__word-sel {
   position: absolute;
-  inset: -0.06em -0.09em;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #12D886 0%, #21F3A0 55%, #12D886 100%);
-  box-shadow: 0 0 38px rgba(0, 214, 132, 0.45);
-  transform: scaleX(0);
-  transform-origin: left center;
-  z-index: -1;
-  pointer-events: none;
-}
-
-.contact__word.is-selecting::before {
-  transform: scaleX(1);
-  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* leaves the way it came in, off to the right */
-.contact__word.is-clearing::before {
-  transform: scaleX(0);
-  transform-origin: right center;
-  transition: transform 400ms cubic-bezier(0.55, 0, 0.35, 1);
-}
-
-.contact__word span {
-  transition: color 260ms ease, text-shadow 260ms ease;
-}
-
-.contact__word.is-selecting span {
+  left: -0.09em;
+  right: -0.09em;
+  top: -0.05em;
+  bottom: -0.05em;
+  padding: 0.05em 0.09em;
+  background: #12D886;
   color: #00170E;
   text-shadow: none;
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* in from the left */
+.contact__word.is-selecting .contact__word-sel {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 760ms cubic-bezier(0.62, 0.02, 0.2, 1);
+}
+
+/* and away to the right, same direction */
+.contact__word.is-clearing .contact__word-sel {
+  clip-path: inset(0 0 0 100%);
+  transition: clip-path 680ms cubic-bezier(0.55, 0.05, 0.25, 1);
+}
+
+.contact__dot {
+  color: var(--ink);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .contact__word::before, .contact__word span { transition: none; }
+  .contact__word-sel { transition: none; }
 }

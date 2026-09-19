@@ -92,26 +92,24 @@
     fx.setAttribute('height', t.height + 190);
     fx.setAttribute('viewBox', '0 0 ' + t.width + ' ' + (t.height + 190));
 
-    /* Every line of the headline is centred, so there is empty space down
-       both sides of it. The curve leaves from the LEFT EDGE of "engagement"
-       - immediately into that empty margin - drops past the remaining lines
-       out there, then runs along under the whole block and comes up into
-       "deserves" from below, which is always clear because it is the last
-       word of the last line. */
-    var x0 = w.left - t.left;
-    var y0 = w.bottom - t.top + 2;
+    /* The path in the sketch: it leaves the left flank of "engagement",
+       loops out and down through the empty margin beside the centred
+       lines, sweeps back right underneath them, and rises into "deserves"
+       from below-left with the head aimed up at the word. */
+    var x0 = w.left - t.left - 6;
+    var y0 = w.top - t.top + w.height * 0.52;
 
-    var x3 = g.left - t.left + g.width * 0.5;
-    var y3 = g.bottom - t.top + Math.max(14, g.height * 0.2);
+    var x3 = g.left - t.left + g.width * 0.42;
+    var y3 = g.bottom - t.top + Math.max(16, g.height * 0.24);
 
-    var outX = -Math.max(34, t.width * 0.09);
-    // the last control sits directly under the endpoint, so the curve
-    // arrives travelling upward and the head points into the word
-    var rise = Math.max(84, g.height * 1.05);
+    var outX  = x0 - Math.max(58, t.width * 0.12);
+    var rise  = Math.max(88, g.height * 1.05);
 
+    // C1 swings it out left and down for the loop; C2 sits below the end so
+    // the curve arrives climbing and the head aims up into the word
     var d = 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) +
-            ' C' + (outX - 30).toFixed(1) + ' ' + (y0 + 10).toFixed(1) +
-            ' '  + (x3 - Math.max(26, g.width * 0.16)).toFixed(1) + ' ' + (y3 + rise).toFixed(1) +
+            ' C' + outX.toFixed(1) + ' ' + (y0 + rise * 0.72).toFixed(1) +
+            ' '  + (x3 - rise * 0.78).toFixed(1) + ' ' + (y3 + rise).toFixed(1) +
             ' '  + x3.toFixed(1) + ' ' + y3.toFixed(1);
 
     curve.setAttribute('d', d);
@@ -386,6 +384,7 @@
      ============================================================ */
 
   var agreeBtn = document.getElementById('agreeBtn');   /* the gate */
+  var word = document.querySelector('.contact__word');
 
   var STAGES = ['deckHero', 'stageOffers', 'stageDoc', 'stageContact'];
   var layers = {
@@ -502,7 +501,7 @@
   /* Stage changes play a quick mark wipe instead of a crossfade; agreeing
      gets the longer one. Both drive the same overlay. */
   var WIPES = {
-    fast: { klass: 'swipe--fast', cover: 580, hold: 160, uncover: 720 },
+    fast: { klass: 'swipe--fast', cover: 780, hold: 120, uncover: 900 },
     seal: { klass: 'swipe--seal', cover: 620, hold: 420, uncover: 700 }
   };
 
@@ -553,11 +552,10 @@
     if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
     if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
     if (stage === 3 && word) {
-      word.classList.remove('is-in', 'is-selecting', 'is-clearing');
+      word.classList.remove('is-selecting', 'is-clearing');
       void word.offsetWidth;
-      word.classList.add('is-in');
 
-      // once the letters have landed, flash it as if it were selected
+      // a beat after the page lands, run the selection across it
       window.clearTimeout(selectIn);
       window.clearTimeout(selectOut);
       if (!reduced) {
@@ -569,9 +567,9 @@
             word.classList.add('is-clearing');         // and off to the right
             window.setTimeout(function () {
               word.classList.remove('is-clearing');
-            }, 460);
-          }, 1000);
-        }, 1150);
+            }, 680);
+          }, 1050);
+        }, 820);
       }
     }
 
@@ -714,14 +712,332 @@
     }, { passive: true });
   }
 
-  /* ---------- "business" comes in a letter at a time ---------- */
+  /* the gate */
 
-  var word = document.querySelector('.contact__word');
-  if (word) {
-    var text = word.getAttribute('data-word') || word.textContent;
-    word.innerHTML = text.split('').map(function (c, i) {
-      return '<span style="--l:' + i + '">' + c + '</span>';
-    }).join('');
+  var STAGES = ['deckHero', 'stageOffers', 'stageDoc', 'stageContact'];
+  var layers = {
+    1: document.getElementById('stageOffers'),
+    2: document.getElementById('stageDoc'),
+    3: document.getElementById('stageContact')
+  };
+
+  var stage = 0;
+  var stageLock = 0;
+  var selectIn = 0;
+  var selectOut = 0;
+
+  /* what animates in when a stage arrives */
+  var ENTERS = {
+    1: '.notice, .tabs, .offer__title, .offer__text, .offer__list li, .offer__note,' +
+       '.offer__price, .currency__label, .currency__lead, .currency__text, .currency__terms',
+    2: '.agreement__eyebrow, .agreement__title, .agreement__lead, .toc, .doc > h3,' +
+       '.doc > h4, .doc > p, .doc > ul, .agree',
+    3: '.contact__label, .contact__email, .contact__note'
+  };
+
+  function tagEnters(n) {
+    var layer = layers[n];
+    if (!layer || !ENTERS[n]) return [];
+
+    var els = Array.prototype.slice.call(layer.querySelectorAll(ENTERS[n]));
+    els.forEach(function (el, i) {
+      el.setAttribute('data-in', '');
+      el.style.setProperty('--i', Math.min(i, 14));   // cap the stagger
+    });
+    return els;
+  }
+
+  function playEnters(n) {
+    var els = tagEnters(n);
+    els.forEach(function (el) { el.classList.remove('is-in'); });
+    if (!els.length) return;
+
+    void els[0].offsetWidth;                          // restart the stagger
+    els.forEach(function (el) { el.classList.add('is-in'); });
+  }
+
+  /* The hero is one line at stage 1, so the scale that makes it fit depends
+     on the viewport width. Measure it, then hand the offers layer the room
+     the hero actually takes rather than a guessed padding. */
+  function fitHero() {
+    var hero  = document.getElementById('deckHero');
+    var title = hero && hero.querySelector('.pyb-hero__title');
+    var offers = layers[1] && layers[1].querySelector('.deck__scroll');
+    if (!hero || !title) return;
+
+    /* At stage 1 the title is width:max-content, so offsetWidth is the real
+       one-line width of the text - not the container's width, which is what
+       it used to read and why the line still overflowed. */
+    var natural = title.offsetWidth;
+    var room = window.innerWidth * 0.84;
+    var scale = natural > 0 ? Math.min(0.42, room / natural) : 0.34;
+
+    hero.style.setProperty('--hero-scale', scale.toFixed(4));
+
+    if (offers) {
+      /* Work the headline's foot out from layout numbers rather than
+         measuring: the hero is mid-transition when this runs, so a
+         getBoundingClientRect here reads an intermediate size. The hero
+         scales from its own top, so untransformed offsets scale linearly. */
+      var lift = Math.min(16, Math.max(6, window.innerHeight * 0.014));
+      var foot = lift + (title.offsetTop + title.offsetHeight) * scale;
+
+      offers.style.paddingTop =
+        Math.round(foot + Math.max(24, window.innerHeight * 0.04)) + 'px';
+    }
+  }
+
+  /* Stage 1 has to hold whichever tab is tallest, so scale the whole block
+     down until it fits rather than tuning type sizes per panel. */
+  function fitOffers() {
+    var fit = document.getElementById('offersFit');
+    var sc  = layers[1] && layers[1].querySelector('.deck__scroll');
+    if (!fit || !sc) return;
+
+    // clear the last measurement first, or the height left over from the
+    // previous tab skews this one
+    fit.style.setProperty('--fit', '1');
+    fit.style.height = '';
+    void fit.offsetHeight;
+
+    var natural = fit.getBoundingClientRect().height;
+    var cs = getComputedStyle(sc);
+    // the notice and the tab row sit above the scaled block and keep their
+    // own size, so only what is left under them is available
+    var above = fit.getBoundingClientRect().top - sc.getBoundingClientRect().top;
+    var avail = sc.clientHeight - above - parseFloat(cs.paddingBottom || 0);
+
+    var k = (natural > 0 && avail > 0) ? Math.min(1, avail / natural) : 1;
+    fit.style.setProperty('--fit', k.toFixed(4));
+    fit.style.height = Math.floor(natural * k) + 'px';
+  }
+
+  /* the seal and the chapter track sit outside the widest block on the
+     page, not the narrower text column, or the heading runs under them */
+  function fitDocChrome() {
+    var layer = layers[2];
+    var block = layer && layer.querySelector('.agreement');
+    if (!layer || !block) return;
+
+    var lr = layer.getBoundingClientRect();
+    var br = block.getBoundingClientRect();
+
+    layer.style.setProperty('--doc-left',  Math.round(br.left - lr.left - 56) + 'px');
+    layer.style.setProperty('--doc-right', Math.round(br.right - lr.left + 40) + 'px');
+  }
+
+  /* Stage changes play a quick mark wipe instead of a crossfade; agreeing
+     gets the longer one. Both drive the same overlay. */
+  var WIPES = {
+    fast: { klass: 'swipe--fast', cover: 780, hold: 120, uncover: 900 },
+    seal: { klass: 'swipe--seal', cover: 620, hold: 420, uncover: 700 }
+  };
+
+  function runWipe(kind, swap) {
+    var w = WIPES[kind];
+
+    if (reduced || swiping) { swap(); return; }
+    swiping = true;
+
+    if (kind === 'seal' && agreeBtn) {
+      // the circle opens from the button, so it reads as the button swelling
+      var r = agreeBtn.getBoundingClientRect();
+      swipe.style.setProperty('--seal-x', Math.round(r.left + r.width / 2) + 'px');
+      swipe.style.setProperty('--seal-y', Math.round(r.top + r.height / 2) + 'px');
+      agreeBtn.classList.add('is-morphing');
+    }
+
+    swipe.classList.add(w.klass);
+    swipe.setAttribute('data-state', 'cover');
+
+    window.setTimeout(function () {
+      swap();
+      swipe.setAttribute('data-state', 'uncover');
+
+      window.setTimeout(function () {
+        swipe.setAttribute('data-state', 'idle');
+        swipe.classList.remove(w.klass);
+        if (agreeBtn) agreeBtn.classList.remove('is-morphing');
+        swiping = false;
+      }, w.uncover);
+    }, w.cover + w.hold);
+  }
+
+  function applyStage(n) {
+    var previous = stage;
+    stage = n;
+    body.setAttribute('data-stage', String(stage));
+
+    [1, 2, 3].forEach(function (i) {
+      if (!layers[i]) return;
+      layers[i].classList.toggle('is-live', i === stage);
+      layers[i].classList.toggle('is-past', i < stage);
+    });
+
+    var scroller = layers[stage] && layers[stage].querySelector('.deck__scroll');
+    if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
+
+    if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+    if (stage === 3 && word) {
+      word.classList.remove('is-selecting', 'is-clearing');
+      void word.offsetWidth;
+
+      // a beat after the page lands, run the selection across it
+      window.clearTimeout(selectIn);
+      window.clearTimeout(selectOut);
+      if (!reduced) {
+        selectIn = window.setTimeout(function () {
+          word.classList.add('is-selecting');          // wipes in from the left
+
+          selectOut = window.setTimeout(function () {
+            word.classList.remove('is-selecting');
+            word.classList.add('is-clearing');         // and off to the right
+            window.setTimeout(function () {
+              word.classList.remove('is-clearing');
+            }, 680);
+          }, 1050);
+        }, 820);
+      }
+    }
+
+    playEnters(stage);
+  }
+
+  function setStage(n, kind) {
+    n = Math.max(0, Math.min(3, n));
+    if (n === stage || swiping) return;
+
+    stageLock = Date.now() + 1200;
+    runWipe(kind || 'fast', function () { applyStage(n); });
+  }
+
+  function activeScroller() {
+    return layers[stage] ? layers[stage].querySelector('.deck__scroll') : null;
+  }
+
+  /* true when the active layer still has room to scroll that way */
+  function canScroll(dir) {
+    var sc = activeScroller();
+    if (!sc) return false;
+
+    if (dir > 0) return sc.scrollTop + sc.clientHeight < sc.scrollHeight - 2;
+    return sc.scrollTop > 1;
+  }
+
+  function nudge(dir) {
+    if (route !== 'pyb') return false;
+    if (canScroll(dir)) return false;                 // let the layer scroll
+
+    if (dir > 0 && stage === 2) return true;          // the gate: button only
+    var next = stage + dir;
+    if (next < 0 || next > 3) return false;
+
+    if (Date.now() < stageLock) return true;
+    setStage(next);
+    return true;
+  }
+
+  window.addEventListener('wheel', function (e) {
+    if (reduced || route !== 'pyb') return;
+    if (e.ctrlKey || Math.abs(e.deltaY) < 4) return;
+    if (nudge(e.deltaY > 0 ? 1 : -1)) e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('keydown', function (e) {
+    if (route !== 'pyb') return;
+    if (e.key === 'PageDown' || e.key === 'ArrowDown') {
+      if (nudge(1)) e.preventDefault();
+    } else if (e.key === 'PageUp' || e.key === 'ArrowUp') {
+      if (nudge(-1)) e.preventDefault();
+    }
+  });
+
+  /* touch: native scrolling stays, a swipe at the boundary turns the page */
+  var deckTouchY = null;
+  var deckTouchEdge = 0;
+
+  document.addEventListener('touchstart', function (e) {
+    if (route !== 'pyb') return;
+    deckTouchY = e.touches[0].clientY;
+    deckTouchEdge = (canScroll(1) ? 0 : 1) | (canScroll(-1) ? 0 : 2);
+  }, { passive: true });
+
+  document.addEventListener('touchend', function (e) {
+    if (route !== 'pyb' || deckTouchY === null) return;
+    var dy = deckTouchY - e.changedTouches[0].clientY;
+    deckTouchY = null;
+    if (Math.abs(dy) < 60) return;
+
+    var dir = dy > 0 ? 1 : -1;
+    // only if it was already against that edge when the swipe started
+    if (dir > 0 && !(deckTouchEdge & 1)) return;
+    if (dir < 0 && !(deckTouchEdge & 2)) return;
+    nudge(dir);
+  }, { passive: true });
+
+  // the words move when the column does, so the curve is re-measured
+  window.addEventListener('resize', function () {
+    if (route !== 'pyb') return;
+    buildHint();
+    if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
+    if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
+  });
+
+  window.__fitOffers = fitOffers;
+
+  /* ---------- the agreement's chapter track ---------- */
+
+  var docScroll = document.getElementById('docScroll');
+  var docTrack  = document.getElementById('docTrack');
+  var docMarks  = document.getElementById('docMarks');
+  var docItems  = [];
+  var docTick   = 0;
+
+  function buildDocTrack() {
+    if (!docScroll || !docMarks) return;
+
+    var span = docScroll.scrollHeight - docScroll.clientHeight;
+    docMarks.innerHTML = '';
+    docItems = [];
+    if (span <= 0) return;
+
+    var chapters = docScroll.querySelectorAll('.doc > h3');
+    Array.prototype.forEach.call(chapters, function (h, i) {
+      var at = Math.min(1, Math.max(0, (h.offsetTop - docScroll.clientHeight * 0.4) / span));
+
+      var mark = document.createElement('div');
+      mark.className = 'doc-track__mark';
+      mark.style.setProperty('--at', at.toFixed(4));
+      mark.innerHTML = '<i>' + String(i + 1).padStart(2, '0') + '</i><b></b>';
+      docMarks.appendChild(mark);
+      docItems.push({ el: mark, at: at });
+    });
+  }
+
+  function paintDocTrack() {
+    docTick = 0;
+    if (!docScroll || !docTrack) return;
+
+    var span = docScroll.scrollHeight - docScroll.clientHeight;
+    var p = span > 0 ? Math.min(1, Math.max(0, docScroll.scrollTop / span)) : 0;
+    docTrack.style.setProperty('--doc-p', p.toFixed(4));
+
+    // the seal reads at about a third of the page's pace: top of the
+    // document at the start, no further than the middle at the end
+    var seal = layers[2] && layers[2].querySelector('.doc-seal');
+    if (seal) seal.style.setProperty('--seal-top', (14 + p * 36).toFixed(2) + '%');
+
+    docItems.forEach(function (item) {
+      item.el.classList.toggle('is-on', p >= item.at - 0.01);
+    });
+  }
+
+  if (docScroll) {
+    docScroll.addEventListener('scroll', function () {
+      if (docTick) return;
+      docTick = window.requestAnimationFrame(paintDocTrack);
+    }, { passive: true });
   }
 
   if (agreeBtn) {
