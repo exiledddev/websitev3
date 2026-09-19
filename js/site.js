@@ -62,6 +62,101 @@
   var route  = 'home';
   var hintTimer = 0;
 
+  /* The hint curve runs from "engagement" out and back onto "deserves".
+     Both words move with the text wrap, so the geometry is measured here
+     and handed to the SVG; the stylesheet only owns the timing. */
+  function buildHint() {
+    var title  = document.querySelector('.pyb-hero__title');
+    var word   = document.querySelector('.hint-word');
+    var target = document.querySelector('.hint-target');
+    var fx     = document.querySelector('.hint-fx');
+    var burst  = document.querySelector('.hint-burst');
+    if (!title || !word || !target || !fx || !burst) return;
+
+    var t = title.getBoundingClientRect();
+    var w = word.getBoundingClientRect();
+    var g = target.getBoundingClientRect();
+
+    var curve = fx.querySelector('.hint-fx__curve');
+    var head  = fx.querySelector('.hint-fx__head');
+
+    // the burst always fires, wherever the words ended up
+    var cx = g.left - t.left + g.width / 2;
+    var cy = g.top  - t.top  + g.height / 2;
+    burst.style.left = cx + 'px';
+    burst.style.top  = cy + 'px';
+    paintBurst(burst, Math.max(74, g.height * 1.2));
+
+    // a curve across two different lines would slash through the type
+    if (Math.abs(w.top - g.top) > 4) {
+      fx.style.display = 'none';
+      return;
+    }
+    fx.style.display = '';
+
+    fx.setAttribute('width', t.width);
+    fx.setAttribute('height', t.height + 90);
+    fx.setAttribute('viewBox', '0 0 ' + t.width + ' ' + (t.height + 90));
+
+    // out and back: drops below the line from "engagement", swings right,
+    // and comes back up into "deserves"
+    var x0 = w.left - t.left + w.width * 0.45;
+    var y0 = w.bottom - t.top + 6;
+    var x3 = g.left - t.left + g.width * 0.42;
+    var y3 = g.bottom - t.top + 7;
+    var dip = Math.max(24, g.height * 0.46);
+
+    var d = 'M' + x0 + ' ' + y0 +
+            ' C' + (x0 - dip * 0.55) + ' ' + (y0 + dip * 0.95) +
+            ' '  + (x3 - dip * 0.30) + ' ' + (y3 + dip * 1.15) +
+            ' '  + x3 + ' ' + y3;
+    curve.setAttribute('d', d);
+
+    var len = curve.getTotalLength();
+    curve.style.strokeDasharray  = len;
+    curve.style.setProperty('--dash', len + 'px');
+    curve.style.strokeDashoffset = len;
+
+    // arrowhead sits on the end, turned along the curve's final tangent
+    var back = curve.getPointAtLength(Math.max(0, len - 8));
+    var ang  = Math.atan2(y3 - back.y, x3 - back.x) * 180 / Math.PI;
+    head.setAttribute('d', 'M0 0 L-13 -6.5 L-13 6.5 Z');
+    head.setAttribute('transform', 'translate(' + x3 + ' ' + y3 + ') rotate(' + ang + ')');
+  }
+
+  /* confetti: a ring of chips thrown out from the middle of the word */
+  function paintBurst(burst, radius) {
+    var COUNT = 14;
+    var html = '';
+    for (var i = 0; i < COUNT; i++) {
+      var a    = (i / COUNT) * Math.PI * 2 + (i % 2 ? 0.22 : 0);
+      var dist = radius * (0.75 + (i % 3) * 0.22);
+      var size = 6 + (i % 3) * 3;
+      html += '<b style="' +
+        '--dx:' + (Math.cos(a) * dist).toFixed(1) + 'px;' +
+        '--dy:' + (Math.sin(a) * dist * 0.82).toFixed(1) + 'px;' +
+        '--size:' + size + 'px;' +
+        '--radius:' + (i % 2 ? '50%' : '2px') + ';' +
+        '--spin:' + (120 + i * 37) + 'deg;' +
+        'animation-delay:' + (1.12 + (i % 4) * 0.035).toFixed(3) + 's;' +
+        '"></b>';
+    }
+    burst.innerHTML = html;
+  }
+
+  /* ============================================================
+     Routing
+     ============================================================ */
+
+  var ROUTES = {
+    home: { el: document.getElementById('route-home'), hash: '#/',        cta: 'Promote Your Business' },
+    pyb:  { el: document.getElementById('route-pyb'),  hash: '#/promote', cta: 'Home' }
+  };
+
+  var navCta = document.getElementById('navCta');
+  var route  = 'home';
+  var hintTimer = 0;
+
   /* The hint arrow runs from "engagement" to "deserves", and those words
      move with the text wrap, so measure them and hand the geometry to CSS. */
   function measureArrow() {
@@ -94,7 +189,7 @@
     window.clearTimeout(hintTimer);
     el.classList.remove('is-hinting');
     void el.offsetWidth;                 // restart the animations
-    measureArrow();
+    buildHint();
     el.classList.add('is-hinting');
     hintTimer = window.setTimeout(function () {
       el.classList.remove('is-hinting');

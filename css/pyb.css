@@ -559,75 +559,68 @@
 
 
 /* ============================================================
-   Entry hints — an underline under "engagement" that keeps going,
-   turning into an arrow that lands on "deserves" and lights it up.
-   Runs once on opening the page, then clears itself.
+   Entry hints — a curve swings out from "engagement" and comes back
+   up onto "deserves", which lights up and bursts. Runs once on
+   opening the page, then clears itself.
    ============================================================ */
 
+/* plain inline: inline-block would let the full stop after "deserves"
+   break onto its own line */
 .hint-word,
 .hint-target {
-  position: relative;
-  display: inline-block;
+  display: inline;
 }
 
-/* Geometry comes from JS (the words move with the text wrap), so all the
-   stylesheet owns is the drawing. */
-.hint-arrow {
+.hint-fx,
+.hint-burst {
   position: absolute;
-  left: var(--arrow-left, 0px);
-  top: var(--arrow-top, 100%);
-  width: 0;
-  height: 3px;
-  border-radius: 3px;
-  background: var(--accent);
-  box-shadow:
-    0 0 10px rgba(255, 46, 99, 0.95),
-    0 0 28px rgba(255, 46, 99, 0.5);
-  opacity: 0;
+  left: 0;
+  top: 0;
   pointer-events: none;
+  overflow: visible;
 }
 
-.hint-arrow i {
-  position: absolute;
-  right: -3px;
-  top: 50%;
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-left: 11px solid var(--accent);
+.hint-fx {
+  color: var(--accent);
   opacity: 0;
-  transform: translateY(-50%) scale(0.5);
-  filter: drop-shadow(0 0 8px rgba(255, 46, 99, 0.9));
+  filter: drop-shadow(0 0 8px rgba(255, 46, 99, 0.85));
 }
 
-.route--pyb.is-hinting .hint-arrow   { animation: arrowDraw 4.8s ease forwards; }
-.route--pyb.is-hinting .hint-arrow i { animation: arrowHead 4.8s ease forwards; }
-.route--pyb.is-hinting .hint-target  { animation: targetGlow 4.8s ease forwards; }
+/* stroke-dasharray / offset are set from JS once the path is measured */
+.hint-fx__head { opacity: 0; }
 
-/* draw finishes at 25% — 1.2s in */
-@keyframes arrowDraw {
-  0%   { width: 0; opacity: 0; }
-  4%   { opacity: 1; }
-  25%  { width: var(--arrow-width, 0px); opacity: 1; }
-  88%  { width: var(--arrow-width, 0px); opacity: 1; }
-  100% { width: var(--arrow-width, 0px); opacity: 0; }
+.route--pyb.is-hinting .hint-fx        { animation: fxShow 4.8s linear forwards; }
+.route--pyb.is-hinting .hint-fx__curve { animation: fxDraw 4.8s ease-in-out forwards; }
+.route--pyb.is-hinting .hint-fx__head  { animation: fxHead 4.8s ease forwards; }
+.route--pyb.is-hinting .hint-target    { animation: targetGlow 4.8s ease forwards; }
+
+@keyframes fxShow {
+  0%, 2% { opacity: 0; }
+  5%     { opacity: 1; }
+  86%    { opacity: 1; }
+  100%   { opacity: 0; }
 }
 
-@keyframes arrowHead {
-  0%, 21% { opacity: 0; transform: translateY(-50%) scale(0.5); }
-  29%     { opacity: 1; transform: translateY(-50%) scale(1); }
-  88%     { opacity: 1; }
-  100%    { opacity: 0; }
+/* the curve draws over the first ~1.1s */
+@keyframes fxDraw {
+  0%, 3% { stroke-dashoffset: var(--dash, 400px); }
+  25%    { stroke-dashoffset: 0; }
+  100%   { stroke-dashoffset: 0; }
 }
 
-/* lights up as the arrow lands, holds ~2.5s, settles back */
+@keyframes fxHead {
+  0%, 22% { opacity: 0; }
+  27%     { opacity: 1; }
+  100%    { opacity: 1; }
+}
+
+/* lights up as the curve lands, holds ~2.5s, settles back */
 @keyframes targetGlow {
-  0%, 22% {
+  0%, 23% {
     color: #ffffff;
     text-shadow: none;
   }
-  30%, 75% {
+  29%, 75% {
     color: var(--accent);
     text-shadow:
       0 0 18px rgba(255, 46, 99, 0.85),
@@ -636,6 +629,47 @@
   100% {
     color: #ffffff;
     text-shadow: none;
+  }
+}
+
+/* ---------- burst ---------- */
+
+.hint-burst b {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--size, 7px);
+  height: var(--size, 7px);
+  margin: calc(var(--size, 7px) / -2) 0 0 calc(var(--size, 7px) / -2);
+  border-radius: var(--radius, 2px);
+  background: var(--accent);
+  box-shadow: 0 0 9px rgba(255, 46, 99, 0.85);
+  opacity: 0;
+  transform: translate3d(0, 0, 0) scale(0.4);
+}
+
+.route--pyb.is-hinting .hint-burst b {
+  animation: burst 1050ms cubic-bezier(0.18, 0.9, 0.3, 1) 1.12s forwards;
+}
+
+@keyframes burst {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.3) rotate(0deg);
+  }
+  14% {
+    opacity: 1;
+    transform: translate3d(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3), 0) scale(1.1) rotate(30deg);
+  }
+  62% {
+    opacity: 0.9;
+    transform: translate3d(calc(var(--dx) * 0.82), calc(var(--dy) * 0.82), 0) scale(0.85) rotate(110deg);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate3d(var(--dx), calc(var(--dy) + 14px), 0)
+      scale(0.35) rotate(var(--spin, 180deg));
   }
 }
 
@@ -671,8 +705,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .route--pyb.is-hinting .hint-arrow,
-  .route--pyb.is-hinting .hint-arrow i,
+  .route--pyb.is-hinting .hint-fx,
+  .route--pyb.is-hinting .hint-fx__curve,
+  .route--pyb.is-hinting .hint-fx__head,
   .route--pyb.is-hinting .hint-target,
+  .route--pyb.is-hinting .hint-burst b,
   .route--pyb.is-hinting .offer__price-value::after { animation: none; }
 }
