@@ -4,7 +4,10 @@
     {
       "name": "exiled-site",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8123"],
+      "runtimeArgs": [
+        "devserver.py",
+        "8123"
+      ],
       "port": 8123
     }
   ]

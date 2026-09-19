@@ -89,41 +89,27 @@
 
     fx.style.display = '';
     fx.setAttribute('width', t.width);
-    fx.setAttribute('height', t.height + 90);
-    fx.setAttribute('viewBox', '0 0 ' + t.width + ' ' + (t.height + 90));
+    fx.setAttribute('height', t.height + 190);
+    fx.setAttribute('viewBox', '0 0 ' + t.width + ' ' + (t.height + 190));
 
-    var sameLine = Math.abs(w.top - g.top) < 4;
+    /* "deserves" is the last word of the headline, so it is always on the
+       last line and the space directly below it is empty. The curve leaves
+       sideways past the edge of the text block, travels below the whole
+       block, and comes back up into the word from underneath - so it never
+       crosses a line of type, however many lines the headline wraps to. */
     var x0 = w.left - t.left + w.width * 0.45;
     var y0 = w.bottom - t.top + 6;
-    var d;
+    var x3 = g.left - t.left + g.width * 0.45;
+    var y3 = g.bottom - t.top + 10;
 
-    if (sameLine) {
-      // out and back: drops below the line from "engagement", swings right,
-      // and comes back up into "deserves"
-      // drop well clear of the baseline before coming back up, so the
-      // curve never runs through the words it passes
-      var x3 = g.left - t.left + g.width * 0.42;
-      var y3 = g.bottom - t.top + 9;
-      var dip = Math.max(52, g.height * 1.05);
+    var spread = Math.max(96, t.width * 0.24);
+    var floor  = t.height + Math.max(40, g.height * 0.6);
 
-      d = 'M' + x0 + ' ' + (y0 + 4) +
-          ' C' + (x0 - dip * 0.42) + ' ' + (y0 + dip * 1.15) +
-          ' '  + (x3 - dip * 0.22) + ' ' + (y3 + dip * 1.35) +
-          ' '  + x3 + ' ' + y3;
-    } else {
-      // wrapped onto separate lines: swing out to the left of the column,
-      // drop past the line break, and come back in on "deserves" side-on
-      // swing out to the left of the column, drop below the line break and
-      // come back in under "deserves", so it never crosses the line above
-      var gx = g.left - t.left;
-      var gy = g.bottom - t.top + 8;
-      var out = Math.max(42, g.height * 0.7);
+    var d = 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) +
+            ' C' + (x0 - spread).toFixed(1) + ' ' + (y0 + (floor - y0) * 0.62).toFixed(1) +
+            ' '  + (x3 - spread * 0.85).toFixed(1) + ' ' + floor.toFixed(1) +
+            ' '  + x3.toFixed(1) + ' ' + y3.toFixed(1);
 
-      d = 'M' + x0 + ' ' + y0 +
-          ' C' + (x0 - out * 1.1) + ' ' + (y0 + out * 0.55) +
-          ' '  + (gx - out * 1.2) + ' ' + (gy + out * 0.45) +
-          ' '  + (gx + g.width * 0.32) + ' ' + gy;
-    }
     curve.setAttribute('d', d);
 
     var len = curve.getTotalLength();
@@ -186,31 +172,6 @@
   var navCta = document.getElementById('navCta');
   var route  = 'home';
   var hintTimer = 0;
-
-  /* The hint arrow runs from "engagement" to "deserves", and those words
-     move with the text wrap, so measure them and hand the geometry to CSS. */
-  function measureArrow() {
-    var title  = document.querySelector('.pyb-hero__title');
-    var word   = document.querySelector('.hint-word');
-    var target = document.querySelector('.hint-target');
-    if (!title || !word || !target) return false;
-
-    var t = title.getBoundingClientRect();
-    var w = word.getBoundingClientRect();
-    var g = target.getBoundingClientRect();
-
-    // if a narrow screen has wrapped them onto different lines, the arrow
-    // would cut across the type — underline the target instead
-    var sameLine = Math.abs(w.top - g.top) < 4;
-
-    var left  = (sameLine ? w.left : g.left) - t.left;
-    var right = sameLine ? g.left - t.left : g.right - t.left;
-
-    title.style.setProperty('--arrow-left',  left + 'px');
-    title.style.setProperty('--arrow-width', Math.max(0, right - left) + 'px');
-    title.style.setProperty('--arrow-top',   (g.bottom - t.top + 6) + 'px');
-    return true;
-  }
 
   /* Glowing pointers when the promote page opens, gone after ~5s. */
   function playHints() {
@@ -376,7 +337,11 @@
 
     list.addEventListener('click', function (e) {
       var button = e.target.closest('[role="tab"]');
-      if (button) select(button, false);
+      if (!button) return;
+      select(button, false);
+      if (typeof window.__fitOffers === 'function') {
+        window.requestAnimationFrame(window.__fitOffers);
+      }
     });
 
     list.addEventListener('keydown', function (e) {
@@ -465,10 +430,11 @@
     var offers = layers[1] && layers[1].querySelector('.deck__scroll');
     if (!hero || !title) return;
 
-    // offsetWidth is the untransformed layout width, so it is safe to read
-    // while the hero is mid-scale
+    /* At stage 1 the title is width:max-content, so offsetWidth is the real
+       one-line width of the text - not the container's width, which is what
+       it used to read and why the line still overflowed. */
     var natural = title.offsetWidth;
-    var room = window.innerWidth * 0.86;
+    var room = window.innerWidth * 0.84;
     var scale = natural > 0 ? Math.min(0.42, room / natural) : 0.34;
 
     hero.style.setProperty('--hero-scale', scale.toFixed(4));
@@ -486,17 +452,42 @@
     }
   }
 
-  /* the seal and the chapter track belong beside the text column */
+  /* Stage 1 has to hold whichever tab is tallest, so scale the whole block
+     down until it fits rather than tuning type sizes per panel. */
+  function fitOffers() {
+    var fit = document.getElementById('offersFit');
+    var sc  = layers[1] && layers[1].querySelector('.deck__scroll');
+    if (!fit || !sc) return;
+
+    // clear the last measurement first, or the height left over from the
+    // previous tab skews this one
+    fit.style.setProperty('--fit', '1');
+    fit.style.height = '';
+    void fit.offsetHeight;
+
+    var natural = fit.getBoundingClientRect().height;
+    var cs = getComputedStyle(sc);
+    var avail = sc.clientHeight
+              - parseFloat(cs.paddingTop || 0)
+              - parseFloat(cs.paddingBottom || 0);
+
+    var k = (natural > 0 && avail > 0) ? Math.min(1, avail / natural) : 1;
+    fit.style.setProperty('--fit', k.toFixed(4));
+    fit.style.height = Math.floor(natural * k) + 'px';
+  }
+
+  /* the seal and the chapter track sit outside the widest block on the
+     page, not the narrower text column, or the heading runs under them */
   function fitDocChrome() {
     var layer = layers[2];
-    var doc   = layer && layer.querySelector('.doc');
-    if (!layer || !doc) return;
+    var block = layer && layer.querySelector('.agreement');
+    if (!layer || !block) return;
 
     var lr = layer.getBoundingClientRect();
-    var dr = doc.getBoundingClientRect();
+    var br = block.getBoundingClientRect();
 
-    layer.style.setProperty('--doc-left',  Math.round(dr.left - lr.left - 58) + 'px');
-    layer.style.setProperty('--doc-right', Math.round(dr.right - lr.left + 34) + 'px');
+    layer.style.setProperty('--doc-left',  Math.round(br.left - lr.left - 56) + 'px');
+    layer.style.setProperty('--doc-right', Math.round(br.right - lr.left + 40) + 'px');
   }
 
   function setStage(n) {
@@ -516,7 +507,7 @@
     var scroller = layers[stage] && layers[stage].querySelector('.deck__scroll');
     if (scroller) scroller.scrollTop = previous > stage ? scroller.scrollHeight : 0;
 
-    if (stage === 1) fitHero();
+    if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
     if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
     if (stage === 3 && word) {
       word.classList.remove('is-in');
@@ -596,9 +587,11 @@
   window.addEventListener('resize', function () {
     if (route !== 'pyb') return;
     buildHint();
-    if (stage === 1) fitHero();
+    if (stage === 1) { fitHero(); window.requestAnimationFrame(fitOffers); }
     if (stage === 2) { fitDocChrome(); buildDocTrack(); paintDocTrack(); }
   });
+
+  window.__fitOffers = fitOffers;
 
   /* ---------- the agreement's chapter track ---------- */
 
@@ -636,6 +629,11 @@
     var span = docScroll.scrollHeight - docScroll.clientHeight;
     var p = span > 0 ? Math.min(1, Math.max(0, docScroll.scrollTop / span)) : 0;
     docTrack.style.setProperty('--doc-p', p.toFixed(4));
+
+    // the seal reads at about a third of the page's pace: top of the
+    // document at the start, no further than the middle at the end
+    var seal = layers[2] && layers[2].querySelector('.doc-seal');
+    if (seal) seal.style.setProperty('--seal-top', (14 + p * 36).toFixed(2) + '%');
 
     docItems.forEach(function (item) {
       item.el.classList.toggle('is-on', p >= item.at - 0.01);
