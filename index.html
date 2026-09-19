@@ -144,7 +144,7 @@
       <div class="route route--pyb" id="route-pyb" hidden>
 
         <section class="pyb-hero" data-anim="rise">
-          <h1 class="pyb-hero__title">Get your business the <span class="hint-word">engagement</span> it <span class="hint-target">deserves</span>.<svg class="hint-fx" aria-hidden="true" focusable="false"><path class="hint-fx__curve" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path class="hint-fx__head" fill="currentColor"/></svg><span class="hint-burst" aria-hidden="true"></span></h1>
+          <h1 class="pyb-hero__title">Get your business the <span class="hint-word">engagement</span> it <span class="hint-target">deserves</span>.<svg class="hint-fx" aria-hidden="true" focusable="false"><path class="hint-fx__curve" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path class="hint-fx__head" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="hint-burst" aria-hidden="true"></span></h1>
           <p class="pyb-hero__note">All of it runs on my YouTube channel.</p>
           <p class="pyb-hero__cue">
             Ready for business? Scroll down for my contact email
@@ -159,7 +159,7 @@
           <p class="notice__title">As of 1 January 2027, these changes officially go into effect.</p>
         </section>
 
-        <section class="offers" aria-labelledby="offersHeading" data-anim="rise" data-rail="What I offer">
+        <section class="offers" aria-labelledby="offersHeading" data-anim="flip" data-rail="What I offer">
           <h2 class="visually-hidden" id="offersHeading">Ways to work together</h2>
 
           <div class="tabs" role="tablist" aria-label="Ways to work together">
@@ -281,7 +281,7 @@
           </p>
         </section>
 
-        <section class="agreement" id="agreement" aria-labelledby="agreementHeading" data-anim="rise" data-rail="Agreement">
+        <section class="agreement" id="agreement" aria-labelledby="agreementHeading" data-anim="fade" data-rail="Agreement">
           <p class="agreement__eyebrow">Binding terms</p>
           <h2 class="agreement__title" id="agreementHeading">Sponsorship &amp; Partnership Agreement</h2>
           <p class="agreement__lead">
@@ -289,7 +289,7 @@
             below. These terms apply to all tiers of service.
           </p>
 
-          <nav class="toc" aria-label="Agreement contents" data-anim="fade">
+          <nav class="toc" aria-label="Agreement contents" data-anim="pop">
             <p class="toc__label">Jump to</p>
             <ol class="toc__list">
               <li><a href="#ch1" data-jump>Services &amp; Pricing</a></li>
@@ -452,8 +452,11 @@
 
   <!-- ===== Scroll rail (promote route) ===== -->
   <div class="rail" id="rail" aria-hidden="true">
-    <div class="rail__track"></div>
-    <div class="rail__fill"><span class="rail__head"></span></div>
+    <svg class="rail__svg" id="railSvg" preserveAspectRatio="none" focusable="false">
+      <path class="rail__track" fill="none" stroke-linecap="round"/>
+      <path class="rail__line" id="railLine" fill="none" stroke-linecap="round"/>
+      <path class="rail__head" id="railHead" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
     <div class="rail__marks" id="railMarks"></div>
   </div>
 

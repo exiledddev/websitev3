@@ -117,28 +117,35 @@
     curve.style.setProperty('--dash', len + 'px');
     curve.style.strokeDashoffset = len;
 
-    // arrowhead sits on the end, turned along the curve's final tangent
-    var back = curve.getPointAtLength(Math.max(0, len - 8));
+    // a chevron on the end, turned along the curve's final tangent, so the
+    // head reads as part of the same stroke rather than a pasted-on triangle
+    var back = curve.getPointAtLength(Math.max(0, len - 10));
     var ang  = Math.atan2(y3 - back.y, x3 - back.x) * 180 / Math.PI;
-    head.setAttribute('d', 'M0 0 L-13 -6.5 L-13 6.5 Z');
+    head.setAttribute('d', 'M-11 -7 L0 0 L-11 7');
     head.setAttribute('transform', 'translate(' + x3 + ' ' + y3 + ') rotate(' + ang + ')');
   }
 
-  /* confetti: a ring of chips thrown out from the middle of the word */
+  /* confetti: pills thrown out of the word that then fall */
   function paintBurst(burst, radius) {
-    var COUNT = 14;
+    var COUNT = 18;
     var html = '';
     for (var i = 0; i < COUNT; i++) {
-      var a    = (i / COUNT) * Math.PI * 2 + (i % 2 ? 0.22 : 0);
-      var dist = radius * (0.75 + (i % 3) * 0.22);
-      var size = 6 + (i % 3) * 3;
+      var t     = i / COUNT;
+      var side  = (t * 2 - 1);                          // -1 .. 1 across the word
+      var dx    = side * radius * (0.55 + (i % 3) * 0.2);
+      var lift  = -(14 + (i % 4) * 9);                  // a small pop up first
+      var fall  = 70 + (i % 5) * 26;                    // then down, well past it
+      var len   = 9 + (i % 3) * 4;
+
       html += '<b style="' +
-        '--dx:' + (Math.cos(a) * dist).toFixed(1) + 'px;' +
-        '--dy:' + (Math.sin(a) * dist * 0.82).toFixed(1) + 'px;' +
-        '--size:' + size + 'px;' +
-        '--radius:' + (i % 2 ? '50%' : '2px') + ';' +
-        '--spin:' + (120 + i * 37) + 'deg;' +
-        'animation-delay:' + (1.12 + (i % 4) * 0.035).toFixed(3) + 's;' +
+        '--dx:'   + dx.toFixed(1) + 'px;' +
+        '--lift:' + lift + 'px;' +
+        '--fall:' + fall + 'px;' +
+        '--w:'    + (4 + (i % 2)) + 'px;' +
+        '--h:'    + len + 'px;' +
+        '--r0:'   + (i * 47 % 180 - 90) + 'deg;' +
+        '--spin:' + (200 + i * 53) + 'deg;' +
+        'animation-delay:' + (1.12 + (i % 5) * 0.045).toFixed(3) + 's;' +
         '"></b>';
     }
     burst.innerHTML = html;
@@ -372,7 +379,11 @@
     if (!link) return;
     e.preventDefault();
     var target = document.querySelector(link.getAttribute('href'));
-    if (target) target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    if (!target) return;
+
+    var y = window.scrollY + target.getBoundingClientRect().top - 90;
+    if (reduced) window.scrollTo(0, y);
+    else glideTo(y);
   });
 
 
@@ -405,12 +416,46 @@
      ============================================================ */
 
   var rail      = document.getElementById('rail');
+  var railSvg   = document.getElementById('railSvg');
+  var railLine  = document.getElementById('railLine');
+  var railHead  = document.getElementById('railHead');
   var railMarks = document.getElementById('railMarks');
   var railItems = [];
+  var railLen   = 0;
   var railTick  = 0;
 
+  /* a sine running down the rail, sampled into a path */
+  function squiggle(w, h) {
+    var cx   = w / 2;
+    var amp  = (w / 2) - 3;
+    var wave = 74;                       // px per full wobble
+    var d    = '';
+
+    for (var y = 0; y <= h; y += 4) {
+      var x = cx + Math.sin((y / wave) * Math.PI * 2) * amp;
+      d += (y === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+    }
+    return { d: d.trim(), cx: cx, amp: amp, wave: wave };
+  }
+
+  function railX(y, sq) {
+    return sq.cx + Math.sin((y / sq.wave) * Math.PI * 2) * sq.amp;
+  }
+
   function buildRail() {
-    if (!rail || !railMarks) return;
+    if (!rail || !railSvg || !railLine) return;
+
+    var box = rail.getBoundingClientRect();
+    if (box.height <= 0) return;
+
+    var sq = squiggle(box.width, box.height);
+    railSvg.setAttribute('viewBox', '0 0 ' + box.width + ' ' + box.height);
+    railSvg.querySelector('.rail__track').setAttribute('d', sq.d);
+    railLine.setAttribute('d', sq.d);
+
+    railLen = railLine.getTotalLength();
+    railLine.style.strokeDasharray = railLen;
+
     railMarks.innerHTML = '';
     railItems = [];
 
@@ -426,6 +471,7 @@
       var mark = document.createElement('div');
       mark.className = 'rail__mark';
       mark.style.setProperty('--at', at.toFixed(4));
+      mark.style.setProperty('--x', railX(at * box.height, sq).toFixed(2) + 'px');
       mark.innerHTML = '<i></i><span>' + section.getAttribute('data-rail') + '</span>';
       railMarks.appendChild(mark);
       railItems.push({ el: mark, at: at });
@@ -434,11 +480,26 @@
 
   function paintRail() {
     railTick = 0;
-    if (!rail || route !== 'pyb') return;
+    if (!rail || route !== 'pyb' || !railLen) return;
 
     var span = document.documentElement.scrollHeight - window.innerHeight;
     var p = span > 0 ? Math.min(1, Math.max(0, window.scrollY / span)) : 0;
-    rail.style.setProperty('--rail-p', p.toFixed(4));
+
+    railLine.style.strokeDashoffset = (railLen * (1 - p)).toFixed(2);
+
+    // chevron rides the drawn end, turned along the local tangent
+    if (p > 0.004) {
+      var at   = railLen * p;
+      var tip  = railLine.getPointAtLength(at);
+      var back = railLine.getPointAtLength(Math.max(0, at - 9));
+      var ang  = Math.atan2(tip.y - back.y, tip.x - back.x) * 180 / Math.PI;
+      railHead.setAttribute('d', 'M-7 -5 L0 0 L-7 5');
+      railHead.setAttribute('transform',
+        'translate(' + tip.x.toFixed(2) + ' ' + tip.y.toFixed(2) + ') rotate(' + ang.toFixed(1) + ')');
+      railHead.style.opacity = 1;
+    } else {
+      railHead.style.opacity = 0;
+    }
 
     railItems.forEach(function (item) {
       item.el.classList.toggle('is-on', p >= item.at - 0.01);
@@ -454,6 +515,62 @@
     buildRail();
     paintRail();
   });
+
+  /* ============================================================
+     Smooth scrolling — the wheel sets a target and the page eases
+     toward it, rather than jumping by the raw delta.
+     ============================================================ */
+
+  var glide = { target: 0, current: 0, raf: 0, running: false };
+
+  function maxScroll() {
+    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  }
+
+  function glideStep() {
+    var d = glide.target - glide.current;
+
+    if (Math.abs(d) < 0.5) {
+      glide.current = glide.target;
+      window.scrollTo(0, glide.current);
+      glide.running = false;
+      glide.raf = 0;
+      return;
+    }
+
+    glide.current += d * 0.09;           // the easing itself
+    window.scrollTo(0, glide.current);
+    glide.raf = window.requestAnimationFrame(glideStep);
+  }
+
+  function glideTo(y) {
+    glide.target = Math.min(maxScroll(), Math.max(0, y));
+    if (!glide.running) {
+      glide.running = true;
+      glide.current = window.scrollY;
+      glide.raf = window.requestAnimationFrame(glideStep);
+    }
+  }
+
+  window.addEventListener('wheel', function (e) {
+    if (reduced || route !== 'pyb') return;
+    if (e.ctrlKey) return;               // pinch zoom
+    e.preventDefault();
+
+    // some browsers report lines or pages rather than pixels
+    var delta = e.deltaY;
+    if (e.deltaMode === 1) delta *= 16;
+    else if (e.deltaMode === 2) delta *= window.innerHeight;
+
+    glideTo((glide.running ? glide.target : window.scrollY) + delta);
+  }, { passive: false });
+
+  // anything that scrolls by other means (keyboard, scrollbar, touch)
+  window.addEventListener('scroll', function () {
+    if (!glide.running) {
+      glide.target = glide.current = window.scrollY;
+    }
+  }, { passive: true });
 
   /* ============================================================
      Reach counter on the home hero

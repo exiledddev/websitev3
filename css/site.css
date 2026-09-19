@@ -6,7 +6,7 @@
    the document itself never scrolls.
    ============================================================ */
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: auto; }   /* the glide loop in js/site.js owns easing */
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

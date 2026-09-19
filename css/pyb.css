@@ -5,6 +5,10 @@
 
 .route--pyb {
   padding-bottom: clamp(64px, 12vh, 140px);
+  /* the slide-in transforms reach past the viewport before they land;
+     clip rather than hidden, so no nested scroll container is created */
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* ---------- hero ---------- */
@@ -596,22 +600,36 @@
 
 @keyframes fxShow {
   0%, 2% { opacity: 0; }
-  5%     { opacity: 1; }
-  86%    { opacity: 1; }
+  5%, 82% { opacity: 1; }
   100%   { opacity: 0; }
 }
 
-/* the curve draws over the first ~1.1s */
+/* drawn in, held, then erased from the tail - per-segment easing, since a
+   single timing function across the whole keyframe set reads as linear */
 @keyframes fxDraw {
-  0%, 3% { stroke-dashoffset: var(--dash, 400px); }
-  25%    { stroke-dashoffset: 0; }
-  100%   { stroke-dashoffset: 0; }
+  0%, 3% {
+    stroke-dashoffset: var(--dash, 400px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  27% {
+    stroke-dashoffset: 0;
+    animation-timing-function: linear;
+  }
+  54% {
+    stroke-dashoffset: 0;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  80%, 100% {
+    stroke-dashoffset: calc(var(--dash, 400px) * -1);
+  }
 }
 
 @keyframes fxHead {
-  0%, 22% { opacity: 0; }
-  27%     { opacity: 1; }
-  100%    { opacity: 1; }
+  0%, 23% { opacity: 0; }
+  28%     { opacity: 1; }
+  72%     { opacity: 1; }
+  80%     { opacity: 0; }
+  100%    { opacity: 0; }
 }
 
 /* lights up as the curve lands, holds ~2.5s, settles back */
@@ -638,38 +656,39 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: var(--size, 7px);
-  height: var(--size, 7px);
-  margin: calc(var(--size, 7px) / -2) 0 0 calc(var(--size, 7px) / -2);
-  border-radius: var(--radius, 2px);
+  width: var(--w, 5px);
+  height: var(--h, 11px);
+  margin: calc(var(--h, 11px) / -2) 0 0 calc(var(--w, 5px) / -2);
+  border-radius: 999px;
   background: var(--accent);
-  box-shadow: 0 0 9px rgba(255, 46, 99, 0.85);
+  box-shadow: 0 0 9px rgba(255, 46, 99, 0.8);
   opacity: 0;
-  transform: translate3d(0, 0, 0) scale(0.4);
+  transform: translate3d(0, 0, 0) rotate(var(--r0, 0deg)) scale(0.5);
 }
 
 .route--pyb.is-hinting .hint-burst b {
-  animation: burst 1050ms cubic-bezier(0.18, 0.9, 0.3, 1) 1.12s forwards;
+  animation: burst 1500ms 1.12s forwards;
 }
 
 @keyframes burst {
   0% {
     opacity: 0;
-    transform: translate3d(0, 0, 0) scale(0.3) rotate(0deg);
+    transform: translate3d(0, 0, 0) rotate(var(--r0, 0deg)) scale(0.5);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
-  14% {
+  22% {
     opacity: 1;
-    transform: translate3d(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3), 0) scale(1.1) rotate(30deg);
+    transform:
+      translate3d(calc(var(--dx) * 0.55), var(--lift, -16px), 0)
+      rotate(calc(var(--r0, 0deg) + 40deg)) scale(1);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.35);  /* gravity */
   }
-  62% {
-    opacity: 0.9;
-    transform: translate3d(calc(var(--dx) * 0.82), calc(var(--dy) * 0.82), 0) scale(0.85) rotate(110deg);
-  }
+  80% { opacity: 1; }
   100% {
     opacity: 0;
     transform:
-      translate3d(var(--dx), calc(var(--dy) + 14px), 0)
-      scale(0.35) rotate(var(--spin, 180deg));
+      translate3d(var(--dx), var(--fall, 90px), 0)
+      rotate(var(--spin, 200deg)) scale(0.9);
   }
 }
 
@@ -714,33 +733,71 @@
 }
 
 /* ============================================================
-   Scroll entry — each section has its own way in, and they run
-   in reverse when you scroll back up.
+   Scroll entry — each section has its own way in, and every one of
+   them runs in reverse when you scroll back up.
    ============================================================ */
 
 [data-anim] {
   opacity: 0;
   transition:
-    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 780ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1080ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 820ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
 
-[data-anim="rise"]  { transform: translate3d(0, 46px, 0); }
-[data-anim="left"]  { transform: translate3d(-52px, 0, 0); }
-[data-anim="right"] { transform: translate3d(38px, 0, 0); }
-[data-anim="zoom"]  { transform: scale(0.93); }
-[data-anim="pop"]   { transform: translate3d(0, 30px, 0) scale(0.95); }
-[data-anim="fade"]  { transform: none; }
+/* lifts in from below, slightly small and out of focus */
+[data-anim="rise"] {
+  transform: translate3d(0, 68px, 0) scale(0.965);
+  filter: blur(7px);
+}
+
+/* swings in off its own edge */
+[data-anim="left"] {
+  transform: perspective(1200px) translate3d(-76px, 0, 0) rotateY(13deg);
+  filter: blur(6px);
+  transform-origin: left center;
+}
+
+[data-anim="right"] {
+  transform: perspective(1200px) translate3d(54px, 0, 0) rotateY(-11deg);
+  filter: blur(5px);
+  transform-origin: right center;
+}
+
+/* pulls forward out of the page */
+[data-anim="zoom"] {
+  transform: scale(0.86);
+  filter: blur(10px);
+}
+
+/* tips up from flat */
+[data-anim="flip"] {
+  transform: perspective(1100px) rotateX(16deg) translate3d(0, 62px, 0);
+  filter: blur(6px);
+  transform-origin: 50% 100%;
+}
+
+[data-anim="pop"] {
+  transform: translate3d(0, 48px, 0) scale(0.9) rotate(-1.2deg);
+  filter: blur(6px);
+}
+
+/* the long read gets the cheap one - blurring a section that tall costs
+   real frames on the way past */
+[data-anim="fade"] {
+  transform: translate3d(0, 26px, 0);
+}
 
 [data-anim].is-in {
   opacity: 1;
   transform: none;
+  filter: none;
 }
 
-/* the doc chapters come in a touch quicker so a long read doesn't drag */
+/* chapters come in quicker so a long document doesn't drag */
 .doc [data-anim] {
-  transition-duration: 520ms, 640ms;
+  transition-duration: 560ms, 700ms, 560ms;
 }
 
 /* ============================================================
@@ -750,10 +807,10 @@
 
 .rail {
   position: fixed;
-  left: clamp(12px, 2.2vw, 30px);
+  left: clamp(10px, 2vw, 26px);
   top: calc(var(--nav-h) + 40px);
   bottom: 48px;
-  width: 2px;
+  width: 22px;
   z-index: 4;
   opacity: 0;
   pointer-events: none;
@@ -762,55 +819,48 @@
 
 body[data-route="pyb"][data-intro="done"] .rail { opacity: 1; }
 
-.rail__track {
+.rail__svg {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.09);
-  border-radius: 2px;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-/* height follows scroll progress */
-.rail__fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 2px;
-  height: calc(var(--rail-p, 0) * 100%);
-  background: var(--accent);
-  border-radius: 2px;
-  box-shadow:
-    0 0 8px rgba(255, 46, 99, 0.85),
-    0 0 22px rgba(255, 46, 99, 0.4);
+.rail__track {
+  stroke: rgba(255, 255, 255, 0.09);
+  stroke-width: 2;
 }
 
-/* the head that extrudes out at the leading end */
+/* the drawn part: dash offset is driven by scroll progress */
+.rail__line {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(255, 46, 99, 0.85));
+}
+
+/* chevron riding the leading end */
 .rail__head {
-  position: absolute;
-  left: 50%;
-  bottom: -7px;
-  width: 0;
-  height: 0;
-  transform: translateX(-50%);
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 8px solid var(--accent);
+  stroke: var(--accent);
+  stroke-width: 2.5;
   filter: drop-shadow(0 0 7px rgba(255, 46, 99, 0.95));
 }
 
 .rail__marks { position: absolute; inset: 0; }
 
-/* only the dot straddles the rail; the label runs off to the right */
+/* the dot sits on the squiggle at that height; the label runs right */
 .rail__mark {
   position: absolute;
-  left: -2.5px;
+  left: var(--x, 11px);
   top: calc(var(--at) * 100%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  transform: translateY(-50%);
+  gap: 12px;
+  transform: translate(-50%, -50%);
 }
 
 .rail__mark i {
+  flex: none;
   display: block;
   width: 7px;
   height: 7px;
