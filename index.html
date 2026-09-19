@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>MarkedExiled | Content Creator, Sponsorships &amp; Video Production</title>
-<meta name="description" content="Exiled makes scripted cinematic Minecraft series on YouTube. Sponsorships, product videos, cinematic video production and long-term brand partnerships, with pricing and terms published up front.">
+<title>MarkedExiled - Media &amp; Entertainment</title>
+<meta name="description" content="MarkedExiled is a media and entertainment studio making scripted cinematic Minecraft series on YouTube. Sponsorship sections, full product videos, cinematic video production for events and servers, and long-term brand partnerships, with pricing and terms published up front.">
 <link rel="canonical" href="https://www.markedexiled.com/">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="author" content="Exiled">
@@ -14,8 +14,8 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MarkedExiled">
 <meta property="og:url" content="https://www.markedexiled.com/">
-<meta property="og:title" content="MarkedExiled | Content Creator, Sponsorships &amp; Video Production">
-<meta property="og:description" content="Scripted cinematic Minecraft series on YouTube. Sponsorships, product videos, video production and brand partnerships, with pricing published up front.">
+<meta property="og:title" content="MarkedExiled - Media &amp; Entertainment">
+<meta property="og:description" content="A media and entertainment studio: scripted cinematic Minecraft series, sponsorships, product videos, video production and brand partnerships. Pricing published up front.">
 <meta property="og:image" content="https://www.markedexiled.com/assets/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -23,8 +23,8 @@
 <meta property="og:locale" content="en_GB">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="MarkedExiled | Content Creator, Sponsorships &amp; Video Production">
-<meta name="twitter:description" content="Scripted cinematic Minecraft series on YouTube. Sponsorships, product videos, video production and brand partnerships.">
+<meta name="twitter:title" content="MarkedExiled - Media &amp; Entertainment">
+<meta name="twitter:description" content="A media and entertainment studio: scripted cinematic Minecraft series, sponsorships, product videos, video production and brand partnerships.">
 <meta name="twitter:image" content="https://www.markedexiled.com/assets/og-image.png">
 
 <link rel="icon" href="assets/exiled.svg" type="image/svg+xml">
@@ -323,7 +323,7 @@
                to the top to make room for what you are buying. -->
           <div class="deck__hero" id="deckHero">
             <section class="pyb-hero">
-                      <h1 class="pyb-hero__title">Get your business the <span class="hint-word">engagement</span> it <span class="hint-target">deserves</span>.<svg class="hint-fx" aria-hidden="true" focusable="false"><path class="hint-fx__curve" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path class="hint-fx__head" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="hint-burst" aria-hidden="true"></span></h1>
+                      <h1 class="pyb-hero__title"><span class="pyb-hero__long">Get your business the <span class="hint-word">engagement</span> it <span class="hint-target">deserves</span>.</span><span class="pyb-hero__short">The engagement you deserve.</span><svg class="hint-fx" aria-hidden="true" focusable="false"><path class="hint-fx__curve" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path class="hint-fx__head" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="hint-burst" aria-hidden="true"></span></h1>
                       <p class="pyb-hero__note">All of it runs on my YouTube channel.</p>
             </section>
             <p class="deck__cue" id="deckCue">
@@ -344,12 +344,23 @@
               <section class="offers" aria-labelledby="offersHeading">
                         <h2 class="visually-hidden" id="offersHeading">Ways to work together</h2>
               
-                        <select class="tabs-select" id="tabsSelect" aria-label="Choose a service">
-            <option value="tab-sponsorship">Sponsorship</option>
-            <option value="tab-product">Product Video</option>
-            <option value="tab-production">Video Production Services</option>
-            <option value="tab-partnership">Partnership</option>
-          </select>
+                        <div class="picker" id="picker">
+            <button class="picker__btn" id="pickerBtn" type="button"
+                    aria-haspopup="listbox" aria-expanded="false">
+              <span class="picker__value" id="pickerValue">Sponsorship</span>
+              <svg class="picker__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false">
+                <path d="M1 1.5 6 6.5l5-5" fill="none" stroke="currentColor"
+                      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <ul class="picker__menu" id="pickerMenu" role="listbox" aria-label="Choose a service" hidden>
+              <li role="option" data-tab="tab-sponsorship" aria-selected="true">Sponsorship</li>
+              <li role="option" data-tab="tab-product" aria-selected="false">Product Video</li>
+              <li role="option" data-tab="tab-production" aria-selected="false">Video Production Services</li>
+              <li role="option" data-tab="tab-partnership" aria-selected="false">Partnership</li>
+            </ul>
+          </div>
 
           <div class="tabs" role="tablist" aria-label="Ways to work together">
                           <button class="tab" role="tab" type="button" id="tab-sponsorship"

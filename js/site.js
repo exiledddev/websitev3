@@ -327,27 +327,58 @@
 
     var buttons = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
 
-    var picker = document.getElementById('tabsSelect');
+    /* The phone picker: a real listbox rather than a native select, so it
+       can carry the same glass as the rest of the page. */
+    var picker  = document.getElementById('picker');
+    var trigger = document.getElementById('pickerBtn');
+    var menu    = document.getElementById('pickerMenu');
+    var value   = document.getElementById('pickerValue');
 
-    function select(button, focus) {
-      buttons.forEach(function (b) {
-        var on = (b === button);
-        b.setAttribute('aria-selected', on ? 'true' : 'false');
-        b.tabIndex = on ? 0 : -1;
-        document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
-      });
-      if (picker && picker.value !== button.id) picker.value = button.id;
-      if (focus) button.focus();
+    function closePicker() {
+      if (!picker) return;
+      picker.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+      window.setTimeout(function () {
+        if (!picker.classList.contains('is-open')) menu.hidden = true;
+      }, 220);
+    }
+
+    function openPicker() {
+      menu.hidden = false;
+      void menu.offsetWidth;
+      picker.classList.add('is-open');
+      trigger.setAttribute('aria-expanded', 'true');
     }
 
     if (picker) {
-      picker.addEventListener('change', function () {
-        var button = document.getElementById(picker.value);
-        if (!button) return;
-        select(button, false);
-        if (typeof window.__fitOffers === 'function') {
-          window.requestAnimationFrame(window.__fitOffers);
-        }
+      trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (picker.classList.contains('is-open')) closePicker();
+        else openPicker();
+      });
+
+      menu.addEventListener('click', function (e) {
+        var item = e.target.closest('[data-tab]');
+        if (!item) return;
+        var button = document.getElementById(item.getAttribute('data-tab'));
+        if (button) select(button, false);
+        closePicker();
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!picker.contains(e.target)) closePicker();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closePicker();
+      });
+    }
+
+    function syncPicker(button) {
+      if (!picker) return;
+      value.textContent = button.textContent.trim();
+      Array.prototype.forEach.call(menu.querySelectorAll('[data-tab]'), function (li) {
+        li.setAttribute('aria-selected', li.getAttribute('data-tab') === button.id ? 'true' : 'false');
       });
     }
 
@@ -1092,7 +1123,9 @@
     var b = agreeBtn.getBoundingClientRect();
     if (b.width <= 0 || b.height <= 0) return;
 
-    var gap = 9;                       // distance from the button's edge
+    var gap = 5;                       // distance from the button's edge
+    // no rounding: the button's box is fractional, and rounding it throws
+    // the gap out by a pixel or two on the right and bottom
     var w = b.width + gap * 2;
     var h = b.height + gap * 2;
     var r = h / 2;
@@ -1102,14 +1135,18 @@
        explicit box falls back to 300x150, and if the stylesheet has not
        landed yet the ring is built against that instead of the button -
        which draws an enormous pill across the page. */
-    svg.setAttribute('width', w.toFixed(1));
-    svg.setAttribute('height', h.toFixed(1));
-    svg.setAttribute('viewBox', '0 0 ' + w.toFixed(1) + ' ' + h.toFixed(1));
+    svg.setAttribute('width', w.toFixed(2));
+    svg.setAttribute('height', h.toFixed(2));
+    svg.setAttribute('viewBox', '0 0 ' + w.toFixed(2) + ' ' + h.toFixed(2));
     svg.setAttribute('preserveAspectRatio', 'none');
-    svg.style.left = -gap + 'px';
-    svg.style.top = -gap + 'px';
-    svg.style.width = w.toFixed(1) + 'px';
-    svg.style.height = h.toFixed(1) + 'px';
+    /* left/top are measured from the offset parent's PADDING box, while the
+       rect above is its border box - without subtracting the border the ring
+       sits a pixel right and low, and the gap reads uneven. */
+    var bw = parseFloat(getComputedStyle(agreeBtn).borderLeftWidth) || 0;
+    svg.style.left = -(gap + bw) + 'px';
+    svg.style.top = -(gap + bw) + 'px';
+    svg.style.width = w.toFixed(2) + 'px';
+    svg.style.height = h.toFixed(2) + 'px';
 
     // traced from the top centre, clockwise, back to the top centre
     path.setAttribute('d',
