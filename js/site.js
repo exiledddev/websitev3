@@ -327,6 +327,17 @@
 
     var buttons = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
 
+    function select(button, focus) {
+      buttons.forEach(function (b) {
+        var on = (b === button);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+        b.tabIndex = on ? 0 : -1;
+        document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+      });
+      syncPicker(button);
+      if (focus) button.focus();
+    }
+
     /* The phone picker: a real listbox rather than a native select, so it
        can carry the same glass as the rest of the page. */
     var picker  = document.getElementById('picker');
