@@ -6,6 +6,12 @@
    the document itself never scrolls.
    ============================================================ */
 
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
 :root {
   --nav-h: 68px;
   --accent: #FF2E63;
@@ -235,6 +241,40 @@ body[data-view="hero"]  .work { transform: translate3d(0,  7vh, 0); }
           mask-image: radial-gradient(closest-side, #000 38%, transparent 76%);
 }
 
+.hero__stat {
+  position: absolute;
+  left: var(--edge);
+  bottom: clamp(16px, 3.6vh, 40px);
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.26);
+  transition: opacity 400ms ease;
+}
+
+.hero__stat-num,
+.hero__stat-plus {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero__stat-label { margin-left: 4px; }
+
+body[data-view="cards"] .hero__stat { opacity: 0; }
+
+@media (max-width: 560px) {
+  .hero__stat {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: clamp(44px, 8vh, 72px);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+}
+
 .hero__scroll {
   position: absolute;
   left: 50%;
@@ -262,7 +302,41 @@ body[data-view="hero"]  .work { transform: translate3d(0,  7vh, 0); }
 }
 
 /* it has done its job once you are on the cards */
-body[data-view="cards"] .hero__scroll { opacity: 0; }
+body[data-view="cards"] .hero__stat {
+  position: absolute;
+  left: var(--edge);
+  bottom: clamp(16px, 3.6vh, 40px);
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.26);
+  transition: opacity 400ms ease;
+}
+
+.hero__stat-num,
+.hero__stat-plus {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero__stat-label { margin-left: 4px; }
+
+body[data-view="cards"] .hero__stat { opacity: 0; }
+
+@media (max-width: 560px) {
+  .hero__stat {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: clamp(44px, 8vh, 72px);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+}
+
+.hero__scroll { opacity: 0; }
 
 .hero__title {
   position: relative;

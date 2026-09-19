@@ -61,6 +61,11 @@
 
         <h1 class="hero__title reveal" style="--rd: 60ms">I create stories.</h1>
 
+        <p class="hero__stat">
+          <b class="hero__stat-num" data-count-to="1400000">0</b><span class="hero__stat-plus">+</span>
+          <span class="hero__stat-label">views and counting</span>
+        </p>
+
         <p class="hero__scroll" aria-hidden="true">
           Scroll for more
           <span class="hero__scroll-arrow">&#8595;</span>
@@ -138,7 +143,7 @@
       <!-- ===== Promote Your Business ===== -->
       <div class="route route--pyb" id="route-pyb" hidden>
 
-        <section class="pyb-hero">
+        <section class="pyb-hero" data-anim="rise">
           <h1 class="pyb-hero__title">Get your business the <span class="hint-word">engagement</span> it <span class="hint-target">deserves</span>.<svg class="hint-fx" aria-hidden="true" focusable="false"><path class="hint-fx__curve" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path class="hint-fx__head" fill="currentColor"/></svg><span class="hint-burst" aria-hidden="true"></span></h1>
           <p class="pyb-hero__note">All of it runs on my YouTube channel.</p>
           <p class="pyb-hero__cue">
@@ -147,14 +152,14 @@
           </p>
         </section>
 
-        <section class="notice" role="note" aria-label="Pricing update">
+        <section class="notice" role="note" aria-label="Pricing update" data-anim="left">
           <svg class="notice__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M3.5 9.5v5a1 1 0 0 0 1 1h2.2l1 4.1a1 1 0 0 0 1 .8h1.2a1 1 0 0 0 1-1.2l-.9-3.7h1.3l6.2 3.4a1 1 0 0 0 1.5-.9V6a1 1 0 0 0-1.5-.9l-6.2 3.4H4.5a1 1 0 0 0-1 1z"/>
           </svg>
           <p class="notice__title">As of 1 January 2027, these changes officially go into effect.</p>
         </section>
 
-        <section class="offers" aria-labelledby="offersHeading">
+        <section class="offers" aria-labelledby="offersHeading" data-anim="rise" data-rail="What I offer">
           <h2 class="visually-hidden" id="offersHeading">Ways to work together</h2>
 
           <div class="tabs" role="tablist" aria-label="Ways to work together">
@@ -261,7 +266,7 @@
           </div>
         </section>
 
-        <section class="currency" aria-label="How payment works">
+        <section class="currency" aria-label="How payment works" data-anim="zoom" data-rail="Payment">
           <p class="currency__label">Payment</p>
           <p class="currency__lead">All prices here are in euro, and euro is what you pay.</p>
           <p class="currency__text">
@@ -276,7 +281,7 @@
           </p>
         </section>
 
-        <section class="agreement" id="agreement" aria-labelledby="agreementHeading">
+        <section class="agreement" id="agreement" aria-labelledby="agreementHeading" data-anim="rise" data-rail="Agreement">
           <p class="agreement__eyebrow">Binding terms</p>
           <h2 class="agreement__title" id="agreementHeading">Sponsorship &amp; Partnership Agreement</h2>
           <p class="agreement__lead">
@@ -284,7 +289,7 @@
             below. These terms apply to all tiers of service.
           </p>
 
-          <nav class="toc" aria-label="Agreement contents">
+          <nav class="toc" aria-label="Agreement contents" data-anim="fade">
             <p class="toc__label">Jump to</p>
             <ol class="toc__list">
               <li><a href="#ch1" data-jump>Services &amp; Pricing</a></li>
@@ -302,7 +307,7 @@
               exclusively for the MarkedExiled YouTube channel.
             </p>
 
-            <h3 id="ch1">1. Services &amp; Pricing</h3>
+            <h3 id="ch1" data-anim="right">1. Services &amp; Pricing</h3>
 
             <h4>1.1. Sponsorship Section</h4>
             <ul>
@@ -338,7 +343,7 @@
               <li><b>Merchandise Companies:</b> The sponsor designs and creates merchandise; profits are split based on an agreed-upon percentage.</li>
             </ul>
 
-            <h3 id="ch2">2. Payment Terms &amp; Trust</h3>
+            <h3 id="ch2" data-anim="right">2. Payment Terms &amp; Trust</h3>
             <p>
               The price for the chosen service must be paid in full upfront prior to the
               commencement of the project, or in agreed-upon installments spanning a maximum of
@@ -358,7 +363,7 @@
               ensuring complete reliability in the execution of these deliverables.
             </p>
 
-            <h3 id="ch3">3. Brand Safety, Honesty, and Morals Clauses</h3>
+            <h3 id="ch3" data-anim="right">3. Brand Safety, Honesty, and Morals Clauses</h3>
 
             <h4>3.1. Public Expose &amp; Ongoing Investigations</h4>
             <p>
@@ -382,7 +387,7 @@
               instantly terminated with <b>no refund</b>.
             </p>
 
-            <h3 id="ch4">4. Confidentiality &amp; NDAs</h3>
+            <h3 id="ch4" data-anim="right">4. Confidentiality &amp; NDAs</h3>
             <p>
               I do not sign gray-area Non-Disclosure Agreements (NDAs). I am open to signing an
               NDA strictly if confidential inside-information is to be revealed. However, this
@@ -390,7 +395,7 @@
               areas, and the signing party is legally recognized as over 18 years of age.
             </p>
 
-            <h3 id="ch5">5. Standard Legal &amp; Operational Provisions</h3>
+            <h3 id="ch5" data-anim="right">5. Standard Legal &amp; Operational Provisions</h3>
 
             <h4>5.1. Content Ownership &amp; Intellectual Property</h4>
             <p>
@@ -431,7 +436,7 @@
 
         </section>
 
-        <section class="contact" id="contact" aria-labelledby="contactHeading">
+        <section class="contact" id="contact" aria-labelledby="contactHeading" data-anim="pop" data-rail="Contact">
           <p class="contact__label" id="contactHeading">Ready for business?</p>
           <a class="contact__email" href="mailto:business@markedexiled.com?subject=Promote%20my%20business">business@markedexiled.com</a>
           <p class="contact__note">
@@ -443,6 +448,13 @@
 
     </main>
 
+  </div>
+
+  <!-- ===== Scroll rail (promote route) ===== -->
+  <div class="rail" id="rail" aria-hidden="true">
+    <div class="rail__track"></div>
+    <div class="rail__fill"><span class="rail__head"></span></div>
+    <div class="rail__marks" id="railMarks"></div>
   </div>
 
   <!-- ===== Route transition: the mark floods in, then lifts away ===== -->

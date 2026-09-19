@@ -712,3 +712,145 @@
   .route--pyb.is-hinting .hint-burst b,
   .route--pyb.is-hinting .offer__price-value::after { animation: none; }
 }
+
+/* ============================================================
+   Scroll entry — each section has its own way in, and they run
+   in reverse when you scroll back up.
+   ============================================================ */
+
+[data-anim] {
+  opacity: 0;
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+[data-anim="rise"]  { transform: translate3d(0, 46px, 0); }
+[data-anim="left"]  { transform: translate3d(-52px, 0, 0); }
+[data-anim="right"] { transform: translate3d(38px, 0, 0); }
+[data-anim="zoom"]  { transform: scale(0.93); }
+[data-anim="pop"]   { transform: translate3d(0, 30px, 0) scale(0.95); }
+[data-anim="fade"]  { transform: none; }
+
+[data-anim].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* the doc chapters come in a touch quicker so a long read doesn't drag */
+.doc [data-anim] {
+  transition-duration: 520ms, 640ms;
+}
+
+/* ============================================================
+   Scroll rail — a glowing line that extends as you scroll and
+   calls out each section as you reach it.
+   ============================================================ */
+
+.rail {
+  position: fixed;
+  left: clamp(12px, 2.2vw, 30px);
+  top: calc(var(--nav-h) + 40px);
+  bottom: 48px;
+  width: 2px;
+  z-index: 4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms ease;
+}
+
+body[data-route="pyb"][data-intro="done"] .rail { opacity: 1; }
+
+.rail__track {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 2px;
+}
+
+/* height follows scroll progress */
+.rail__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: calc(var(--rail-p, 0) * 100%);
+  background: var(--accent);
+  border-radius: 2px;
+  box-shadow:
+    0 0 8px rgba(255, 46, 99, 0.85),
+    0 0 22px rgba(255, 46, 99, 0.4);
+}
+
+/* the head that extrudes out at the leading end */
+.rail__head {
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 8px solid var(--accent);
+  filter: drop-shadow(0 0 7px rgba(255, 46, 99, 0.95));
+}
+
+.rail__marks { position: absolute; inset: 0; }
+
+/* only the dot straddles the rail; the label runs off to the right */
+.rail__mark {
+  position: absolute;
+  left: -2.5px;
+  top: calc(var(--at) * 100%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(-50%);
+}
+
+.rail__mark i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  transition: background-color 300ms ease, box-shadow 300ms ease, transform 300ms ease;
+}
+
+.rail__mark span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 320ms ease, transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rail__mark.is-on i {
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 46, 99, 0.9);
+  transform: scale(1.25);
+}
+
+.rail__mark.is-on span {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 900px) {
+  .rail__mark span { display: none; }
+}
+
+@media (max-width: 560px) {
+  .rail { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-anim] { opacity: 1; transform: none; transition: none; }
+  .rail__fill, .rail__mark i, .rail__mark span { transition: none; }
+}

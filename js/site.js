@@ -216,8 +216,13 @@
       route = name;
       paintRoute();
       // the home route re-enters on its headline
-      if (route === 'home') setView(0);
-      else playHints();
+      if (route === 'home') {
+        setView(0);
+      } else {
+        buildRail();
+        paintRail();
+        playHints();
+      }
     });
 
     if (push !== false && window.location.hash !== ROUTES[name].hash) {
@@ -370,6 +375,106 @@
     if (target) target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
   });
 
+
+  /* ============================================================
+     Scroll entry — sections animate in as they arrive and back out
+     as they leave, in both directions.
+     ============================================================ */
+
+  function armScrollAnim() {
+    var items = document.querySelectorAll('[data-anim]');
+
+    if (reduced || !('IntersectionObserver' in window)) {
+      Array.prototype.forEach.call(items, function (el) { el.classList.add('is-in'); });
+      return;
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        // no unobserve: scrolling back up runs the same move in reverse
+        entry.target.classList.toggle('is-in', entry.isIntersecting);
+      });
+    }, { rootMargin: '-10% 0px -12% 0px', threshold: 0 });
+
+    Array.prototype.forEach.call(items, function (el) { io.observe(el); });
+  }
+
+  /* ============================================================
+     Scroll rail — extends with scroll progress and lights up each
+     section as the head reaches it. Runs backwards on the way up.
+     ============================================================ */
+
+  var rail      = document.getElementById('rail');
+  var railMarks = document.getElementById('railMarks');
+  var railItems = [];
+  var railTick  = 0;
+
+  function buildRail() {
+    if (!rail || !railMarks) return;
+    railMarks.innerHTML = '';
+    railItems = [];
+
+    var sections = document.querySelectorAll('#route-pyb [data-rail]');
+    var span = document.documentElement.scrollHeight - window.innerHeight;
+    if (span <= 0) return;
+
+    Array.prototype.forEach.call(sections, function (section) {
+      // where this section sits on the same 0-1 scale as scroll progress
+      var at = Math.min(1, Math.max(0,
+        (section.offsetTop - window.innerHeight * 0.45) / span));
+
+      var mark = document.createElement('div');
+      mark.className = 'rail__mark';
+      mark.style.setProperty('--at', at.toFixed(4));
+      mark.innerHTML = '<i></i><span>' + section.getAttribute('data-rail') + '</span>';
+      railMarks.appendChild(mark);
+      railItems.push({ el: mark, at: at });
+    });
+  }
+
+  function paintRail() {
+    railTick = 0;
+    if (!rail || route !== 'pyb') return;
+
+    var span = document.documentElement.scrollHeight - window.innerHeight;
+    var p = span > 0 ? Math.min(1, Math.max(0, window.scrollY / span)) : 0;
+    rail.style.setProperty('--rail-p', p.toFixed(4));
+
+    railItems.forEach(function (item) {
+      item.el.classList.toggle('is-on', p >= item.at - 0.01);
+    });
+  }
+
+  window.addEventListener('scroll', function () {
+    if (railTick) return;
+    railTick = window.requestAnimationFrame(paintRail);
+  }, { passive: true });
+
+  window.addEventListener('resize', function () {
+    buildRail();
+    paintRail();
+  });
+
+  /* ============================================================
+     Reach counter on the home hero
+     ============================================================ */
+
+  function countUp(el) {
+    var to = parseInt(el.getAttribute('data-count-to'), 10) || 0;
+    if (reduced) { el.textContent = to.toLocaleString('en-US'); return; }
+
+    var DUR = 1900;
+    var t0 = 0;
+
+    requestAnimationFrame(function step(now) {
+      if (!t0) t0 = now;
+      var p = Math.min(1, (now - t0) / DUR);
+      var eased = 1 - Math.pow(1 - p, 4);            // settles, rather than stopping dead
+      el.textContent = Math.round(to * eased).toLocaleString('en-US');
+      if (p < 1) requestAnimationFrame(step);
+    });
+  }
+
   /* ============================================================
      Handover from the intro
      ============================================================ */
@@ -381,11 +486,15 @@
   document.addEventListener('intro:done', function () {
     body.setAttribute('data-intro', 'done');
     armed = true;
-    // landed straight on /promote: the hints wait for the intro to clear
-    if (route === 'pyb') playHints();
+
+    var counter = document.querySelector('[data-count-to]');
+    if (counter) countUp(counter);
+
+    if (route === 'pyb') { buildRail(); paintRail(); playHints(); }
   });
 
   route = routeFromHash();
   paintRoute();
   paintView();
+  armScrollAnim();
 })();
