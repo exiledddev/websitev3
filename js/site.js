@@ -327,6 +327,8 @@
 
     var buttons = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
 
+    var picker = document.getElementById('tabsSelect');
+
     function select(button, focus) {
       buttons.forEach(function (b) {
         var on = (b === button);
@@ -334,7 +336,19 @@
         b.tabIndex = on ? 0 : -1;
         document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
       });
+      if (picker && picker.value !== button.id) picker.value = button.id;
       if (focus) button.focus();
+    }
+
+    if (picker) {
+      picker.addEventListener('change', function () {
+        var button = document.getElementById(picker.value);
+        if (!button) return;
+        select(button, false);
+        if (typeof window.__fitOffers === 'function') {
+          window.requestAnimationFrame(window.__fitOffers);
+        }
+      });
     }
 
     list.addEventListener('click', function (e) {
@@ -466,6 +480,13 @@
     var sc  = layers[1] && layers[1].querySelector('.deck__scroll');
     if (!fit || !sc) return;
 
+    // phones read the copy at full size and scroll it instead
+    if (window.matchMedia('(max-width: 620px)').matches) {
+      fit.style.removeProperty('--fit');
+      fit.style.height = '';
+      return;
+    }
+
     // clear the last measurement first, or the height left over from the
     // previous tab skews this one
     fit.style.setProperty('--fit', '1');
@@ -481,7 +502,7 @@
 
     var k = (natural > 0 && avail > 0) ? Math.min(1, avail / natural) : 1;
     fit.style.setProperty('--fit', k.toFixed(4));
-    fit.style.height = Math.floor(natural * k) + 'px';
+    fit.style.height = Math.ceil(natural * k) + 4 + 'px';
   }
 
   /* the seal and the chapter track sit outside the widest block on the
@@ -794,6 +815,13 @@
     var sc  = layers[1] && layers[1].querySelector('.deck__scroll');
     if (!fit || !sc) return;
 
+    // phones read the copy at full size and scroll it instead
+    if (window.matchMedia('(max-width: 620px)').matches) {
+      fit.style.removeProperty('--fit');
+      fit.style.height = '';
+      return;
+    }
+
     // clear the last measurement first, or the height left over from the
     // previous tab skews this one
     fit.style.setProperty('--fit', '1');
@@ -809,7 +837,7 @@
 
     var k = (natural > 0 && avail > 0) ? Math.min(1, avail / natural) : 1;
     fit.style.setProperty('--fit', k.toFixed(4));
-    fit.style.height = Math.floor(natural * k) + 'px';
+    fit.style.height = Math.ceil(natural * k) + 4 + 'px';
   }
 
   /* the seal and the chapter track sit outside the widest block on the

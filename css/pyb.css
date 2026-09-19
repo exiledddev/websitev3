@@ -1518,3 +1518,73 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
   .contact__word-sel { transition: none; }
 }
+
+/* ============================================================
+   Phone: a dropdown instead of a tab row, full-size copy, and a
+   gate that floats near the bottom of the screen.
+   ============================================================ */
+
+.tabs-select { display: none; }
+
+@media (max-width: 620px) {
+  .tabs { display: none; }
+
+  .tabs-select {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 0 40px 0 18px;
+    height: 52px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    color: var(--ink);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+
+    /* the same glass as the gate, monochrome - it is a control, not a call
+       to action, so it should not compete for attention */
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5l5-5' stroke='rgba(255,255,255,.65)' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+      right 18px center / 12px 8px no-repeat,
+      rgba(255, 255, 255, 0.07);
+    -webkit-backdrop-filter: blur(4px) saturate(1.6) brightness(1.1);
+            backdrop-filter: blur(4px) saturate(1.6) brightness(1.1);
+    box-shadow:
+      inset 2px -2px 1px -1px rgba(255, 255, 255, 0.55),
+      inset -2px 2px 1px -1px rgba(255, 255, 255, 0.55),
+      inset 0 0 2px rgba(0, 0, 0, 0.6),
+      0 4px 18px rgba(0, 0, 0, 0.5);
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .tabs-select:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .tabs-select option { background: #0b0b0d; color: #fff; }
+
+  /* readable copy beats a fitted screen: let it scroll, and the stage only
+     turns once the reader is actually at the end of it */
+  .deck__fit { transform: none !important; height: auto !important; overflow: visible; }
+
+  .deck__layer--offers .offer__title { font-size: 1.35rem; }
+  .deck__layer--offers .offer__text { font-size: 0.95rem; line-height: 1.6; margin-top: 14px; }
+  .deck__layer--offers .offer__list li { font-size: 0.9rem; margin-bottom: 8px; }
+  .deck__layer--offers .offer__note { font-size: 0.85rem; }
+  .deck__layer--offers .offer__price-value { font-size: 1.9rem; }
+  .deck__layer--offers .offer__price-note { font-size: 0.8rem; }
+  .deck__layer--offers .currency__lead { font-size: 1.02rem; }
+  .deck__layer--offers .currency__text { font-size: 0.9rem; line-height: 1.6; }
+  .deck__layer--offers .currency__terms { font-size: 0.85rem; }
+  .deck__layer--offers .notice__title { font-size: 0.86rem; }
+  .deck__layer--offers .deck__scroll { padding-bottom: clamp(30px, 7vh, 60px); }
+
+  /* the gate floats just off the bottom of the screen */
+  .agree {
+    margin-top: clamp(36px, 7vh, 72px);
+    padding-bottom: clamp(22px, 4.5vh, 40px);
+  }
+
+  .deck__layer--doc .deck__scroll { padding-bottom: 0; }
+}

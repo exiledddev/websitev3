@@ -344,7 +344,14 @@
               <section class="offers" aria-labelledby="offersHeading">
                         <h2 class="visually-hidden" id="offersHeading">Ways to work together</h2>
               
-                        <div class="tabs" role="tablist" aria-label="Ways to work together">
+                        <select class="tabs-select" id="tabsSelect" aria-label="Choose a service">
+            <option value="tab-sponsorship">Sponsorship</option>
+            <option value="tab-product">Product Video</option>
+            <option value="tab-production">Video Production Services</option>
+            <option value="tab-partnership">Partnership</option>
+          </select>
+
+          <div class="tabs" role="tablist" aria-label="Ways to work together">
                           <button class="tab" role="tab" type="button" id="tab-sponsorship"
                                   aria-controls="panel-sponsorship" aria-selected="true">Sponsorship</button>
                           <button class="tab" role="tab" type="button" id="tab-product"
@@ -459,8 +466,7 @@
                                         on is the amount that actually reaches me.
                                       </p>
                                       <p class="currency__terms">
-                                        Paid in full upfront before the project starts, or in installments we agree on,
-                                        spanning two months at most.
+                                        Paid upfront, or in installments across two months at most.
                                       </p>
                                     </section>
             </div>
@@ -720,6 +726,11 @@
           <span class="brand__letters" id="brandLetters" aria-hidden="true"></span>
         </h1>
 
+      </div>
+
+      <div class="intro__note" aria-hidden="true">
+        <span class="intro__note-line"><i>Mobile</i></span>
+        <span class="intro__note-line intro__note-line--sub"><i>For better experience, visit on desktop.</i></span>
       </div>
     </div>
   </div>
