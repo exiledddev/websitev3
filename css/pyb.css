@@ -657,7 +657,7 @@
 }
 
 .route--pyb.is-hinting .hint-burst b {
-  animation: burst 2100ms 1.12s forwards;
+  animation: burst 1700ms 1.12s infinite;
 }
 
 @keyframes burst {
@@ -666,19 +666,25 @@
     transform: translate3d(0, 0, 0) rotate(var(--r0, 0deg)) scale(0.5);
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
-  22% {
+  14% {
     opacity: 1;
     transform:
-      translate3d(calc(var(--dx) * 0.55), var(--lift, -16px), 0)
+      translate3d(calc(var(--dx) * 0.4), var(--lift, -16px), 0)
       rotate(calc(var(--r0, 0deg) + 40deg)) scale(1);
-    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.35);  /* gravity */
+    /* from here on it is falling, and it never stops falling */
+    animation-timing-function: cubic-bezier(0.45, 0, 0.9, 0.5);
   }
-  90% { opacity: 1; }
+  70% {
+    opacity: 1;
+    transform:
+      translate3d(calc(var(--dx) * 0.85), calc(var(--fall, 240px) * 0.62), 0)
+      rotate(calc(var(--spin, 260deg) * 0.7)) scale(0.96);
+  }
   100% {
     opacity: 0;
     transform:
-      translate3d(var(--dx), var(--fall, 90px), 0)
-      rotate(var(--spin, 200deg)) scale(0.9);
+      translate3d(var(--dx), var(--fall, 240px), 0)
+      rotate(var(--spin, 260deg)) scale(0.9);
   }
 }
 
@@ -931,35 +937,85 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 
 .agree__btn {
   --glow: 0, 214, 132;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 clamp(20px, 3vw, 34px);
-  height: 54px;
-  border: 1px solid rgba(var(--glow), 0.55);
+  padding: 0 clamp(24px, 3.2vw, 40px);
+  height: 58px;
+  border: 0;
   border-radius: 999px;
-  /* glass: the agreement stays visible through it */
-  background: rgba(var(--glow), 0.13);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-          backdrop-filter: blur(16px) saturate(150%);
-  color: #B6FFE2;
+  color: #D8FFEF;
   font: inherit;
-  font-size: clamp(0.9rem, 1.4vw, 1.02rem);
+  font-size: clamp(0.92rem, 1.45vw, 1.06rem);
   font-weight: 700;
   letter-spacing: -0.01em;
   cursor: pointer;
+
+  /* the glass itself: tinted, blurred, lifted off the page */
+  background:
+    linear-gradient(180deg, rgba(var(--glow), 0.30) 0%, rgba(var(--glow), 0.12) 46%, rgba(var(--glow), 0.20) 100%);
+  -webkit-backdrop-filter: blur(18px) saturate(190%);
+          backdrop-filter: blur(18px) saturate(190%);
   box-shadow:
-    0 0 18px rgba(var(--glow), 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 0 22px rgba(var(--glow), 0.10);
-  animation: agreeGlow 2.6s ease-in-out infinite;
-  transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
+    0 0 0 1px rgba(var(--glow), 0.45),
+    0 10px 34px rgba(var(--glow), 0.30),
+    0 0 42px rgba(var(--glow), 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -10px 22px rgba(var(--glow), 0.20),
+    inset 0 14px 26px rgba(255, 255, 255, 0.10);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease;
+}
+
+/* the bright rim light that makes glass read as glass */
+.agree__btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(160deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(var(--glow), 0.30) 34%,
+    rgba(255, 255, 255, 0.10) 62%,
+    rgba(var(--glow), 0.75) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* a specular highlight that drifts across it */
+.agree__btn::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -30%;
+  width: 55%;
+  height: 220%;
+  background: linear-gradient(100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.42) 50%,
+    rgba(255, 255, 255, 0) 100%);
+  filter: blur(6px);
+  transform: rotate(14deg);
+  animation: glassSheen 4.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .agree__btn:hover {
-  background: rgba(var(--glow), 0.2);
-  color: #D6FFEE;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(var(--glow), 0.6),
+    0 14px 40px rgba(var(--glow), 0.4),
+    0 0 58px rgba(var(--glow), 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -10px 24px rgba(var(--glow), 0.26),
+    inset 0 14px 28px rgba(255, 255, 255, 0.14);
 }
 
 .agree__btn:focus-visible {
@@ -967,10 +1023,13 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
   outline-offset: 4px;
 }
 
-@keyframes agreeGlow {
-  0%, 100% { box-shadow: 0 0 16px rgba(var(--glow), 0.28), inset 0 0 20px rgba(var(--glow), 0.10); }
-  50%      { box-shadow: 0 0 30px rgba(var(--glow), 0.55), inset 0 0 26px rgba(var(--glow), 0.18); }
+@keyframes glassSheen {
+  0%, 100% { left: -35%; opacity: 0; }
+  18%      { opacity: 1; }
+  55%      { left: 105%; opacity: 0.9; }
+  56%, 99% { opacity: 0; }
 }
+
 
 .agree__note {
   margin: 16px 0 0;
@@ -1224,4 +1283,103 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
      children still push the scroller's scrollHeight past the screen */
   overflow: hidden;
   overflow: clip;
+}
+
+/* ============================================================
+   Stage changes are a quick mark wipe rather than a crossfade
+   ============================================================ */
+
+.swipe__ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 214, 132, 0.9);
+  opacity: 0;
+  transform: scale(0.2);
+  pointer-events: none;
+}
+
+/* --- fast: between stages --- */
+
+.swipe--fast[data-state="cover"] {
+  transition: clip-path 230ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.swipe--fast[data-state="uncover"] {
+  transition: clip-path 290ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.swipe--fast .swipe__mark { width: clamp(52px, 6vw, 96px); }
+
+.swipe--fast[data-state="cover"] .swipe__mark {
+  transition:
+    opacity 140ms ease,
+    transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.swipe--fast[data-state="uncover"] .swipe__mark {
+  transform: scale(1.18) translate3d(0, -7vh, 0);
+  transition:
+    opacity 180ms ease,
+    transform 290ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* --- seal: the one you get for agreeing --- */
+
+.swipe--seal {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 214, 132, 0.16) 0%, transparent 58%),
+    #000;
+}
+
+.swipe--seal .swipe__mark {
+  color: #C9FFE8;
+  filter:
+    drop-shadow(0 0 22px rgba(0, 214, 132, 0.9))
+    drop-shadow(0 0 60px rgba(0, 214, 132, 0.5));
+}
+
+.swipe--seal[data-state="cover"] {
+  transition: clip-path 520ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.swipe--seal[data-state="cover"] .swipe__mark {
+  transform: scale(1);
+  transition:
+    opacity 260ms ease,
+    transform 620ms cubic-bezier(0.34, 1.4, 0.4, 1);   /* lands with a kick */
+}
+
+.swipe--seal[data-state="cover"] .swipe__ring {
+  animation: sealRing 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms 2;
+}
+
+/* then the whole thing is pulled away through the mark */
+.swipe--seal[data-state="uncover"] {
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 620ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.swipe--seal[data-state="uncover"] .swipe__mark {
+  opacity: 0;
+  transform: scale(14);
+  transition:
+    opacity 420ms ease 120ms,
+    transform 620ms cubic-bezier(0.7, 0, 0.3, 1);
+}
+
+@keyframes sealRing {
+  0%   { opacity: 0;   transform: scale(0.2); border-width: 3px; }
+  12%  { opacity: 0.9; }
+  100% { opacity: 0;   transform: scale(22);  border-width: 1px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe--fast .swipe__mark,
+  .swipe--seal .swipe__mark,
+  .swipe__ring { transition: none; animation: none; }
 }

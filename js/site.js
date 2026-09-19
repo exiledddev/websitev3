@@ -102,15 +102,16 @@
     var y0 = w.bottom - t.top + 2;
 
     var x3 = g.left - t.left + g.width * 0.5;
-    var gap = Math.max(30, g.height * 0.46);
-    var y3 = g.bottom - t.top + gap;
+    var y3 = g.bottom - t.top + Math.max(14, g.height * 0.2);
 
-    var outX  = -Math.max(34, t.width * 0.09);
-    var floor = y3 + Math.max(58, g.height * 0.72);
+    var outX = -Math.max(34, t.width * 0.09);
+    // the last control sits directly under the endpoint, so the curve
+    // arrives travelling upward and the head points into the word
+    var rise = Math.max(84, g.height * 1.05);
 
     var d = 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) +
-            ' C' + (outX - 30).toFixed(1) + ' ' + (y0 + 6).toFixed(1) +
-            ' '  + (outX - 10).toFixed(1) + ' ' + floor.toFixed(1) +
+            ' C' + (outX - 30).toFixed(1) + ' ' + (y0 + 10).toFixed(1) +
+            ' '  + (x3 - Math.max(26, g.width * 0.16)).toFixed(1) + ' ' + (y3 + rise).toFixed(1) +
             ' '  + x3.toFixed(1) + ' ' + y3.toFixed(1);
 
     curve.setAttribute('d', d);
@@ -494,10 +495,35 @@
     layer.style.setProperty('--doc-right', Math.round(br.right - lr.left + 40) + 'px');
   }
 
-  function setStage(n) {
-    n = Math.max(0, Math.min(3, n));
-    if (n === stage) return;
+  /* Stage changes play a quick mark wipe instead of a crossfade; agreeing
+     gets the longer one. Both drive the same overlay. */
+  var WIPES = {
+    fast: { klass: 'swipe--fast', cover: 230, hold: 60,  uncover: 290 },
+    seal: { klass: 'swipe--seal', cover: 520, hold: 380, uncover: 620 }
+  };
 
+  function runWipe(kind, swap) {
+    var w = WIPES[kind];
+
+    if (reduced || swiping) { swap(); return; }
+    swiping = true;
+
+    swipe.classList.add(w.klass);
+    swipe.setAttribute('data-state', 'cover');
+
+    window.setTimeout(function () {
+      swap();
+      swipe.setAttribute('data-state', 'uncover');
+
+      window.setTimeout(function () {
+        swipe.setAttribute('data-state', 'idle');
+        swipe.classList.remove(w.klass);
+        swiping = false;
+      }, w.uncover);
+    }, w.cover + w.hold);
+  }
+
+  function applyStage(n) {
     var previous = stage;
     stage = n;
     body.setAttribute('data-stage', String(stage));
@@ -520,7 +546,14 @@
     }
 
     playEnters(stage);
-    stageLock = Date.now() + 780;
+  }
+
+  function setStage(n, kind) {
+    n = Math.max(0, Math.min(3, n));
+    if (n === stage || swiping) return;
+
+    stageLock = Date.now() + 1200;
+    runWipe(kind || 'fast', function () { applyStage(n); });
   }
 
   function activeScroller() {
@@ -664,7 +697,7 @@
   /* the gate */
   var agreeBtn = document.getElementById('agreeBtn');
   if (agreeBtn) {
-    agreeBtn.addEventListener('click', function () { setStage(3); });
+    agreeBtn.addEventListener('click', function () { setStage(3, 'seal'); });
   }
 
   function resetDeck() {
