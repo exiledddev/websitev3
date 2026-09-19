@@ -811,8 +811,15 @@ body[data-stage="2"] .deck__hero .pyb-hero__title,
 body[data-stage="3"] .deck__hero .pyb-hero__title {
   max-width: none;
   width: max-content;
-  margin-inline: auto;
   white-space: nowrap;
+
+  /* max-content is wider than a phone screen, and margin-inline:auto is
+     over-constrained there - the browser keeps the left margin, drops the
+     right, and the scale preserves the drift. Offsetting by half the box
+     centres it whether it fits or overflows. */
+  margin-inline: 0;
+  left: 50%;
+  translate: -50%;
 }
 
 body[data-stage="2"] .deck__hero,
@@ -1291,13 +1298,11 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 /* Stage 1 is scaled to whatever the tallest tab needs, so every panel
    lands inside the screen. The factor is measured in js/site.js. */
 .deck__fit {
-  transform: scale(var(--fit, 1));
-  transform-origin: 50% 0;
-  will-change: transform;
-  /* the box is set to the scaled height; without clipping, the untransformed
-     children still push the scroller's scrollHeight past the screen */
-  overflow: hidden;
-  overflow: clip;
+  /* zoom, not transform: a scaled transform leaves the box laid out at full
+     size, so the block had to be clamped to the drawn height and the last
+     card fell outside it. zoom shrinks the layout itself, so the height and
+     the scroll extent come out right and nothing needs clipping. */
+  zoom: var(--fit, 1);
 }
 
 /* ============================================================
@@ -1705,8 +1710,18 @@ body:not([data-stage="0"]) .deck__cue { opacity: 0; }
 .pyb-hero__short { display: none; }
 
 @media (max-width: 620px) {
-  .pyb-hero__long { display: none; }
-  .pyb-hero__short { display: inline; }
+  .pyb-hero__long { display: inline; }
+  .pyb-hero__short { display: none; }
+
+  /* once it pins to the top it is forced to one line, and only then does
+     the full sentence run off the side */
+  body[data-stage="1"] .pyb-hero__long,
+  body[data-stage="2"] .pyb-hero__long,
+  body[data-stage="3"] .pyb-hero__long { display: none; }
+
+  body[data-stage="1"] .pyb-hero__short,
+  body[data-stage="2"] .pyb-hero__short,
+  body[data-stage="3"] .pyb-hero__short { display: inline; }
 
   /* the hint curve is anchored to words that only exist in the long one */
   .hint-fx, .hint-burst { display: none; }
