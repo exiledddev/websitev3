@@ -205,7 +205,7 @@
     <section class="offers-block">
       <div class="shell">
 
-        <section class="notice" role="note" aria-label="Pricing update">
+        <section class="notice edge" role="note" aria-label="Pricing update">
                         <svg class="notice__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                           <path d="M3.5 9.5v5a1 1 0 0 0 1 1h2.2l1 4.1a1 1 0 0 0 1 .8h1.2a1 1 0 0 0 1-1.2l-.9-3.7h1.3l6.2 3.4a1 1 0 0 0 1.5-.9V6a1 1 0 0 0-1.5-.9l-6.2 3.4H4.5a1 1 0 0 0-1 1z"/>
                         </svg>
@@ -216,7 +216,7 @@
           <h2 class="visually-hidden" id="offersHeading">Ways to work together</h2>
 
           <div class="picker" id="picker">
-            <button class="picker__btn" id="pickerBtn" type="button"
+            <button class="picker__btn edge" id="pickerBtn" type="button"
                     aria-haspopup="listbox" aria-expanded="false">
               <span class="picker__value" id="pickerValue">Sponsorship</span>
               <svg class="picker__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false">
@@ -225,7 +225,7 @@
               </svg>
             </button>
 
-            <ul class="picker__menu" id="pickerMenu" role="listbox" aria-label="Choose a service" hidden>
+            <ul class="picker__menu edge" id="pickerMenu" role="listbox" aria-label="Choose a service" hidden>
               <li role="option" data-tab="tab-sponsorship" aria-selected="true">Sponsorship</li>
               <li role="option" data-tab="tab-product" aria-selected="false">Product Video</li>
               <li role="option" data-tab="tab-production" aria-selected="false">Video Production Services</li>
@@ -347,7 +347,7 @@
                                         taxes on the transfer are <b>added on top</b> of the price, so the amount we agreed
                                         on is the amount that actually reaches me.
                                       </p>
-                                      <p class="currency__terms">
+                                      <p class="currency__terms edge">
                                         Paid upfront, or in installments across two months at most.
                                       </p>
                                     </section>
@@ -385,7 +385,7 @@
                           below. These terms apply to all tiers of service.
                         </p>
               
-                        <nav class="toc" aria-label="Agreement contents">
+                        <nav class="toc edge" aria-label="Agreement contents">
                           <p class="toc__label">Jump to</p>
                           <ol class="toc__list">
                             <li><a href="#ch1" data-jump>Services &amp; Pricing</a></li>
@@ -619,10 +619,13 @@
 <!-- ===== Intro sequence ===== -->
   <div class="intro" id="intro" data-state="idle">
 
-    <!-- the wall the mark breaches through -->
-    <div class="intro__wall" aria-hidden="true">
-      <span class="intro__wall-bars"></span>
-      <span class="intro__wall-tear"></span>
+    <!-- the Blackwall breach: hex traffic, ICE windows and a scan sweep -->
+    <div class="intro__breach" aria-hidden="true">
+      <div class="intro__rain" id="introRain"></div>
+      <div class="intro__wins" id="introWins"></div>
+      <span class="intro__sweep"></span>
+      <span class="intro__flash"></span>
+      <span class="intro__bars"></span>
     </div>
 
     <!-- Zoom layer: starts framed so tightly inside the mark that the whole

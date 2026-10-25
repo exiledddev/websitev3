@@ -295,84 +295,241 @@ body:not([data-intro]) {
 }
 
 /* ============================================================
-   Blackwall skin
-   The timing and the state machine above are unchanged — this
-   only re-dresses them: the mark now breaches a red ICE wall
-   instead of pulling back out of plain white.
+   Blackwall breach
+
+   The timing and the state machine above are unchanged. This
+   dresses them: hex traffic pours through the wall, ICE windows
+   snap open across it, a scan sweep runs the screen, and the
+   mark punches through on the flash.
    ============================================================ */
 
 .intro {
   --bg: #05060A;
+  --red: #FF1F3D;
+  --red-hot: #FF4D5F;
   background: var(--bg);
 }
 
 .intro__brand { font-family: 'Chakra Petch', 'Inter', system-ui, sans-serif; }
+.intro__note-line i { font-family: 'Chakra Petch', 'Inter', system-ui, sans-serif; letter-spacing: 0.08em; }
 
-/* The wall itself: filaments plus a horizon glow, sitting under the
-   lockup and above the page. */
-.intro__wall {
+.intro__breach {
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 420ms var(--ease-out-quint);
+  transition: opacity 320ms ease;
 }
 
-.intro[data-state="idle"] .intro__wall,
-.intro[data-state="zoom"] .intro__wall { opacity: 1; }
+.intro[data-state="idle"]  .intro__breach { opacity: 1; }
+.intro[data-state="zoom"]  .intro__breach { opacity: 1; }
+.intro[data-state="logo"]  .intro__breach { opacity: 0.72; }
+.intro[data-state="slide"] .intro__breach { opacity: 0.4; }
+.intro[data-state="letters"] .intro__breach { opacity: 0.18; }
 
-.intro[data-state="logo"] .intro__wall,
-.intro[data-state="slide"] .intro__wall { opacity: 0.55; }
+/* ---------- vertical filaments ---------- */
 
-.intro[data-state="letters"] .intro__wall { opacity: 0.3; }
-
-.intro__wall-bars,
-.intro__wall-tear { position: absolute; inset: 0; }
-
-.intro__wall-bars {
-  background:
-    repeating-linear-gradient(90deg,
-      transparent 0 26px,
-      rgba(255, 31, 61, 0.14) 26px 27px,
-      transparent 27px 72px),
-    radial-gradient(80% 60% at 50% 50%, rgba(255, 31, 61, 0.18) 0%, transparent 70%);
-  animation: introDrift 9s linear infinite;
+.intro__bars {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 26px,
+    rgba(255, 31, 61, 0.13) 26px 27px,
+    transparent 27px 72px);
+  mask-image: radial-gradient(120% 90% at 50% 50%, #000 20%, transparent 80%);
+  animation: breachDrift 7s linear infinite;
 }
 
-/* The breach: a hot seam that splits outward as the mark pulls back. */
-.intro__wall-tear {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 31, 61, 0.0) 44%,
-    #FF4D5F 50%,
-    rgba(255, 31, 61, 0.0) 56%,
-    transparent 100%);
-  filter: blur(10px);
+@keyframes breachDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 72px 0; }
+}
+
+/* ---------- hex traffic ---------- */
+
+.intro__rain { position: absolute; inset: 0; }
+
+.intro__col {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  translate: -50% 0;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
+  font-size: clamp(9px, 1.1vw, 13px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  animation-name: breachFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.intro__b {
+  color: rgba(255, 31, 61, 0.5);
+  font-style: normal;
+  animation: breachFlicker 1.6s steps(2, end) infinite;
+}
+
+/* the head of each stream burns brighter, the way the real readout does */
+.intro__b--lead {
+  color: #fff;
+  text-shadow: 0 0 10px var(--red), 0 0 22px rgba(255, 31, 61, 0.7);
+}
+
+@keyframes breachFall {
+  from { transform: translate3d(0, -62%, 0); }
+  to   { transform: translate3d(0, 102%, 0); }
+}
+
+@keyframes breachFlicker {
+  0%, 44%  { opacity: 0.85; }
+  46%, 52% { opacity: 0.2; }
+  54%, 100% { opacity: 0.7; }
+}
+
+/* ---------- ICE windows ---------- */
+
+.intro__wins { position: absolute; inset: 0; }
+
+.intro__win {
+  position: absolute;
+  background: rgba(255, 31, 61, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(255, 31, 61, 0.55),
+              0 0 30px rgba(255, 31, 61, 0.22);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   opacity: 0;
-  transform: scaleX(0.12);
+  transform: scaleY(0.04);
+  transform-origin: 50% 50%;
 }
 
-.intro[data-state="zoom"] .intro__wall-tear {
-  opacity: 0.85;
-  transform: scaleX(1);
-  transition: transform 1150ms var(--ease-out-expo), opacity 460ms ease;
+/* they snap open during the pull-back, one after another */
+.intro[data-state="zoom"] .intro__win,
+.intro[data-state="logo"] .intro__win {
+  opacity: 1;
+  transform: scaleY(1);
+  transition: transform 190ms cubic-bezier(0.2, 1.4, 0.4, 1) var(--wd, 0ms),
+              opacity 110ms linear var(--wd, 0ms);
 }
 
-.intro[data-state="logo"] .intro__wall-tear,
-.intro[data-state="slide"] .intro__wall-tear { opacity: 0; transition: opacity 520ms ease; }
-
-@keyframes introDrift {
-  from { background-position: 0 0, 50% 50%; }
-  to   { background-position: 72px 0, 50% 50%; }
+.intro[data-state="slide"] .intro__win,
+.intro[data-state="letters"] .intro__win {
+  opacity: 0;
+  transform: scaleY(0.04);
+  transition: transform 240ms var(--ease-in-out-cubic), opacity 200ms ease;
 }
 
-/* The mark reads as the thing cutting through, so it carries the heat. */
-.intro[data-state="zoom"] .intro__zoom { filter: drop-shadow(0 0 42px rgba(255, 31, 61, 0.55)); }
+.intro__win-grid {
+  position: absolute;
+  inset: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 3px 7px;
+  overflow: hidden;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(255, 77, 95, 0.85);
+}
+.intro__win-grid i { font-style: normal; animation: breachFlicker 1.1s steps(2, end) infinite; }
 
-.intro__note-line i { font-family: 'Chakra Petch', 'Inter', system-ui, sans-serif; letter-spacing: 0.08em; }
+/* ---------- scan sweep ---------- */
+
+.intro__sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--red-hot) 18%, #fff 50%, var(--red-hot) 82%, transparent);
+  box-shadow: 0 0 18px var(--red), 0 0 46px rgba(255, 31, 61, 0.6);
+  opacity: 0;
+}
+
+.intro[data-state="zoom"] .intro__sweep {
+  animation: breachSweep 1250ms cubic-bezier(0.5, 0, 0.3, 1) forwards;
+}
+
+@keyframes breachSweep {
+  0%   { top: -2%;  opacity: 0; }
+  8%   { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { top: 102%; opacity: 0; }
+}
+
+/* ---------- breach flash ---------- */
+
+.intro__flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 50% at 50% 50%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 31, 61, 0.5) 38%, transparent 72%);
+  opacity: 0;
+}
+
+.intro[data-state="logo"] .intro__flash { animation: breachFlash 620ms ease-out forwards; }
+
+@keyframes breachFlash {
+  0%   { opacity: 0.95; transform: scale(0.82); }
+  100% { opacity: 0;    transform: scale(1.5); }
+}
+
+/* ---------- the mark comes through hot ---------- */
+
+.intro[data-state="zoom"] .intro__zoom {
+  filter: drop-shadow(0 0 46px rgba(255, 31, 61, 0.65));
+  animation: breachJitter 160ms steps(2, end) infinite;
+}
+
+@keyframes breachJitter {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-2px, 1px, 0); }
+  50%  { transform: translate3d(2px, -1px, 0); }
+  75%  { transform: translate3d(-1px, -2px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+.intro[data-state="logo"] .intro__logo,
+.intro[data-state="slide"] .intro__logo { filter: drop-shadow(0 0 22px rgba(255, 31, 61, 0.5)); }
+
+/* ---------- the wordmark resolves out of the split ---------- */
+
+.intro__brand { position: relative; }
+
+.intro[data-state="letters"] .intro__brand::before,
+.intro[data-state="letters"] .intro__brand::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.intro[data-state="letters"] .intro__brand::before {
+  color: var(--red);
+  animation: brandSplitA 520ms steps(2, end) 2;
+}
+.intro[data-state="letters"] .intro__brand::after {
+  color: #00E5FF;
+  animation: brandSplitB 520ms steps(2, end) 2;
+}
+
+@keyframes brandSplitA {
+  0%   { transform: translate3d(-5px, 0, 0); clip-path: inset(0 0 68% 0); opacity: 0.85; }
+  45%  { transform: translate3d(4px, 0, 0);  clip-path: inset(44% 0 26% 0); opacity: 0.7; }
+  100% { transform: none; clip-path: inset(0 0 100% 0); opacity: 0; }
+}
+@keyframes brandSplitB {
+  0%   { transform: translate3d(5px, 0, 0);  clip-path: inset(62% 0 10% 0); opacity: 0.7; }
+  45%  { transform: translate3d(-4px, 0, 0); clip-path: inset(16% 0 56% 0); opacity: 0.6; }
+  100% { transform: none; clip-path: inset(100% 0 0 0); opacity: 0; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .intro__wall-bars { animation: none; }
-  .intro__wall-tear { display: none; }
+  .intro__breach { display: none; }
+  .intro[data-state="letters"] .intro__brand::before,
+  .intro[data-state="letters"] .intro__brand::after { display: none; }
 }

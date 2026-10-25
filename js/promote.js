@@ -236,45 +236,56 @@
   var docItems = [];
   var docTick  = 0;
 
+  /* Marks and fill have to share one scale, or the fill runs ahead of the
+     dots it is supposed to be reaching. Both are expressed as a fraction of
+     the rail's own height: a mark sits at the chapter's offset within the
+     rail, and the fill is how far the reading line has travelled down it.
+     Measuring both rects in the same frame makes the fraction independent
+     of where the page happens to be scrolled. */
   function buildDocTrack() {
     if (!docBlock || !docMarks) return;
 
-    var chapters = docBlock.querySelectorAll('.doc > h3');
     var inner = docBlock.querySelector('.doc-block__inner');
-    var h = inner ? inner.offsetHeight : docBlock.offsetHeight;
-    if (!h) return;
+    if (!inner) return;
 
+    var ir = inner.getBoundingClientRect();
+    if (!ir.height) return;
+
+    var chapters = docBlock.querySelectorAll('.doc > h3');
     docMarks.innerHTML = '';
     docItems = [];
 
     Array.prototype.forEach.call(chapters, function (chapter) {
-      var at = Math.min(1, Math.max(0, chapter.offsetTop / h));
+      var at = (chapter.getBoundingClientRect().top - ir.top) / ir.height;
+      at = Math.min(1, Math.max(0, at));
 
       var mark = document.createElement('div');
       mark.className = 'doc-track__mark';
-      mark.style.top = (at * 100).toFixed(2) + '%';
+      mark.style.top = (at * 100).toFixed(3) + '%';
       docMarks.appendChild(mark);
 
-      docItems.push({ el: mark, chapter: chapter });
+      docItems.push({ el: mark, at: at });
     });
   }
 
-  /* Progress is how far the agreement has travelled past the middle of
-     the screen, and a chapter lights when its heading crosses that line -
-     measured rather than derived, so the dots and the fill agree. */
   function paintDocTrack() {
     docTick = 0;
     if (!docBlock || !docTrack) return;
 
-    var r = docBlock.getBoundingClientRect();
+    var inner = docBlock.querySelector('.doc-block__inner');
+    if (!inner) return;
+
+    var ir = inner.getBoundingClientRect();
+    if (!ir.height) return;
+
+    /* the reading line, in the same fraction-of-rail units as the marks */
     var mid = window.innerHeight * 0.5;
-    var span = r.height - mid;
-    var p = span > 0 ? Math.min(1, Math.max(0, (mid - r.top) / span)) : 0;
+    var p = Math.min(1, Math.max(0, (mid - ir.top) / ir.height));
 
     docTrack.style.setProperty('--doc-p', p.toFixed(4));
 
     docItems.forEach(function (item) {
-      item.el.classList.toggle('is-on', item.chapter.getBoundingClientRect().top <= mid);
+      item.el.classList.toggle('is-on', p >= item.at);
     });
   }
 

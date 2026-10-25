@@ -61,6 +61,77 @@
   }
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ------------------------------------------------------------
+     The breach
+
+     Hex traffic pouring through the wall, ICE windows snapping open
+     along it, and a scan sweep running the height of the screen.
+     The byte values are the Breach Protocol set - 1C 55 7A BD E9 FF -
+     so the traffic reads as the real thing rather than random hex.
+
+     Everything is generated once and then animated entirely in CSS,
+     so the sequence costs no script time while the zoom is running.
+     ------------------------------------------------------------ */
+
+  var BYTES = ['1C', '55', '7A', 'BD', 'E9', 'FF', 'A3', '0D', 'B6', 'F8', '06', '2E'];
+
+  function byte() { return BYTES[(Math.random() * BYTES.length) | 0]; }
+
+  function buildBreach() {
+    var rain = document.getElementById('introRain');
+    var wins = document.getElementById('introWins');
+    if (!rain || !wins || reduced) return;
+
+    /* columns scale with the viewport so the traffic stays dense on a
+       phone and does not turn into a handful of lonely strings */
+    var cols = Math.max(7, Math.min(22, Math.round(window.innerWidth / 86)));
+    var rows = Math.max(9, Math.min(18, Math.round(window.innerHeight / 54)));
+
+    var html = '';
+    for (var c = 0; c < cols; c++) {
+      var delay = (Math.random() * 900).toFixed(0);
+      var dur = (2200 + Math.random() * 2600).toFixed(0);
+      html += '<span class="intro__col" style="left:' + ((c + 0.5) / cols * 100).toFixed(3) + '%;' +
+              'animation-delay:' + delay + 'ms;animation-duration:' + dur + 'ms">';
+      for (var r = 0; r < rows; r++) {
+        var lead = r === rows - 1 ? ' intro__b--lead' : '';
+        html += '<i class="intro__b' + lead + '" style="animation-delay:' +
+                (Math.random() * 1400).toFixed(0) + 'ms">' + byte() + '</i>';
+      }
+      html += '</span>';
+    }
+    rain.innerHTML = html;
+
+    /* the ICE windows: a few chamfered panels that snap open across the
+       wall, each holding its own scrap of traffic */
+    var SPOTS = [
+      [6, 18, 20, 15], [70, 12, 24, 13], [12, 64, 19, 16],
+      [64, 58, 27, 18], [38, 8, 17, 11], [30, 74, 22, 13]
+    ];
+    var wh = '';
+    for (var i = 0; i < SPOTS.length; i++) {
+      var sp = SPOTS[i];
+      var inner = '';
+      for (var k = 0; k < 10; k++) inner += '<i>' + byte() + '</i>';
+      wh += '<span class="intro__win" style="left:' + sp[0] + '%;top:' + sp[1] + '%;' +
+            'width:' + sp[2] + '%;height:' + sp[3] + '%;' +
+            '--wd:' + (120 + i * 95) + 'ms">' +
+            '<b class="intro__win-grid">' + inner + '</b></span>';
+    }
+    wins.innerHTML = wh;
+  }
+
+  /* the traffic is laid out against the viewport, so a rotation has to
+     rebuild it or the columns bunch to one side */
+  var breachTick = 0;
+  window.addEventListener('resize', function () {
+    if (breachTick) window.clearTimeout(breachTick);
+    breachTick = window.setTimeout(function () {
+      if (intro.getAttribute('data-state') !== 'done') buildBreach();
+    }, 180);
+  });
+
   var timers  = [];
   var raf     = 0;
   var started = false;
@@ -267,6 +338,7 @@
     clearTimeline();
     glyphCount = buildLetters();
     applyShift();
+    buildBreach();
 
     if (reduced) {
       setState('letters');

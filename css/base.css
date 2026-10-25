@@ -82,7 +82,11 @@ h1, h2, h3, h4 {
 .panel--live { background: var(--wall-45); }
 
 .panel__in {
-  --c: calc(var(--chamfer) - 1px);
+  /* Not chamfer - 1. The inner diagonal sits at x+y = c+2b in the outer's
+     coordinates, so for a true 1px perpendicular rule on the 45 degree cut
+     the inner chamfer is C - b(2 - sqrt2) = C - 0.586. Using C - 1 leaves
+     only 0.7px there and the rule reads thin. */
+  --c: calc(var(--chamfer) - 0.586px);
   position: relative;
   height: 100%;
   background: var(--panel);
@@ -125,13 +129,44 @@ h1, h2, h3, h4 {
 }
 .btn:hover { background: var(--wall-hot); }
 
-/* An inset outline gets sliced open by the chamfer and reads as a broken
-   box, so the secondary button is a translucent fill instead. */
 .btn--ghost {
+  --c: 10px;
+  --edge-col: var(--wall-45);
+  --edge-fill: var(--panel);
   color: var(--ink);
-  background: var(--wall-12);
 }
-.btn--ghost:hover { background: var(--wall-24); color: var(--wall-hot); }
+.btn--ghost:hover { --edge-col: var(--wall); --edge-fill: var(--wall-12); color: var(--wall-hot); }
+
+/* An inset box-shadow traces the rectangular border box, so on a chamfered
+   element the rule simply is not drawn along the two diagonal cuts - the
+   outline looks snipped off at exactly those corners. .edge paints the rule
+   as the element's own background and insets the real surface on ::before,
+   both clipped, so the diagonals get a rule like every other edge. */
+.edge {
+  --c: var(--chamfer);
+  --edge-col: var(--hairline);
+  --edge-fill: var(--panel);
+  position: relative;
+  isolation: isolate;
+  background: var(--edge-col);
+  clip-path: var(--cut);
+}
+.edge::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--edge-fill);
+  clip-path: polygon(
+    var(--ci) 0,
+    100% 0,
+    100% calc(100% - var(--ci)),
+    calc(100% - var(--ci)) 100%,
+    0 100%,
+    0 var(--ci)
+  );
+  --ci: calc(var(--c) - 0.586px);
+}
 
 /* ---------- glitch ---------- */
 
@@ -180,14 +215,26 @@ h1, h2, h3, h4 {
 
 /* ---------- the Blackwall ---------- */
 
-/* Pure CSS: vertical ICE filaments, a drifting scan band, and a deep
-   red horizon. No rAF loop, so it costs nothing on a phone. */
+/* Pure CSS: vertical ICE filaments, a drifting scan band and a red core.
+   No rAF loop, so it costs nothing on a phone.
+
+   Everything is masked to fall off well before the section boundary. The
+   first pass pooled the glow at the bottom edge, where the section's own
+   overflow sliced it into a hard horizontal line - it read as a rendering
+   fault rather than a design. Nothing touches an edge now, so the wall
+   reads as a barrier standing behind the text with no visible end. */
 .blackwall {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  mask-image: linear-gradient(180deg,
+    transparent 0%,
+    #000 20%,
+    #000 58%,
+    rgba(0, 0, 0, 0.35) 80%,
+    transparent 96%);
 }
 
 .blackwall__bars,
@@ -201,8 +248,16 @@ h1, h2, h3, h4 {
     var(--wall-12) 22px 23px,
     transparent 23px 64px
   );
-  mask-image: radial-gradient(130% 90% at 50% 100%, #000 10%, transparent 72%);
+  mask-image: radial-gradient(120% 78% at 50% 56%, #000 12%, transparent 76%);
   animation: wallDrift 24s linear infinite;
+}
+
+/* the core: brightest behind the headline, gone long before the fold */
+.blackwall__glow {
+  background:
+    radial-gradient(76% 46% at 50% 58%, var(--wall-24) 0%, transparent 70%),
+    radial-gradient(38% 24% at 50% 62%, var(--wall-45) 0%, transparent 74%);
+  opacity: 0.85;
 }
 
 .blackwall__scan {
@@ -216,14 +271,8 @@ h1, h2, h3, h4 {
   );
   height: 46%;
   filter: blur(14px);
-  opacity: 0.55;
+  opacity: 0.5;
   animation: wallScan 11s var(--ease-in) infinite;
-}
-
-.blackwall__glow {
-  background:
-    radial-gradient(90% 58% at 50% 108%, var(--wall-24) 0%, transparent 68%),
-    radial-gradient(60% 40% at 50% 118%, var(--wall-45) 0%, transparent 70%);
 }
 
 @keyframes wallDrift {
@@ -231,10 +280,10 @@ h1, h2, h3, h4 {
   to   { background-position: 64px 0; }
 }
 @keyframes wallScan {
-  0%   { transform: translate3d(0, -60%, 0); opacity: 0; }
-  12%  { opacity: 0.55; }
-  88%  { opacity: 0.4; }
-  100% { transform: translate3d(0, 190%, 0); opacity: 0; }
+  0%   { transform: translate3d(0, -70%, 0); opacity: 0; }
+  14%  { opacity: 0.5; }
+  82%  { opacity: 0.32; }
+  100% { transform: translate3d(0, 170%, 0); opacity: 0; }
 }
 
 /* ---------- nav ---------- */

@@ -209,7 +209,7 @@
                 <p class="card__text">
                   I create content on YouTube, direct movies and produce for events.
                 </p>
-                <span class="btn btn--ghost card__cta">Watch</span>
+                <span class="btn btn--ghost edge card__cta">Watch</span>
               </div>
               <div class="card__art" aria-hidden="true">
                 <svg viewBox="0 0 120 120" focusable="false">
@@ -236,7 +236,7 @@
                 <p class="card__text">
                   Island Realm is a Minecraft Movie set in a world of floating Islands.
                 </p>
-                <span class="btn btn--ghost card__cta">Enter the realm</span>
+                <span class="btn btn--ghost edge card__cta">Enter the realm</span>
               </div>
               <div class="card__art" aria-hidden="true">
                 <svg viewBox="0 0 120 120" focusable="false">
@@ -318,10 +318,13 @@
 <!-- ===== Intro sequence ===== -->
   <div class="intro" id="intro" data-state="idle">
 
-    <!-- the wall the mark breaches through -->
-    <div class="intro__wall" aria-hidden="true">
-      <span class="intro__wall-bars"></span>
-      <span class="intro__wall-tear"></span>
+    <!-- the Blackwall breach: hex traffic, ICE windows and a scan sweep -->
+    <div class="intro__breach" aria-hidden="true">
+      <div class="intro__rain" id="introRain"></div>
+      <div class="intro__wins" id="introWins"></div>
+      <span class="intro__sweep"></span>
+      <span class="intro__flash"></span>
+      <span class="intro__bars"></span>
     </div>
 
     <!-- Zoom layer: starts framed so tightly inside the mark that the whole
