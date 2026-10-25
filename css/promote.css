@@ -663,6 +663,8 @@
 }
 
 /* the breach grid that opens the contact block */
+.contact__breach[hidden] { display: none; }
+
 .contact__breach {
   width: min(340px, 78vw);
   margin: 0 auto clamp(22px, 4vh, 38px);
@@ -680,7 +682,27 @@
   transition: transform 320ms cubic-bezier(0.12, 1.5, 0.3, 1), opacity 140ms linear;
 }
 
-.contact__breach.is-solved { opacity: 0.4; transition: opacity 600ms ease 200ms; }
+/* solved: it flares, then is wiped - the breach is over, so leaving the
+   grid sitting under the address made the section look unfinished */
+.contact__breach.is-solved {
+  opacity: 0;
+  transform: scaleY(0.5);
+  filter: blur(3px);
+  transition: opacity 320ms var(--ease-out), transform 360ms var(--ease-out), filter 300ms linear;
+}
+
+/* The section itself does not exist until the grid breaks it open. */
+.contact {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 14px, 0) scaleY(0.97);
+}
+.contact-block.is-open .contact {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 260ms linear, transform 520ms var(--ease-out);
+}
 
 .contact__breach-bar {
   display: flex;
@@ -701,6 +723,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .contact__breach { display: none; }
+  .contact { opacity: 1; visibility: visible; transform: none; }
 }
 
 /* ---------- the contact block under breach ---------- */

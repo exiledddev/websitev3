@@ -165,6 +165,8 @@
 
     var lockupAt = decryptAt + TIMING.decrypt;
     at(lockupAt, function () {
+      /* the breach is done, so the grids stop working and the panels go */
+      clearMatrices();
       setState('lockup');
       if (brand) {
         brand.classList.add('is-glitching');

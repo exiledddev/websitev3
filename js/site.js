@@ -18,19 +18,39 @@ window.MEMatrix = (function () {
 
   var BYTES = ['1C', '55', '7A', 'BD', 'E9', 'FF'];
 
+  var LEGAL = 'Only CC35 certified and DHSF 5th class officers are allowed to manipulate, access or disable this device';
+
+  function nums() {
+    function f() { return (Math.random() * 5).toFixed(5); }
+    function t() { return '0' + (2 + ((Math.random() * 2) | 0)) + ':' + (10 + ((Math.random() * 49) | 0)); }
+    return '<b>' + f() + '</b><b>' + f() + '</b><b>' + t() + '</b><b>' + t() + '</b>';
+  }
+
   function html(n, label) {
     var cells = '';
     for (var i = 0; i < n * n; i++) {
       cells += '<i>' + BYTES[(Math.random() * BYTES.length) | 0] + '</i>';
     }
     var id = BYTES[(Math.random() * BYTES.length) | 0] + BYTES[(Math.random() * BYTES.length) | 0];
+
     return '<div class="matrix" style="--n:' + n + '">' +
              '<div class="matrix__head">' +
                '<span class="matrix__glyph"></span>' +
                '<span class="matrix__title">' + (label || 'Code Matrix') + '</span>' +
-               '<span class="matrix__id">0x' + id + '</span>' +
+               '<span class="matrix__meta"><i></i><i></i><i></i></span>' +
              '</div>' +
+
              '<div class="matrix__cells">' + cells + '</div>' +
+
+             '<div class="matrix__foot">' +
+               '<span class="matrix__fglyph"></span>' +
+               '<span class="matrix__legal">' + LEGAL + '</span>' +
+               '<span class="matrix__nums">' + nums() + '</span>' +
+               '<span class="matrix__proto">Protocol<br>' + (6000 + ((Math.random() * 900) | 0)) + '-A' + (10 + ((Math.random() * 80) | 0)) + '</span>' +
+               '<span class="matrix__strip"></span>' +
+             '</div>' +
+
+             '<span class="matrix__id">0x' + id + '</span>' +
            '</div>';
   }
 

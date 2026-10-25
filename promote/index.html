@@ -548,12 +548,11 @@
       <span class="contact-block__noise" aria-hidden="true"></span>
       <span class="tearlines" aria-hidden="true"></span>
       <div class="shell">
-        <section class="contact" id="contact" aria-labelledby="contactHeading">
-                <div class="contact__breach" id="contactBreach" aria-hidden="true">
-                  <p class="contact__breach-bar"><b>CODE MATRIX</b><b>SEQUENCE ACCEPTED</b></p>
-                  <div class="contact__breach-grid" id="contactBreachGrid"></div>
-                </div>
+        <div class="contact__breach" id="contactBreach" aria-hidden="true" hidden>
+                <div class="contact__breach-grid" id="contactBreachGrid"></div>
+              </div>
 
+              <section class="contact" id="contact" aria-labelledby="contactHeading">
                 <svg class="contact__icon" viewBox="0 0 48 34" aria-hidden="true" focusable="false">
                   <rect x="1.4" y="1.4" width="45.2" height="31.2" rx="5"
                         fill="none" stroke="currentColor" stroke-width="2.4"/>
@@ -617,8 +616,12 @@
 <!-- ===== Page transition: the picture tears ===== -->
 <div class="tear" id="tear" aria-hidden="true">
   <span class="tear__wash"></span>
+  <span class="tear__feed"></span>
+  <span class="tear__feed tear__feed--b"></span>
   <span class="tear__bars"></span>
   <div class="tear__halves" id="tearHalves"></div>
+  <span class="tear__glow"></span>
+</div>
   <span class="tear__glow"></span>
 </div>
 

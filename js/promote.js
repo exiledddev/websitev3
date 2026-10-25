@@ -346,6 +346,8 @@
 
     var n = window.innerWidth < 620 ? 4 : 5;
     breachGrid.innerHTML = window.MEMatrix.html(n, 'Code Matrix');
+    breach.hidden = false;
+    breach.classList.remove('is-solved');
     breach.classList.add('is-live');
 
     if (breachStop) breachStop();
@@ -353,8 +355,15 @@
 
     window.setTimeout(function () {
       if (breachStop) { breachStop(); breachStop = null; }
+      /* the grid is spent - wipe it and hand the section over */
       breach.classList.add('is-solved');
       done();
+      /* and then taken out of flow, or the wiped panel leaves a hole
+         above the section it just opened */
+      window.setTimeout(function () {
+        breach.classList.remove('is-live');
+        breach.hidden = true;
+      }, 420);
     }, SOLVE);
   }
 
