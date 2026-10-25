@@ -443,6 +443,211 @@ h1, h2, h3, h4 {
 
 /* ---------- code matrix ---------- */
 
+/* Laid out like the Breach Protocol panel it is taken from: a solid
+   header strip with a glyph and a title, then the grid. The row or
+   column the cursor is locked to is a continuous band, so the cells
+   sit flush and the highlight is not broken up by gaps. */
+.matrix {
+  position: relative;
+  background: #0A0205;
+  box-shadow: inset 0 0 0 1px var(--wall-24);
+}
+
+.matrix__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  background: var(--wall);
+  color: #120206;
+  font-family: var(--display);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+/* the title is what gives way when the panel is narrow, never the id */
+.matrix__title { min-width: 0; overflow: hidden; }
+.matrix__glyph {
+  flex: 0 0 auto;
+  width: 11px; height: 11px;
+  background:
+    linear-gradient(#120206 0 0) 0 0 / 4px 4px no-repeat,
+    linear-gradient(#120206 0 0) 7px 0 / 4px 4px no-repeat,
+    linear-gradient(#120206 0 0) 0 7px / 4px 4px no-repeat,
+    linear-gradient(#120206 0 0) 7px 7px / 4px 4px no-repeat;
+}
+.matrix__id { margin-left: auto; flex: 0 0 auto; letter-spacing: 0.06em; }
+
+/* below this the panel is too small for both, so the id goes */
+@media (max-width: 820px) {
+  .intro__win .matrix__id { display: none; }
+}
+
+.matrix__cells {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 5), 1fr);
+  gap: 0;
+  padding: 3px;
+}
+
+.matrix__cells i {
+  display: grid;
+  place-items: center;
+  padding: 4px 0;
+  font-family: var(--display);
+  font-size: clamp(8px, 0.92vw, 12px);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  color: rgba(255, 31, 61, 0.38);
+  transition: color 70ms linear, background 70ms linear;
+}
+
+/* the locked row or column, as one continuous band */
+.matrix__cells i.is-axis {
+  color: var(--wall-hot);
+  background: rgba(255, 31, 61, 0.14);
+}
+
+/* taken into the buffer */
+.matrix__cells i.is-picked {
+  color: #120206;
+  background: var(--wall);
+}
+
+/* where the cursor is right now */
+.matrix__cells i.is-head {
+  background: #fff;
+  color: #120206;
+  box-shadow: 0 0 14px var(--wall-hot);
+}
+
+/* ---------- scan-line tear (transitions) ---------- */
+
+/* The picture rips: fine scan lines, dozens of displaced half-lines at
+   random heights, a red bloom, and a wash that goes opaque early so the
+   document swap underneath is never visible. The page barely moves -
+   the tear does the work, not a shake. */
+.tear {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+  opacity: 0;
+  overflow: hidden;
+}
+.tear.is-on { opacity: 1; }
+
+.tear__wash,
+.tear__bars,
+.tear__halves,
+.tear__glow { position: absolute; inset: 0; }
+
+/* the backdrop that hides the swap */
+.tear__wash {
+  background:
+    radial-gradient(120% 80% at 50% 50%, rgba(60, 2, 12, 0.96) 0%, rgba(5, 6, 10, 0.99) 68%),
+    var(--ground);
+  opacity: 0;
+}
+
+/* fine full-width scan lines */
+.tear__bars {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 31, 61, 0.42) 0 1px,
+    transparent 1px 3px,
+    rgba(255, 255, 255, 0.07) 3px 4px,
+    transparent 4px 7px);
+  mix-blend-mode: screen;
+}
+
+/* the half-lines themselves */
+.tear__half {
+  position: absolute;
+  background: var(--wall);
+  box-shadow: 0 0 10px rgba(255, 31, 61, 0.8);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.tear__half.is-hot {
+  background: #fff;
+  box-shadow: 0 0 16px #fff, 0 0 34px var(--wall-hot);
+}
+
+.tear.is-on .tear__half {
+  animation: halfRip 330ms steps(2, end) infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes halfRip {
+  0%   { opacity: 0;    transform: translate3d(0, 0, 0) scaleY(1); }
+  18%  { opacity: 1;    transform: translate3d(var(--dx, 0), 0, 0) scaleY(1.9); }
+  40%  { opacity: 0.25; transform: translate3d(calc(var(--dx, 0) * -0.55), 0, 0) scaleY(0.6); }
+  62%  { opacity: 1;    transform: translate3d(calc(var(--dx, 0) * 0.78), 0, 0) scaleY(1.4); }
+  84%  { opacity: 0.5;  transform: translate3d(calc(var(--dx, 0) * -0.3), 0, 0) scaleY(1); }
+  100% { opacity: 0;    transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+/* the bloom */
+.tear__glow {
+  background:
+    radial-gradient(90% 44% at 50% 38%, rgba(255, 31, 61, 0.4) 0%, transparent 70%),
+    radial-gradient(70% 30% at 50% 72%, rgba(255, 77, 95, 0.3) 0%, transparent 72%);
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.tear.is-on .tear__glow { animation: tearGlow 520ms ease-out infinite alternate; }
+
+@keyframes tearGlow {
+  0%   { opacity: 0.35; }
+  100% { opacity: 0.85; }
+}
+
+.tear.is-on .tear__bars { animation: tearScan 300ms steps(3, end) infinite; }
+
+@keyframes tearScan {
+  0%   { transform: translate3d(0, 0, 0);     opacity: 0.9; }
+  33%  { transform: translate3d(-5px, 6px, 0); opacity: 0.45; }
+  66%  { transform: translate3d(4px, -4px, 0); opacity: 0.85; }
+  100% { transform: translate3d(0, 2px, 0);    opacity: 0.6; }
+}
+
+/* leaving: the wash is opaque well before the browser navigates */
+.tear.is-leaving .tear__wash { animation: tearWash 300ms ease-in forwards; }
+@keyframes tearWash {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* arriving: the wash starts opaque and lifts away */
+.tear.is-arriving .tear__wash { animation: tearClear 560ms ease-out forwards; }
+@keyframes tearClear {
+  0%   { opacity: 1; }
+  70%  { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+/* A nudge, not a shake - the tear carries the violence, the page just
+   loses its footing slightly. */
+.is-tearing-page { animation: pageJudder 420ms steps(2, end) infinite; }
+@keyframes pageJudder {
+  0%   { transform: translate3d(0, 0, 0); }
+  30%  { transform: translate3d(-2px, 1px, 0); }
+  60%  { transform: translate3d(2px, -1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tear { display: none; }
+  .is-tearing-page { animation: none; }
+}
+
+/* ---------- code matrix ---------- */
+
 .matrix { position: relative; }
 
 .matrix__cells {

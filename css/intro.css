@@ -105,50 +105,29 @@ body:has(.intro:not([data-state="done"])) {
 
 .intro__win {
   position: absolute;
-  overflow: hidden;
-  background: rgba(10, 2, 5, 0.86);
-  box-shadow: inset 0 0 0 1px rgba(255, 31, 61, 0.5),
-              0 0 34px rgba(255, 31, 61, 0.18);
-  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
-
-  /* they grow out of nothing, height first */
   transform: scaleY(0);
   transform-origin: 50% 50%;
   opacity: 0;
+  filter: drop-shadow(0 0 26px rgba(255, 31, 61, 0.28));
 }
 
-.intro[data-state="windows"] .intro__win,
-.intro[data-state="decrypt"] .intro__win {
+/* each window runs its own open/close clock, set in js/intro.js */
+.intro__win.is-open {
   transform: scaleY(1);
   opacity: 1;
-  transition: transform 420ms var(--ease-snap) var(--wd, 0ms),
-              opacity 160ms linear var(--wd, 0ms);
+  transition: transform 260ms cubic-bezier(0.12, 1.5, 0.3, 1), opacity 110ms linear;
+}
+.intro__win:not(.is-open) {
+  transition: transform 180ms cubic-bezier(0.6, 0, 0.9, 0.3), opacity 140ms linear 40ms;
 }
 
-/* they dim away as the lockup takes over */
-.intro[data-state="lockup"] .intro__win,
-.intro[data-state="hold"] .intro__win,
-.intro[data-state="wipe"] .intro__win {
-  transform: scaleY(1);
-  opacity: 0.22;
-  transition: opacity 520ms ease;
+/* they dim once the lockup takes over, but keep cycling behind it */
+.intro[data-state="lockup"] .intro__wins,
+.intro[data-state="hold"] .intro__wins,
+.intro[data-state="wipe"] .intro__wins {
+  opacity: 0.3;
+  transition: opacity 460ms ease;
 }
-
-.intro__win-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 4px 8px;
-  background: rgba(255, 31, 61, 0.16);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: var(--intro-hot);
-}
-.intro__win-bar b { font-weight: 700; }
-
-.intro__win-body { padding: 6px 7px; }
 
 /* ---------- scan sweep ---------- */
 
@@ -286,4 +265,80 @@ body:has(.intro:not([data-state="done"])) {
   .intro__bars, .intro__sweep { display: none; }
   .intro__win, .intro__main { transform: none; opacity: 1; transition: none; }
   .intro__note-line i { transform: none; }
+}
+
+/* ---------- scan work ---------- */
+
+/* Dense lines over everything, plus a slower interference band. The
+   sequence read flat without them: windows opening on clean black looks
+   like a slideshow, not a signal being broken into. */
+.intro__scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.42) 0 1px,
+    transparent 1px 3px);
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+.intro:not([data-state="idle"]) .intro__scan { opacity: 1; }
+
+.intro__interference {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 31, 61, 0.3) 0 2px,
+    transparent 2px 6px,
+    rgba(255, 255, 255, 0.05) 6px 7px,
+    transparent 7px 14px);
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+.intro:not([data-state="idle"]):not([data-state="done"]) .intro__interference {
+  animation: introInterference 2.4s steps(4, end) infinite;
+}
+
+@keyframes introInterference {
+  0%, 62%  { opacity: 0;    transform: translate3d(0, 0, 0); }
+  66%      { opacity: 0.9;  transform: translate3d(-9px, 4px, 0); }
+  71%      { opacity: 0.25; transform: translate3d(7px, -6px, 0); }
+  76%      { opacity: 0.8;  transform: translate3d(-4px, 3px, 0); }
+  82%      { opacity: 0;    transform: translate3d(0, 0, 0); }
+  100%     { opacity: 0; }
+}
+
+/* a wide band that rolls down the screen like a sync fault */
+.intro__roll {
+  position: absolute;
+  left: 0; right: 0;
+  height: 16%;
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(255, 31, 61, 0.14) 36%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 31, 61, 0.14) 64%,
+    transparent 100%);
+  opacity: 0;
+}
+.intro:not([data-state="idle"]):not([data-state="done"]) .intro__roll {
+  animation: introRoll 3.6s linear infinite;
+}
+
+@keyframes introRoll {
+  0%   { top: -18%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 102%; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro__interference, .intro__roll { display: none; }
 }

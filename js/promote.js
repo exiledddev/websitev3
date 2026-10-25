@@ -339,25 +339,31 @@
   var breachGrid = document.getElementById('contactBreachGrid');
   var breachStop = null;
 
-  function runMatrix() {
-    if (!breach || !breachGrid || !window.MEMatrix || reduced) return;
+  var SOLVE = 1700;          // how long the grid works before it breaks through
+
+  function runMatrix(done) {
+    if (!breach || !breachGrid || !window.MEMatrix || reduced) { done(); return; }
 
     var n = window.innerWidth < 620 ? 4 : 5;
-    breachGrid.innerHTML = window.MEMatrix.html(n);
+    breachGrid.innerHTML = window.MEMatrix.html(n, 'Code Matrix');
     breach.classList.add('is-live');
 
     if (breachStop) breachStop();
-    breachStop = window.MEMatrix.run(breachGrid.querySelector('.matrix'), n, 80);
+    breachStop = window.MEMatrix.run(breachGrid.querySelector('.matrix'), n, 70);
 
     window.setTimeout(function () {
       if (breachStop) { breachStop(); breachStop = null; }
       breach.classList.add('is-solved');
-    }, 1500);
+      done();
+    }, SOLVE);
   }
 
-  function decryptEmail() {
-    if (!emailEl) return;
-    if (reduced) { emailEl.textContent = emailText; return; }
+  function decryptEmail(after) {
+    if (!emailEl) { if (after) after(); return; }
+    if (reduced) { emailEl.textContent = emailText; if (after) after(); return; }
+
+    emailEl.classList.add('is-glitching');
+    window.setTimeout(function () { emailEl.classList.remove('is-glitching'); }, 1500);
 
     var DUR = 1100;
     var t0 = 0;
@@ -376,8 +382,9 @@
       }
       emailEl.textContent = out;
 
-      if (p < 1) emailRaf = window.requestAnimationFrame(step);
-      else emailEl.textContent = emailText;
+      if (p < 1) { emailRaf = window.requestAnimationFrame(step); return; }
+      emailEl.textContent = emailText;
+      if (after) after();
     });
   }
 
@@ -399,15 +406,20 @@
           behavior: reduced ? 'auto' : 'smooth',
           block: 'center'
         });
-        runMatrix();
-        decryptEmail();
-        runSelection();
         buildDocTrack();
+
+        /* The address stays hidden while the grid works. Revealing it up
+           front gave the matrix nothing to be for - it has to be what
+           breaks the address out. */
+        runMatrix(function () {
+          contactBlk.classList.add('is-open');
+          decryptEmail(runSelection);
+        });
       }, 0);
 
       window.setTimeout(function () {
         contactBlk.classList.remove('is-breaching');
-      }, 1500);
+      }, SOLVE + 400);
     });
   }
 

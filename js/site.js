@@ -18,12 +18,18 @@ window.MEMatrix = (function () {
 
   var BYTES = ['1C', '55', '7A', 'BD', 'E9', 'FF'];
 
-  function html(n) {
+  function html(n, label) {
     var cells = '';
     for (var i = 0; i < n * n; i++) {
       cells += '<i>' + BYTES[(Math.random() * BYTES.length) | 0] + '</i>';
     }
+    var id = BYTES[(Math.random() * BYTES.length) | 0] + BYTES[(Math.random() * BYTES.length) | 0];
     return '<div class="matrix" style="--n:' + n + '">' +
+             '<div class="matrix__head">' +
+               '<span class="matrix__glyph"></span>' +
+               '<span class="matrix__title">' + (label || 'Code Matrix') + '</span>' +
+               '<span class="matrix__id">0x' + id + '</span>' +
+             '</div>' +
              '<div class="matrix__cells">' + cells + '</div>' +
            '</div>';
   }
@@ -154,12 +160,40 @@ window.MEMatrix = (function () {
      over a juddering page, red on black. These are real navigations, so
      the tear has to finish before the browser leaves; the next document
      opens with the same tear clearing. Without JS the link is a link. */
-  var LEAVE = 620;
+  var LEAVE = 640;
   var tear  = document.getElementById('tear');
+  var halves = document.getElementById('tearHalves');
   var page  = document.getElementById('page');
+
+  /* Half-lines: short horizontal slices at random heights that flicker
+     and shunt sideways. Generated per run rather than baked into a
+     gradient, so no two tears look the same and the density is real
+     rather than a repeating pattern. */
+  function buildTear() {
+    if (!halves) return;
+
+    var n = Math.round(Math.min(64, Math.max(30, window.innerHeight / 12)));
+    var html = '';
+
+    for (var i = 0; i < n; i++) {
+      var top = (Math.random() * 100).toFixed(2);
+      var w   = (6 + Math.random() * 62).toFixed(1);
+      var left = (Math.random() * (100 - w)).toFixed(2);
+      var h   = (1 + Math.random() * 7).toFixed(1);
+      var dx  = ((Math.random() - 0.5) * 180).toFixed(0);
+      var d   = (Math.random() * 420).toFixed(0);
+      var hot = Math.random();
+
+      html += '<span class="tear__half' + (hot > 0.84 ? ' is-hot' : '') + '" style="' +
+              'top:' + top + '%;left:' + left + '%;width:' + w + '%;height:' + h + 'px;' +
+              '--dx:' + dx + 'px;--d:' + d + 'ms"></span>';
+    }
+    halves.innerHTML = html;
+  }
 
   function leaveTo(url) {
     if (!tear || reduced) { window.location.href = url; return; }
+    buildTear();
     tear.classList.add('is-on', 'is-leaving');
     if (page) page.classList.add('is-tearing-page');
     window.setTimeout(function () { window.location.href = url; }, LEAVE);
@@ -177,13 +211,15 @@ window.MEMatrix = (function () {
   /* Arriving: the tear is already over the screen, so glitch it away. */
   function arrive() {
     if (!tear || reduced) return;
+    buildTear();
     tear.classList.add('is-on', 'is-arriving');
     if (page) page.classList.add('is-tearing-page');
 
     window.setTimeout(function () {
       tear.classList.remove('is-on', 'is-arriving');
       if (page) page.classList.remove('is-tearing-page');
-    }, 560);
+      if (halves) halves.innerHTML = '';
+    }, 680);
   }
 
   /* ---------- start ---------- */

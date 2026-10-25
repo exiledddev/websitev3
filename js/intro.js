@@ -45,10 +45,10 @@
   /* Windows sit down the flanks; the middle band is left clear so the
      lockup has somewhere to land that is not already covered. */
   var SPOTS = [
-    [4,  9,  22, 21], [74, 6,  22, 20],
-    [6,  58, 20, 24], [77, 52, 21, 26],
-    [27, 4,  18, 15], [54, 79, 23, 17],
-    [2,  34, 16, 17], [84, 30, 14, 18]
+    [3,  8,  25], [72, 5,  25],
+    [5,  57, 24], [71, 54, 26],
+    [26, 3,  22], [52, 78, 26],
+    [2,  33, 21], [78, 29, 20]
   ];
 
   var stops = [];   // one stop() per running matrix
@@ -56,6 +56,7 @@
   function clearMatrices() {
     stops.forEach(function (fn) { fn(); });
     stops = [];
+    clearCycles();
   }
 
   function buildWindows() {
@@ -71,14 +72,44 @@
       var size = narrow ? 4 : (Math.random() > 0.5 ? 5 : 4);
 
       html += '<div class="intro__win" style="left:' + sp[0] + '%;top:' + sp[1] + '%;' +
-              'width:' + sp[2] + '%;height:' + sp[3] + '%;--wd:' + (i * 120) + 'ms">' +
-                '<div class="intro__win-bar"><b>CODE MATRIX</b><b>0x' + pick(BYTES) + '</b></div>' +
-                '<div class="intro__win-body" data-n="' + size + '">' +
-                  (M ? M.html(size) : '') +
-                '</div>' +
+              'width:' + sp[2] + '%" data-n="' + size + '">' +
+                (M ? M.html(size, 'Code Matrix') : '') +
               '</div>';
     }
     wins.innerHTML = html;
+  }
+
+  /* Each window runs its own clock: it opens, holds for a while, closes,
+     waits, opens again. Fixed timings made them read as one block
+     appearing; staggered ones make the wall feel like it is being worked
+     over in several places at once. */
+  var cycles = [];
+
+  function cycleWindows() {
+    clearCycles();
+
+    Array.prototype.forEach.call(wins.querySelectorAll('.intro__win'), function (win, i) {
+      var t = 0;
+
+      function open() {
+        win.classList.add('is-open');
+        t = window.setTimeout(close, 900 + Math.random() * 2400);
+        cycles.push(t);
+      }
+      function close() {
+        win.classList.remove('is-open');
+        t = window.setTimeout(open, 260 + Math.random() * 900);
+        cycles.push(t);
+      }
+
+      t = window.setTimeout(open, i * 110 + Math.random() * 420);
+      cycles.push(t);
+    });
+  }
+
+  function clearCycles() {
+    cycles.forEach(window.clearTimeout);
+    cycles = [];
   }
 
   /* The solve only starts once the windows are open, and runs fast -
@@ -87,14 +118,16 @@
     if (reduced || !window.MEMatrix) return;
     clearMatrices();
 
-    Array.prototype.forEach.call(wins.querySelectorAll('.intro__win-body'), function (body, i) {
-      var root = body.querySelector('.matrix');
+    Array.prototype.forEach.call(wins.querySelectorAll('.intro__win'), function (win, i) {
+      var root = win.querySelector('.matrix');
       if (!root) return;
-      var n = parseInt(body.getAttribute('data-n'), 10) || 5;
+      var n = parseInt(win.getAttribute('data-n'), 10) || 5;
       window.setTimeout(function () {
-        stops.push(window.MEMatrix.run(root, n, 90 + (i % 3) * 25));
-      }, i * 90);
+        stops.push(window.MEMatrix.run(root, n, 80 + (i % 3) * 22));
+      }, i * 70);
     });
+
+    cycleWindows();
   }
 
   /* ---------- sequence ---------- */
