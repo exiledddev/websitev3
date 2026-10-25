@@ -124,12 +124,11 @@
 
   document.addEventListener('intro:done', function () {
     body.setAttribute('data-intro', 'done');
-    try { window.sessionStorage.setItem('me:intro', '1'); } catch (err) {}
     begin();
   });
 
-  /* The intro only plays on the first page of a session. Every later
-     navigation skips straight to the content.
+  /* The intro lives on the home page only, and plays on every load of it.
+     Pages without it start straight away.
 
      This has to wait for the document: begin() fires site:ready, and the
      page-specific script is still a <script> tag below this one. Dispatching
@@ -141,7 +140,7 @@
     begin();
   }
 
-  if (!document.getElementById('intro') || body.getAttribute('data-intro') === 'skip') {
+  if (!document.getElementById('intro')) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', skipIntro);
     } else {

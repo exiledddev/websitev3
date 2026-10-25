@@ -1,9 +1,9 @@
 /* ============================================================
    Blackwall — design tokens
    The Blackwall is the crimson ICE barrier holding rogue AIs
-   out of the Net. Red carries every accent; cyan appears only
-   as the companion channel inside an RGB split, never as a
-   second brand colour.
+   out of the Net. Red and black carry everything - there is no
+   second channel. A cyan split reads as generic chromatic
+   aberration; red ICE tearing through black reads as the wall.
    ============================================================ */
 
 :root {
@@ -14,9 +14,6 @@
   --wall-12:    rgba(255, 31, 61, 0.12);
   --wall-24:    rgba(255, 31, 61, 0.24);
   --wall-45:    rgba(255, 31, 61, 0.45);
-
-  /* the split channel - glitch only */
-  --ice:        #00E5FF;
 
   /* ground */
   --ground:     #05060A;

@@ -315,48 +315,44 @@
   </svg>
 </div>
 
-<!-- ===== Intro sequence ===== -->
+  <!-- ===== Intro: breaching the Blackwall ===== -->
   <div class="intro" id="intro" data-state="idle">
 
-    <!-- the Blackwall breach: hex traffic, ICE windows and a scan sweep -->
-    <div class="intro__breach" aria-hidden="true">
-      <div class="intro__rain" id="introRain"></div>
-      <div class="intro__wins" id="introWins"></div>
-      <span class="intro__sweep"></span>
-      <span class="intro__flash"></span>
+    <div class="intro__bg" aria-hidden="true">
+      <span class="intro__grid"></span>
       <span class="intro__bars"></span>
+      <span class="intro__vignette"></span>
     </div>
 
-    <!-- Zoom layer: starts framed so tightly inside the mark that the whole
-         screen is solid white, then pulls back to the lockup's logo slot.
-         The viewBox below is the first painted frame, before JS runs. -->
-    <svg class="intro__zoom" id="introZoom"
-         viewBox="400.5 358.5 24 24"
-         preserveAspectRatio="xMidYMid slice"
-         aria-hidden="true" focusable="false">
-      <use href="#exiledMark"/>
-    </svg>
+    <!-- ICE windows, generated in js/intro.js -->
+    <div class="intro__wins" id="introWins" aria-hidden="true"></div>
 
-    <div class="intro__stage" id="introStage">
-      <div class="intro__row" id="introRow">
+    <span class="intro__sweep" aria-hidden="true"></span>
 
-        <div class="intro__logo" id="introLogo">
-          <svg class="logo" viewBox="0 0 600 600" role="img" aria-label="MarkedExiled logo">
-            <use href="#exiledMark"/>
-          </svg>
+    <!-- the last window to open: the lockup -->
+    <div class="intro__main" id="introMain">
+      <div class="intro__main-bar" aria-hidden="true">
+        <span class="intro__main-id">0x4D45</span>
+        <span class="intro__main-dots"><i></i><i></i><i></i></span>
+      </div>
+
+      <div class="intro__main-in">
+        <svg class="intro__main-mark" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
+          <use href="#exiledMark"/>
+        </svg>
+
+        <div class="intro__main-text">
+          <h1 class="intro__brand glitch" id="introBrand" data-text="MarkedExiled">MarkedExiled</h1>
+          <p class="intro__welcome" id="introWelcome" data-text="WELCOME">WELCOME</p>
         </div>
-
-        <h1 class="intro__brand" id="introBrand" data-text="MarkedExiled">
-          <span class="visually-hidden">MarkedExiled</span>
-          <span class="brand__letters" id="brandLetters" aria-hidden="true"></span>
-        </h1>
-
       </div>
 
-      <div class="intro__note" aria-hidden="true">
-        <span class="intro__note-line"><i>Mobile</i></span>
-        <span class="intro__note-line intro__note-line--sub"><i>For better experience, visit on desktop.</i></span>
-      </div>
+      <span class="tearlines" aria-hidden="true"></span>
+    </div>
+
+    <div class="intro__note" aria-hidden="true">
+      <span class="intro__note-line"><i>Mobile</i></span>
+      <span class="intro__note-line intro__note-line--sub"><i>For better experience, visit on desktop.</i></span>
     </div>
   </div>
 

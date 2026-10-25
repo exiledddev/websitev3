@@ -475,53 +475,61 @@
 }
 
 .agree__btn {
-  --glow: 255, 31, 61;
-  --c: 12px;
+  --c: 14px;
+  --edge-col: var(--wall);
+  --edge-fill: #120206;
   position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 17px 34px;
+  padding: 18px 36px;
   font-family: var(--display);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--ink);
-  background: rgba(var(--glow), 0.14);
-  border: 1px solid rgba(var(--glow), 0.5);
+  border: 0;
   cursor: pointer;
-  backdrop-filter: blur(4px) saturate(2.2) contrast(1.15) brightness(1.1);
-  box-shadow:
-    inset 2px -2px 1px -1px rgba(255, 255, 255, 0.8),
-    inset -2px 2px 1px -1px rgba(255, 255, 255, 0.8),
-    inset 7px -7px 2px -7px rgba(var(--glow), 0.95),
-    inset -7px 7px 2px -7px rgba(var(--glow), 0.95),
-    inset 0 0 18px rgba(var(--glow), 0.22),
-    inset 0 0 2px rgba(0, 0, 0, 0.65),
-    0 6px 30px rgba(var(--glow), 0.42),
-    0 0 58px rgba(var(--glow), 0.30);
+  box-shadow: 0 0 34px rgba(255, 31, 61, 0.3), 0 0 90px rgba(255, 31, 61, 0.14);
+  transition: box-shadow 220ms var(--ease-out);
 }
 
-.agree__ring {
-  position: absolute;
-  overflow: visible;
-  /* the ring is deliberately wider than the button it wraps, and the
-     global `svg { max-width: 100% }` would clamp it back to the button's
-     padding box - which is exactly how the gap goes uneven on the right */
-  max-width: none;
-  color: rgba(var(--glow), 0.95);
+.agree__label { position: relative; z-index: 1; }
+
+/* Hover is a breach attempt, not a glow: the label tears into red and
+   black and the whole face judders. A traced outline read as a stray
+   pill sitting around a square button, so it is gone. */
+.agree__btn:hover {
+  --edge-fill: #26040C;
+  box-shadow: 0 0 46px rgba(255, 31, 61, 0.5), 0 0 120px rgba(255, 31, 61, 0.22);
+  animation: gateJudder 220ms steps(2, end) infinite;
+}
+.agree__btn:hover .agree__label::before { animation: tearRed 420ms steps(2, end) infinite; }
+.agree__btn:hover .agree__label::after  { animation: tearDark 420ms steps(2, end) infinite; }
+.agree__btn:hover .tearlines { animation: tearBars 360ms steps(2, end) infinite; }
+
+.agree__btn:focus-visible { outline: 2px solid var(--wall-hot); outline-offset: 4px; }
+
+@keyframes gateJudder {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-1.5px, 0.5px, 0); }
+  50%  { transform: translate3d(1.5px, -0.5px, 0); }
+  75%  { transform: translate3d(-0.5px, -1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* the click: the gate blows open */
+.agree__btn.is-breaching {
+  animation: gateBreach 620ms steps(3, end) 1 forwards;
   pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(var(--glow), 0.85)) drop-shadow(0 0 18px rgba(var(--glow), 0.45));
 }
-.agree__ring path {
-  stroke-width: 2.6;
-  stroke-dasharray: var(--ring-len, 600px);
-  stroke-dashoffset: var(--ring-len, 600px);
-  transition: stroke-dashoffset 680ms var(--ease-in);
-}
-.agree__btn:hover .agree__ring path {
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 760ms cubic-bezier(0.62, 0.02, 0.2, 1);
+@keyframes gateBreach {
+  0%   { transform: translate3d(0, 0, 0) scaleX(1);    --edge-fill: #26040C; }
+  30%  { transform: translate3d(-7px, 0, 0) scaleX(1.03); }
+  55%  { transform: translate3d(6px, 0, 0) scaleX(0.98); }
+  80%  { transform: translate3d(-3px, 0, 0) scaleX(1.02); }
+  100% { transform: translate3d(0, 0, 0) scaleX(1); opacity: 0.45; }
 }
 
 .agree__note { margin: 16px 0 0; font-size: 13px; color: var(--ink-40); }
@@ -595,4 +603,61 @@
 @media (max-width: 330px) {
   .pyb-hero__long { display: none; }
   .pyb-hero__short { display: inline; }
+}
+
+/* ---------- breaching into the contact block ---------- */
+
+.contact-block { position: relative; overflow: hidden; }
+
+.contact-block__scan {
+  position: absolute;
+  left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--wall-hot) 18%, #fff 50%, var(--wall-hot) 82%, transparent);
+  box-shadow: 0 0 22px var(--wall), 0 0 60px var(--wall-45);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* the block is cut open from the middle out, with the scan line running
+   ahead of the reveal and the whole thing juddering as it lands */
+.contact-block.is-breaching { animation: breachShake 520ms steps(2, end) 2; }
+.contact-block.is-breaching > .shell { animation: breachOpen 760ms var(--ease-out) 1 both; }
+.contact-block.is-breaching .contact-block__scan { animation: breachScan 760ms var(--ease-out) 1; }
+.contact-block.is-breaching .tearlines { animation: tearBars 420ms steps(2, end) 3; }
+
+@keyframes breachOpen {
+  0%   { clip-path: inset(50% 0 50% 0); opacity: 0; filter: brightness(2.4); }
+  40%  { clip-path: inset(22% 0 22% 0); opacity: 1; filter: brightness(1.5); }
+  100% { clip-path: inset(0 0 0 0);     opacity: 1; filter: none; }
+}
+
+@keyframes breachScan {
+  0%   { top: 50%; opacity: 0; }
+  12%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { top: 2%;   opacity: 0; }
+}
+
+@keyframes breachShake {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-5px, 1px, 0); }
+  50%  { transform: translate3d(4px, -2px, 0); }
+  75%  { transform: translate3d(-2px, 1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* the address lands hot, then cools */
+.contact-block.is-breaching .contact__email {
+  color: var(--wall-hot);
+  text-shadow: 0 0 18px var(--wall);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-block.is-breaching,
+  .contact-block.is-breaching > .shell,
+  .contact-block.is-breaching .contact-block__scan,
+  .contact-block.is-breaching .tearlines { animation: none; }
+  .agree__btn:hover { animation: none; }
 }

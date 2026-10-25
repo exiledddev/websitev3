@@ -35,7 +35,6 @@
 <link rel="stylesheet" href="../css/tokens.css">
 <link rel="stylesheet" href="../css/base.css">
 <link rel="stylesheet" href="../css/promote.css">
-<link rel="stylesheet" href="../css/intro.css">
 
 <script type="application/ld+json">
 {
@@ -157,7 +156,7 @@
 
 <body data-page="promote">
 
-<!-- The mark, defined once and referenced by the nav, footer, intro and wipe. -->
+<!-- The mark, defined once and referenced by the nav, footer and wipe. -->
 <svg class="mark-defs" width="0" height="0" aria-hidden="true" focusable="false">
     <defs>
       <g id="exiledMark" transform="translate(0,600) scale(0.1,-0.1)" fill="currentColor" stroke="none">
@@ -533,19 +532,19 @@
                       </section>
 
         <div class="agree">
-                <button class="agree__btn" id="agreeBtn" type="button">
-                  <svg class="agree__ring" id="agreeRing" aria-hidden="true" focusable="false">
-                    <path fill="none" stroke="currentColor" stroke-linecap="round"/>
-                  </svg>
-                  <span class="agree__label">I agree to the Sponsorship Agreement</span>
-                </button>
-                <p class="agree__note">Agreeing takes you to my business email.</p>
-</div>
+          <button class="agree__btn edge" id="agreeBtn" type="button" aria-expanded="false">
+            <span class="agree__label glitch" data-text="I agree to the Sponsorship Agreement">I agree to the Sponsorship Agreement</span>
+            <span class="tearlines" aria-hidden="true"></span>
+          </button>
+          <p class="agree__note">Agreeing takes you to my business email.</p>
+        </div>
 
       </div>
     </section>
 
     <section class="contact-block" id="contact-block" hidden>
+      <span class="contact-block__scan" aria-hidden="true"></span>
+      <span class="tearlines" aria-hidden="true"></span>
       <div class="shell">
         <section class="contact" id="contact" aria-labelledby="contactHeading">
                 <svg class="contact__icon" viewBox="0 0 48 34" aria-hidden="true" focusable="false">
@@ -559,7 +558,7 @@
                   Let&rsquo;s do <span class="contact__word"><span class="contact__word-base">business</span><span class="contact__word-sel" aria-hidden="true">business</span></span><span class="contact__dot">.</span>
                 </h2>
 
-                <a class="contact__email" href="mailto:business@markedexiled.com?subject=Promote%20my%20business">business@markedexiled.com</a>
+                <a class="contact__email" id="contactEmail" href="mailto:business@markedexiled.com?subject=Promote%20my%20business">business@markedexiled.com</a>
                 <p class="contact__note">
                   Tell me what you are promoting, your budget, and when you need it out.
                 </p>
@@ -616,52 +615,6 @@
   </svg>
 </div>
 
-<!-- ===== Intro sequence ===== -->
-  <div class="intro" id="intro" data-state="idle">
-
-    <!-- the Blackwall breach: hex traffic, ICE windows and a scan sweep -->
-    <div class="intro__breach" aria-hidden="true">
-      <div class="intro__rain" id="introRain"></div>
-      <div class="intro__wins" id="introWins"></div>
-      <span class="intro__sweep"></span>
-      <span class="intro__flash"></span>
-      <span class="intro__bars"></span>
-    </div>
-
-    <!-- Zoom layer: starts framed so tightly inside the mark that the whole
-         screen is solid white, then pulls back to the lockup's logo slot.
-         The viewBox below is the first painted frame, before JS runs. -->
-    <svg class="intro__zoom" id="introZoom"
-         viewBox="400.5 358.5 24 24"
-         preserveAspectRatio="xMidYMid slice"
-         aria-hidden="true" focusable="false">
-      <use href="#exiledMark"/>
-    </svg>
-
-    <div class="intro__stage" id="introStage">
-      <div class="intro__row" id="introRow">
-
-        <div class="intro__logo" id="introLogo">
-          <svg class="logo" viewBox="0 0 600 600" role="img" aria-label="MarkedExiled logo">
-            <use href="#exiledMark"/>
-          </svg>
-        </div>
-
-        <h1 class="intro__brand" id="introBrand" data-text="MarkedExiled">
-          <span class="visually-hidden">MarkedExiled</span>
-          <span class="brand__letters" id="brandLetters" aria-hidden="true"></span>
-        </h1>
-
-      </div>
-
-      <div class="intro__note" aria-hidden="true">
-        <span class="intro__note-line"><i>Mobile</i></span>
-        <span class="intro__note-line intro__note-line--sub"><i>For better experience, visit on desktop.</i></span>
-      </div>
-    </div>
-  </div>
-
-<script src="../js/intro.js"></script>
 <script src="../js/site.js"></script>
 <script src="../js/promote.js"></script>
 </body>

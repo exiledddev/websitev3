@@ -1,395 +1,235 @@
 /* ============================================================
-   MarkedExiled — intro sequence
+   MarkedExiled — intro
 
-   1. the mark is framed so tightly that its white fill IS the screen
-   2. it pulls back until it is a logo sitting dead centre
-   3. it slides left, "MarkedExiled" rises letter by letter beside it
-   4. a circle mask closes upward and carries the lockup away
+   Breaching the Blackwall:
 
-   Step 2 is driven by animating the SVG viewBox rather than by CSS
-   transform: scale(). The pull-back covers a ~100x range, and a scaled
-   raster would be a blurry mess on the way down — a viewBox is re-rendered
-   from the vector every frame, so every frame is sharp.
+   1. the grid comes up out of black
+   2. ICE windows scale open out of nothing, height first
+   3. the traffic inside them decrypts into readable strings
+   4. the lockup is the last window through, and says WELCOME
+   5. the whole layer lifts
+
+   Nothing zooms. The old sequence pulled the mark back from a
+   screen-filling viewBox; this one is built entirely out of
+   windows opening, so the mark only ever appears at its real size.
    ============================================================ */
 
 (function () {
   'use strict';
 
   var TIMING = {
-    whiteHold:     170,  // beat of full white before the pull-back starts
-    zoom:         1250,  // mark pulls back to logo size
-    handoff:        80,  // beat once it lands
-    slide:         740,  // row slides left to make room for the text
-    letter:        620,  // per-letter rise
-    letterStagger:  46,  // gap between letters
-    lettersLead:   440,  // letters begin while the row is still settling
-    holdAfterText: 300,  // beat on the finished lockup
-    wipe:          850   // circle mask carries everything upward
+    boot:     520,   // grid and bars rise out of black
+    windows: 1700,   // ICE windows snap open, staggered
+    decrypt: 1500,   // the traffic resolves
+    lockup:   820,   // the lockup window comes through
+    hold:    1000,   // long enough to actually read it
+    wipe:     820
   };
 
-  /* Geometry of the mark, in its own 600x600 viewBox.
-     ANCHOR is the centre of the largest fully-solid area of the glyph — found
-     by running a distance transform over the filled region, then confirming
-     the clearance by ray-marching isPointInFill in 720 directions (43.04).
-     Framing tighter than SOLID_R around that point guarantees a screen of
-     pure white with no background showing through, at any aspect ratio.
-     Re-measure these two if the mark itself ever changes. */
-  var GLYPH  = 600;
-  var ANCHOR = { x: 412.5, y: 370.5 };
-  var SOLID_R = 43;
-  var FILL_SAFETY = 0.85;   // stay comfortably inside that solid area
+  var intro = document.getElementById('intro');
+  var wins  = document.getElementById('introWins');
+  var main  = document.getElementById('introMain');
+  var brand = document.getElementById('introBrand');
+  var hello = document.getElementById('introWelcome');
 
-  var intro   = document.getElementById('intro');
-  var zoom    = document.getElementById('introZoom');
-  var row     = document.getElementById('introRow');
-  var brand   = document.getElementById('introBrand');
-  var letters = document.getElementById('brandLetters');
-
-  if (!intro || !zoom || !row || !brand || !letters) return;
-
-  /* The breach is a first-impression, not a toll gate. Now that the site is
-     real pages rather than one document, playing it on every navigation
-     would mean sitting through it again just to read the terms. Once per
-     session is the whole point of it. */
-  var alreadyPlayed = false;
-  try { alreadyPlayed = window.sessionStorage.getItem('me:intro') === '1'; } catch (err) {}
-
-  if (alreadyPlayed) {
-    intro.setAttribute('data-state', 'done');
-    document.body.setAttribute('data-intro', 'skip');
-    return;
-  }
+  if (!intro || !wins || !main) return;
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ------------------------------------------------------------
-     The breach
-
-     Hex traffic pouring through the wall, ICE windows snapping open
-     along it, and a scan sweep running the height of the screen.
-     The byte values are the Breach Protocol set - 1C 55 7A BD E9 FF -
-     so the traffic reads as the real thing rather than random hex.
-
-     Everything is generated once and then animated entirely in CSS,
-     so the sequence costs no script time while the zoom is running.
-     ------------------------------------------------------------ */
-
-  var BYTES = ['1C', '55', '7A', 'BD', 'E9', 'FF', 'A3', '0D', 'B6', 'F8', '06', '2E'];
-
-  function byte() { return BYTES[(Math.random() * BYTES.length) | 0]; }
-
-  function buildBreach() {
-    var rain = document.getElementById('introRain');
-    var wins = document.getElementById('introWins');
-    if (!rain || !wins || reduced) return;
-
-    /* columns scale with the viewport so the traffic stays dense on a
-       phone and does not turn into a handful of lonely strings */
-    var cols = Math.max(7, Math.min(22, Math.round(window.innerWidth / 86)));
-    var rows = Math.max(9, Math.min(18, Math.round(window.innerHeight / 54)));
-
-    var html = '';
-    for (var c = 0; c < cols; c++) {
-      var delay = (Math.random() * 900).toFixed(0);
-      var dur = (2200 + Math.random() * 2600).toFixed(0);
-      html += '<span class="intro__col" style="left:' + ((c + 0.5) / cols * 100).toFixed(3) + '%;' +
-              'animation-delay:' + delay + 'ms;animation-duration:' + dur + 'ms">';
-      for (var r = 0; r < rows; r++) {
-        var lead = r === rows - 1 ? ' intro__b--lead' : '';
-        html += '<i class="intro__b' + lead + '" style="animation-delay:' +
-                (Math.random() * 1400).toFixed(0) + 'ms">' + byte() + '</i>';
-      }
-      html += '</span>';
-    }
-    rain.innerHTML = html;
-
-    /* the ICE windows: a few chamfered panels that snap open across the
-       wall, each holding its own scrap of traffic */
-    var SPOTS = [
-      [6, 18, 20, 15], [70, 12, 24, 13], [12, 64, 19, 16],
-      [64, 58, 27, 18], [38, 8, 17, 11], [30, 74, 22, 13]
-    ];
-    var wh = '';
-    for (var i = 0; i < SPOTS.length; i++) {
-      var sp = SPOTS[i];
-      var inner = '';
-      for (var k = 0; k < 10; k++) inner += '<i>' + byte() + '</i>';
-      wh += '<span class="intro__win" style="left:' + sp[0] + '%;top:' + sp[1] + '%;' +
-            'width:' + sp[2] + '%;height:' + sp[3] + '%;' +
-            '--wd:' + (120 + i * 95) + 'ms">' +
-            '<b class="intro__win-grid">' + inner + '</b></span>';
-    }
-    wins.innerHTML = wh;
-  }
-
-  /* the traffic is laid out against the viewport, so a rotation has to
-     rebuild it or the columns bunch to one side */
-  var breachTick = 0;
-  window.addEventListener('resize', function () {
-    if (breachTick) window.clearTimeout(breachTick);
-    breachTick = window.setTimeout(function () {
-      if (intro.getAttribute('data-state') !== 'done') buildBreach();
-    }, 180);
-  });
-
   var timers  = [];
   var raf     = 0;
-  var started = false;
 
-  /* ---------- easing ---------- */
+  var GLYPHS = '0123456789ABCDEF#$%&/\\|<>[]{}=+*';
+  var BYTES  = ['1C', '55', '7A', 'BD', 'E9', 'FF', 'A3', '0D', 'B6', 'F8', '06', '2E'];
 
-  // cubic-bezier(x1, y1, x2, y2), solved for y at a given x
-  function bezier(x1, y1, x2, y2) {
-    function A(a, b) { return 1 - 3 * b + 3 * a; }
-    function B(a, b) { return 3 * b - 6 * a; }
-    function C(a)    { return 3 * a; }
-    function calc(t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; }
-    function slope(t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); }
+  function pick(a) { return a[(Math.random() * a.length) | 0]; }
+  function glyph()  { return GLYPHS.charAt((Math.random() * GLYPHS.length) | 0); }
+  function hex(n)   { var o = []; while (n--) o.push(pick(BYTES)); return o.join(' '); }
 
-    return function (x) {
-      if (x <= 0) return 0;
-      if (x >= 1) return 1;
-      var t = x;
-      for (var i = 0; i < 8; i++) {
-        var d = slope(t, x1, x2);
-        if (d === 0) break;
-        var err = calc(t, x1, x2) - x;
-        if (Math.abs(err) < 1e-5) break;
-        t -= err / d;
-      }
-      return calc(t, y1, y2);
-    };
-  }
+  /* ---------- build ---------- */
 
-  // slow to leave the white, quick through the middle, soft landing
-  var easeZoom = bezier(0.66, 0, 0.26, 1);
+  /* Windows sit down the flanks; the middle band is left clear so the
+     lockup has somewhere to land that is not already covered. */
+  var SPOTS = [
+    [4,  10, 21, 17], [75, 7,  21, 15],
+    [7,  60, 19, 19], [78, 55, 19, 21],
+    [27, 5,  18, 12], [55, 78, 22, 14],
+    [3,  36, 15, 14], [84, 32, 14, 16]
+  ];
 
-  /* ---------- push timings into CSS ---------- */
+  var lines = [];   // every decrypting line on screen
 
-  function syncCssTimings() {
-    var s = document.documentElement.style;
-    s.setProperty('--t-slide',  TIMING.slide + 'ms');
-    s.setProperty('--t-letter', TIMING.letter + 'ms');
-    s.setProperty('--t-wipe',   TIMING.wipe + 'ms');
-  }
+  function buildWindows() {
+    var narrow = window.innerWidth < 720;
+    var spots = narrow ? SPOTS.slice(0, 4) : SPOTS;
 
-  /* ---------- build the per-letter masks ---------- */
+    var html = '';
+    for (var i = 0; i < spots.length; i++) {
+      var s = spots[i];
+      var body = '';
+      var rows = 2 + ((Math.random() * 2) | 0);
 
-  function buildLetters() {
-    var text = brand.getAttribute('data-text') || '';
-    var frag = document.createDocumentFragment();
-    var index = 0;
-
-    for (var i = 0; i < text.length; i++) {
-      var ch = text.charAt(i);
-      var outer = document.createElement('span');
-      outer.className = 'brand__ch';
-
-      if (ch === ' ') {
-        outer.className += ' brand__ch--space';
-        frag.appendChild(outer);
-        continue;
+      for (var r = 0; r < rows; r++) {
+        var text = (r === rows - 1 && Math.random() > 0.45)
+          ? pick(['ICE BYPASSED', 'LAYER OPEN', 'DAEMON OK', 'KEY ACCEPTED', 'TRACE CLEAR'])
+          : hex(3);
+        body += '<span data-target="' + text + '"></span>';
       }
 
-      var inner = document.createElement('span');
-      inner.className = 'brand__in';
-      inner.textContent = ch;
-      inner.style.setProperty('--d', (index * TIMING.letterStagger) + 'ms');
-      outer.appendChild(inner);
-      frag.appendChild(outer);
-      index++;
+      html += '<div class="intro__win" style="left:' + s[0] + '%;top:' + s[1] + '%;' +
+              'width:' + s[2] + '%;height:' + s[3] + '%;--wd:' + (i * 135) + 'ms">' +
+                '<div class="intro__win-bar"><b>0x' + pick(BYTES) + pick(BYTES) + '</b><b>//</b></div>' +
+                '<div class="intro__win-body">' + body + '</div>' +
+              '</div>';
+    }
+    wins.innerHTML = html;
+
+    lines = Array.prototype.map.call(
+      wins.querySelectorAll('[data-target]'),
+      function (el, i) {
+        return { el: el, target: el.getAttribute('data-target'), start: i * 55 };
+      }
+    );
+
+    // start every line as noise so nothing pops in empty
+    lines.forEach(function (l) { paint(l, 0); });
+  }
+
+  /* ---------- decrypt ---------- */
+
+  /* Characters resolve left to right; anything not yet resolved keeps
+     churning. p is 0..1 across the line's own window of the phase. */
+  function paint(line, p) {
+    var t = line.target;
+    var settled = Math.floor(t.length * p);
+    var out = '';
+
+    for (var i = 0; i < t.length; i++) {
+      if (t.charAt(i) === ' ') { out += ' '; continue; }
+      out += i < settled ? t.charAt(i) : glyph();
     }
 
-    letters.innerHTML = '';
-    letters.appendChild(frag);
-    return index; // number of animated glyphs
+    line.el.textContent = out;
+    line.el.classList.toggle('is-done', p >= 1);
   }
 
-  /* ---------- how far the logo must travel ---------- */
-  /* The row is laid out at its final width. Shifting it right by half the
-     text block (text + gap) puts the logo dead centre; animating that offset
-     back to 0 is the slide. */
+  function runDecrypt(duration) {
+    if (reduced) { finishText(); return; }
 
-  function measureShift() {
-    var gap = parseFloat(getComputedStyle(row).columnGap || '0') || 0;
-    return (brand.getBoundingClientRect().width + gap) / 2;
-  }
-
-  function applyShift() {
-    row.style.setProperty('--row-shift', measureShift() + 'px');
-  }
-
-  /* ---------- the pull-back ---------- */
-
-  /* Everything is expressed as "px per glyph unit" (s). The viewBox that puts
-     a given glyph point at a given screen point, at scale s, is:
-         w = vw / s,  h = vh / s
-         x = glyphX - screenX / s
-     The pull-back interpolates s geometrically (a constant-speed dolly; a
-     linear ramp over a 100x range would collapse instantly and then crawl)
-     while walking the anchor from the solid spot to the middle of the mark,
-     and the screen target from the centre of the screen to the logo's slot. */
-
-  function frame() {
-    var vw = document.documentElement.clientWidth;
-    var vh = document.documentElement.clientHeight;
-    var logo = document.getElementById('introLogo').getBoundingClientRect();
-
-    return {
-      vw: vw,
-      vh: vh,
-      // tight enough that the viewport sits inside the mark's solid area
-      s0: Math.hypot(vw, vh) / (2 * SOLID_R * FILL_SAFETY),
-      s1: logo.width / GLYPH,
-      cx: logo.left + logo.width / 2,
-      cy: logo.top + logo.height / 2
-    };
-  }
-
-  function setZoom(f, p) {
-    var s  = f.s0 * Math.pow(f.s1 / f.s0, p);
-    var gx = ANCHOR.x + (GLYPH / 2 - ANCHOR.x) * p;
-    var gy = ANCHOR.y + (GLYPH / 2 - ANCHOR.y) * p;
-    var sx = f.vw / 2 + (f.cx - f.vw / 2) * p;
-    var sy = f.vh / 2 + (f.cy - f.vh / 2) * p;
-
-    zoom.setAttribute('viewBox',
-      (gx - sx / s) + ' ' + (gy - sy / s) + ' ' + (f.vw / s) + ' ' + (f.vh / s));
-  }
-
-  function runZoom(done) {
-    var f = frame();
-    var vw = f.vw, vh = f.vh;
     var t0 = 0;
-
-    setZoom(f, 0);
+    cancelAnimationFrame(raf);
 
     raf = requestAnimationFrame(function step(now) {
       if (!t0) t0 = now;
+      var elapsed = now - t0;
 
-      // a resize mid-flight would otherwise land the mark off its slot
-      if (document.documentElement.clientWidth !== vw ||
-          document.documentElement.clientHeight !== vh) {
-        applyShift();
-        f = frame();
-        vw = f.vw;
-        vh = f.vh;
-      }
+      lines.forEach(function (l) {
+        var p = (elapsed - l.start) / (duration * 0.72);
+        paint(l, Math.min(1, Math.max(0, p)));
+      });
 
-      var p = Math.min(1, (now - t0) / TIMING.zoom);
-      setZoom(f, easeZoom(p));
-
-      if (p < 1) {
-        raf = requestAnimationFrame(step);
-      } else {
-        raf = 0;
-        done();
-      }
+      if (elapsed < duration) raf = requestAnimationFrame(step);
+      else finishText();
     });
   }
 
-  /* ---------- timeline ---------- */
-
-  function at(ms, fn) {
-    timers.push(window.setTimeout(fn, ms));
+  /* Force every line to its final value. Called when the phase ends, so
+     a throttled tab cannot leave half-decrypted noise on screen. */
+  function finishText() {
+    cancelAnimationFrame(raf);
+    raf = 0;
+    lines.forEach(function (l) { paint(l, 1); });
   }
 
-  function clearTimeline() {
-    timers.forEach(window.clearTimeout);
-    timers = [];
-    if (raf) { cancelAnimationFrame(raf); raf = 0; }
-  }
+  /* ---------- sequence ---------- */
 
-  function setState(name) {
-    intro.setAttribute('data-state', name);
-  }
+  function at(ms, fn) { timers.push(window.setTimeout(fn, ms)); }
+  function setState(n) { intro.setAttribute('data-state', n); }
 
   function finish() {
     setState('done');
     document.dispatchEvent(new CustomEvent('intro:done'));
   }
 
-  // everything from the moment the mark lands on its slot
-  function lockup() {
-    setState('logo');
-
-    at(TIMING.handoff, function () { setState('slide'); });
-
-    var lettersAt = TIMING.handoff + TIMING.slide - TIMING.lettersLead;
-    at(lettersAt, function () { setState('letters'); });
-
-    var textDone = lettersAt
-      + Math.max(0, glyphCount - 1) * TIMING.letterStagger
-      + TIMING.letter;
-
-    var wipeAt = textDone + TIMING.holdAfterText;
-    at(wipeAt, function () {
-      setState('wipe');
-      // the page underneath comes in while the mask is on its way out
-      document.dispatchEvent(new CustomEvent('intro:reveal'));
-    });
-    at(wipeAt + TIMING.wipe, finish);
-  }
-
-  var glyphCount = 0;
-
-  function play() {
-    started = true;
-    clearTimeline();
-    glyphCount = buildLetters();
-    applyShift();
-    buildBreach();
+  function run() {
+    buildWindows();
 
     if (reduced) {
-      setState('letters');
+      finishText();
+      setState('lockup');
       document.dispatchEvent(new CustomEvent('intro:reveal'));
       at(900, finish);
       return;
     }
 
     setState('idle');
-    setZoom(frame(), 0);
 
-    at(TIMING.whiteHold, function () {
-      setState('zoom');
-      runZoom(lockup);
+    at(40, function () { setState('boot'); });
+
+    var winsAt = TIMING.boot;
+    at(winsAt, function () { setState('windows'); });
+
+    var decryptAt = winsAt + TIMING.windows;
+    at(decryptAt, function () {
+      setState('decrypt');
+      runDecrypt(TIMING.decrypt);
     });
+
+    var lockupAt = decryptAt + TIMING.decrypt;
+    at(lockupAt, function () {
+      finishText();
+      setState('lockup');
+      if (brand) {
+        brand.classList.add('is-glitching');
+        window.setTimeout(function () { brand.classList.remove('is-glitching'); }, 1600);
+      }
+      if (main) {
+        main.classList.add('is-tearing');
+        window.setTimeout(function () { main.classList.remove('is-tearing'); }, 1400);
+      }
+    });
+
+    var wipeAt = lockupAt + TIMING.lockup + TIMING.hold;
+    at(wipeAt, function () {
+      setState('wipe');
+      document.dispatchEvent(new CustomEvent('intro:reveal'));
+    });
+
+    at(wipeAt + TIMING.wipe, finish);
   }
 
-  /* ---------- keep the measurements honest ---------- */
-
+  /* the windows are placed against the viewport, so a rotation part-way
+     through has to rebuild them or they bunch to one side */
+  var rebuild = 0;
   window.addEventListener('resize', function () {
     var state = intro.getAttribute('data-state');
-    if (state === 'idle') { applyShift(); setZoom(frame(), 0); }
-    else if (state === 'logo') { applyShift(); }
+    if (state === 'done' || state === 'wipe') return;
+
+    window.clearTimeout(rebuild);
+    rebuild = window.setTimeout(function () {
+      buildWindows();
+      if (state === 'decrypt' || state === 'lockup') finishText();
+    }, 200);
   });
 
-  // Dev convenience: press R to replay the sequence.
-  window.addEventListener('keydown', function (e) {
-    if (e.key === 'r' || e.key === 'R') play();
+  /* skipping: any key or click drops straight to the page */
+  function skip() {
+    timers.forEach(window.clearTimeout);
+    timers = [];
+    cancelAnimationFrame(raf);
+    document.dispatchEvent(new CustomEvent('intro:reveal'));
+    setState('wipe');
+    window.setTimeout(finish, TIMING.wipe);
+  }
+
+  intro.addEventListener('click', skip);
+  document.addEventListener('keydown', function (e) {
+    if (intro.getAttribute('data-state') === 'done') return;
+    if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') skip();
   });
 
-  /* Hidden tabs clamp setTimeout to ~1s and freeze rAF, which would shred
-     the timeline. Wait until the page is actually being looked at. */
-  function whenVisible(fn) {
-    if (!document.hidden) { fn(); return; }
-    document.addEventListener('visibilitychange', function onVis() {
-      if (document.hidden) return;
-      document.removeEventListener('visibilitychange', onVis);
-      fn();
-    });
-  }
-
-  // Auto-start once and once only — a manual replay counts as the start.
-  function start() {
-    whenVisible(function () { if (!started) play(); });
-  }
-
-  syncCssTimings();
-
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(start).catch(start);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
   } else {
-    window.addEventListener('load', start);
+    run();
   }
 })();

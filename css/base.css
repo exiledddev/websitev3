@@ -25,6 +25,9 @@ body {
 img, svg { max-width: 100%; }
 a { color: inherit; }
 
+/* the shared <defs> block that every mark <use> points at */
+.mark-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
 .visually-hidden {
   position: absolute; width: 1px; height: 1px;
   margin: -1px; padding: 0; overflow: hidden;
@@ -170,50 +173,83 @@ h1, h2, h3, h4 {
 
 /* ---------- glitch ---------- */
 
-/* The element carries data-text; the two pseudo-elements are the split
-   channels. Only runs while .is-glitching is set, or on hover. */
+/* Red and black only. A cyan channel reads as generic chromatic
+   aberration; the Blackwall is red ICE tearing through black, so the
+   effect is a red ghost plus black bars that cut the text apart. */
 .glitch { position: relative; display: inline-block; }
+
 .glitch::before,
 .glitch::after {
-  content: attr(data-text);
   position: absolute;
-  left: 0; top: 0;
+  left: 0;
+  top: 0;
   width: 100%;
   opacity: 0;
   pointer-events: none;
 }
-.glitch::before { color: var(--wall); }
-.glitch::after  { color: var(--ice); }
+
+/* the ghost: a displaced red copy */
+.glitch::before {
+  content: attr(data-text);
+  color: var(--wall);
+  text-shadow: 0 0 12px rgba(255, 31, 61, 0.55);
+}
+
+/* the tear: black bands that slice the glyphs */
+.glitch::after {
+  content: attr(data-text);
+  color: var(--ground);
+  -webkit-text-stroke: 1px var(--wall-45);
+}
 
 .glitch.is-glitching::before,
-.glitch:hover::before {
-  opacity: 0.9;
-  animation: splitA 620ms steps(2, end) 2;
-}
+.glitch:hover::before { animation: tearRed 540ms steps(2, end) 3; }
+
 .glitch.is-glitching::after,
-.glitch:hover::after {
-  opacity: 0.75;
-  animation: splitB 620ms steps(2, end) 2;
+.glitch:hover::after { animation: tearDark 540ms steps(2, end) 3; }
+
+@keyframes tearRed {
+  0%   { opacity: 0;    transform: translate3d(0, 0, 0);       clip-path: inset(0 0 100% 0); }
+  12%  { opacity: 0.95; transform: translate3d(-7px, -2px, 0); clip-path: inset(4% 0 74% 0); }
+  28%  { opacity: 0.9;  transform: translate3d(6px, 1px, 0);   clip-path: inset(38% 0 42% 0); }
+  44%  { opacity: 0.95; transform: translate3d(-5px, 2px, 0);  clip-path: inset(66% 0 14% 0); }
+  60%  { opacity: 0.85; transform: translate3d(8px, -1px, 0);  clip-path: inset(18% 0 60% 0); }
+  76%  { opacity: 0.9;  transform: translate3d(-3px, 0, 0);    clip-path: inset(52% 0 28% 0); }
+  100% { opacity: 0;    transform: translate3d(0, 0, 0);       clip-path: inset(0 0 100% 0); }
 }
 
-@keyframes splitA {
-  0%   { transform: translate3d(0,0,0);     clip-path: inset(0 0 72% 0); }
-  20%  { transform: translate3d(-4px,0,0);  clip-path: inset(28% 0 44% 0); }
-  40%  { transform: translate3d(3px,0,0);   clip-path: inset(62% 0 14% 0); }
-  60%  { transform: translate3d(-2px,0,0);  clip-path: inset(10% 0 80% 0); }
-  80%  { transform: translate3d(2px,0,0);   clip-path: inset(46% 0 36% 0); }
-  100% { transform: translate3d(0,0,0);     clip-path: inset(0 0 100% 0); }
-}
-@keyframes splitB {
-  0%   { transform: translate3d(0,0,0);     clip-path: inset(70% 0 8% 0); }
-  20%  { transform: translate3d(4px,0,0);   clip-path: inset(12% 0 66% 0); }
-  40%  { transform: translate3d(-3px,0,0);  clip-path: inset(40% 0 30% 0); }
-  60%  { transform: translate3d(3px,0,0);   clip-path: inset(76% 0 6% 0); }
-  80%  { transform: translate3d(-2px,0,0);  clip-path: inset(22% 0 58% 0); }
-  100% { transform: translate3d(0,0,0);     clip-path: inset(100% 0 0 0); }
+@keyframes tearDark {
+  0%   { opacity: 0; transform: translate3d(0, 0, 0);      clip-path: inset(100% 0 0 0); }
+  16%  { opacity: 1; transform: translate3d(5px, 0, 0);    clip-path: inset(22% 0 66% 0); }
+  34%  { opacity: 1; transform: translate3d(-8px, 0, 0);   clip-path: inset(58% 0 26% 0); }
+  52%  { opacity: 1; transform: translate3d(4px, 0, 0);    clip-path: inset(8% 0 82% 0); }
+  70%  { opacity: 1; transform: translate3d(-6px, 0, 0);   clip-path: inset(74% 0 8% 0); }
+  88%  { opacity: 1; transform: translate3d(3px, 0, 0);    clip-path: inset(40% 0 48% 0); }
+  100% { opacity: 0; transform: translate3d(0, 0, 0);      clip-path: inset(100% 0 0 0); }
 }
 
-/* ---------- the Blackwall ---------- */
+/* jittery scan bars that can be laid over any element */
+.tearlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0 3px,
+    rgba(0, 0, 0, 0.85) 3px 4px,
+    transparent 4px 9px);
+  mix-blend-mode: multiply;
+}
+.is-tearing > .tearlines { animation: tearBars 460ms steps(2, end) 3; }
+
+@keyframes tearBars {
+  0%   { opacity: 0;   transform: translate3d(0, 0, 0); }
+  20%  { opacity: 0.9; transform: translate3d(-4px, 2px, 0); }
+  45%  { opacity: 0.7; transform: translate3d(5px, -3px, 0); }
+  70%  { opacity: 0.9; transform: translate3d(-3px, 1px, 0); }
+  100% { opacity: 0;   transform: translate3d(0, 0, 0); }
+}
 
 /* Pure CSS: vertical ICE filaments, a drifting scan band and a red core.
    No rAF loop, so it costs nothing on a phone.
@@ -402,6 +438,7 @@ h1, h2, h3, h4 {
   .reveal { opacity: 1; transform: none; }
   .blackwall__scan { display: none; }
   .glitch::before, .glitch::after { display: none; }
+  .tearlines { display: none; }
 }
 
 /* ---------- page transition ---------- */

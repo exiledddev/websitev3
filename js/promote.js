@@ -298,67 +298,6 @@
      The gate — the contact block only exists once you agree
      ============================================================ */
 
-  function buildAgreeRing() {
-    var svg = document.getElementById('agreeRing');
-    if (!svg || !agreeBtn) return;
-
-    var path = svg.querySelector('path');
-
-    /* Take the svg out of flow before measuring. While it is still an
-       in-flow child it pads the button out by its own width, and the ring
-       gets built around a box twice the size it should be. */
-    svg.style.position = 'absolute';
-    svg.style.pointerEvents = 'none';
-    svg.style.overflow = 'visible';
-
-    var b = agreeBtn.getBoundingClientRect();
-    if (b.width <= 0 || b.height <= 0) return;
-
-    var gap = 5;                       // distance from the button's edge
-    // no rounding: the button's box is fractional, and rounding it throws
-    // the gap out by a pixel or two on the right and bottom
-    var w = b.width + gap * 2;
-    var h = b.height + gap * 2;
-    var r = h / 2;
-    var cx = w / 2;
-
-    /* Size and place the box here rather than in CSS. An <svg> with no
-       explicit box falls back to 300x150, and if the stylesheet has not
-       landed yet the ring is built against that instead of the button -
-       which draws an enormous pill across the page. */
-    svg.setAttribute('width', w.toFixed(2));
-    svg.setAttribute('height', h.toFixed(2));
-    svg.setAttribute('viewBox', '0 0 ' + w.toFixed(2) + ' ' + h.toFixed(2));
-    svg.setAttribute('preserveAspectRatio', 'none');
-    /* left/top are measured from the offset parent's PADDING box, while the
-       rect above is its border box - without subtracting the border the ring
-       sits a pixel right and low, and the gap reads uneven. */
-    var bw = parseFloat(getComputedStyle(agreeBtn).borderLeftWidth) || 0;
-    svg.style.left = -(gap + bw) + 'px';
-    svg.style.top = -(gap + bw) + 'px';
-    svg.style.width = w.toFixed(2) + 'px';
-    svg.style.height = h.toFixed(2) + 'px';
-
-    // traced from the top centre, clockwise, back to the top centre
-    path.setAttribute('d',
-      'M' + cx.toFixed(1) + ' 0' +
-      ' H' + (w - r).toFixed(1) +
-      ' A' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 0 1 ' + (w - r).toFixed(1) + ' ' + h.toFixed(1) +
-      ' H' + r.toFixed(1) +
-      ' A' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 0 1 ' + r.toFixed(1) + ' 0' +
-      ' H' + cx.toFixed(1));
-
-    // px matters: stroke-dashoffset takes a length, and a bare number is
-    // invalid there, so it computes to 0 and leaves the ring drawn
-    var len = path.getTotalLength().toFixed(1) + 'px';
-
-    // land it without animating, or the ring draws itself once on load
-    path.style.transition = 'none';
-    svg.style.setProperty('--ring-len', len);
-    path.getBoundingClientRect();
-    window.requestAnimationFrame(function () { path.style.transition = ''; });
-  }
-
   var agreeBtn   = document.getElementById('agreeBtn');
   var contactBlk = document.getElementById('contact-block');
   var word       = document.querySelector('.contact__word');
@@ -383,10 +322,52 @@
     }, 420);
   }
 
+  /* ---------- breaching the gate ---------- */
+
+  /* The address resolves out of noise rather than simply appearing, so
+     agreeing reads as unlocking something. The final value is written
+     from the stored original every time, so a throttled tab can never
+     leave a scrambled email on screen. */
+  var GLYPHS = '0123456789ABCDEF@#$%&/\\|<>[]{}=+*.';
+  var emailEl = document.getElementById('contactEmail');
+  var emailText = emailEl ? emailEl.textContent : '';
+  var emailRaf = 0;
+
+  function decryptEmail() {
+    if (!emailEl) return;
+    if (reduced) { emailEl.textContent = emailText; return; }
+
+    var DUR = 1100;
+    var t0 = 0;
+    window.cancelAnimationFrame(emailRaf);
+
+    emailRaf = window.requestAnimationFrame(function step(now) {
+      if (!t0) t0 = now;
+      var p = Math.min(1, (now - t0) / DUR);
+      var settled = Math.floor(emailText.length * p);
+      var out = '';
+
+      for (var i = 0; i < emailText.length; i++) {
+        out += i < settled
+          ? emailText.charAt(i)
+          : GLYPHS.charAt((Math.random() * GLYPHS.length) | 0);
+      }
+      emailEl.textContent = out;
+
+      if (p < 1) emailRaf = window.requestAnimationFrame(step);
+      else emailEl.textContent = emailText;
+    });
+  }
+
   if (agreeBtn && contactBlk) {
     agreeBtn.addEventListener('click', function () {
-      contactBlk.hidden = false;
+      if (agreeBtn.classList.contains('is-breaching')) return;
+
+      agreeBtn.classList.add('is-breaching');
       agreeBtn.setAttribute('aria-expanded', 'true');
+
+      contactBlk.hidden = false;
+      contactBlk.classList.add('is-breaching');
 
       /* setTimeout, not requestAnimationFrame: rAF is throttled to nothing
          while the page is hidden, so a click in a background tab would
@@ -396,9 +377,14 @@
           behavior: reduced ? 'auto' : 'smooth',
           block: 'center'
         });
+        decryptEmail();
         runSelection();
         buildDocTrack();
       }, 0);
+
+      window.setTimeout(function () {
+        contactBlk.classList.remove('is-breaching');
+      }, 1500);
     });
   }
 
@@ -421,7 +407,6 @@
     playHint();
     buildDocTrack();
     paintDocTrack();
-    buildAgreeRing();
   }
 
   document.addEventListener('site:ready', boot);
@@ -431,8 +416,7 @@
      it comes out a few pixels short on the right. */
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(function () {
-      buildAgreeRing();
-      buildHint();
+        buildHint();
     });
   }
 
@@ -440,6 +424,5 @@
     buildHint();
     buildDocTrack();
     paintDocTrack();
-    buildAgreeRing();
   });
 })();

@@ -1,45 +1,39 @@
 /* ============================================================
-   MarkedExiled — intro sequence
+   MarkedExiled — intro
+
+   Breaching the Blackwall. ICE windows scale open out of nothing
+   and fill with decrypting traffic, a scan line runs the screen,
+   and the lockup is the last window to come through.
+
+   Nothing scales the logo down any more; the sequence is built
+   out of windows opening, not out of a zoom.
    ============================================================ */
 
 :root {
-  --bg: #000000;
-  --fg: #ffffff;
+  --intro-bg: #05060A;
+  --intro-red: #FF1F3D;
+  --intro-hot: #FF4D5F;
 
-  /* sizing */
-  --logo-size: clamp(58px, 15vw, 180px);
-  --brand-size: clamp(1.9rem, 9.4vw, 5.4rem);
-  --row-gap: clamp(14px, 2.4vw, 38px);
+  --logo-size: clamp(54px, 11vw, 132px);
+  --brand-size: clamp(1.6rem, 6.4vw, 4rem);
 
-  /* easings */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-snap: cubic-bezier(0.12, 1.5, 0.3, 1);
   --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
-
-  /* timings (set from js/intro.js) */
-  --t-slide: 880ms;
-  --t-letter: 720ms;
-  --t-wipe: 1000ms;
 }
 
 * { box-sizing: border-box; }
 
-/* The old build pinned html and body to 100% and scrolled the body, because
-   the page was one fixed-height document. These are real scrolling pages now,
-   so html is the only scroller and the intro simply locks it while it plays.
-   data-intro is absent until the sequence finishes or is skipped. */
-body:not([data-intro]) {
+/* The intro owns the scroll lock only while it is actually on screen.
+   Keying this off the element rather than a JS-set attribute means a
+   script failure cannot leave the page permanently unscrollable. */
+body:has(.intro:not([data-state="done"])) {
   overflow: hidden;
   height: 100%;
 }
 
-.mark-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
+.mark-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 .visually-hidden {
   position: absolute;
@@ -56,480 +50,251 @@ body:not([data-intro]) {
 .intro {
   position: fixed;
   inset: 0;
-  background: var(--bg);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
   z-index: 100;
-  /* Comfortably clear of the viewport corners (which sit at ~70.7%), so
-     nothing is clipped until the wipe actually runs. */
-  clip-path: circle(80% at 50% 50%);
-}
-
-/* The same circle that takes the lockup away also lifts this whole layer
-   off the page underneath it. */
-.intro[data-state="wipe"],
-.intro[data-state="done"] {
-  clip-path: circle(0% at 50% -30%);
-  transition: clip-path var(--t-wipe) var(--ease-in-out-quart);
-}
-
-/* Once it has closed there is nothing left to show. */
-.intro[data-state="done"] {
-  display: none;
-}
-
-/* ---------- zoom layer ---------- */
-/* Full-bleed. Its viewBox is driven frame by frame in JS, so the mark stays
-   vector-sharp from "fills the screen" all the way down to the lockup. */
-
-.intro__zoom {
-  position: absolute;
-  inset: 0;
-  display: none;
-  width: 100%;
-  height: 100%;
-  color: var(--fg);
-}
-
-.intro[data-state="idle"] .intro__zoom,
-.intro[data-state="zoom"] .intro__zoom {
-  display: block;
-}
-
-/* The element the circle mask is applied to. It spans the whole
-   viewport so the circle's radius is measured against the screen,
-   not against the width of the lockup. */
-.intro__stage {
-  position: absolute;
-  inset: 0;
   display: grid;
-  /* pack the rows together in the middle - place-items would stretch the
-     lockup and the mobile note to opposite ends of the screen */
   place-content: center;
-  justify-items: center;
-  /* Big enough to clear the lockup, small enough that the shrink
-     starts cutting almost immediately. The stage is transparent, so
-     clipping the empty corners is invisible. */
-  clip-path: circle(50% at 50% 50%);
-  will-change: clip-path, transform;
+  overflow: hidden;
+  background: var(--intro-bg);
+  font-family: 'Chakra Petch', 'Inter', system-ui, sans-serif;
 }
 
-.intro__row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--row-gap);
-  /* Offset set by JS so the logo alone reads as centred. */
-  transform: translate3d(var(--row-shift, 0px), 0, 0);
-  will-change: transform;
+.intro[data-state="done"] { display: none; }
+
+/* the whole layer lifts on the wipe */
+.intro[data-state="wipe"] {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 820ms var(--ease-in-out-quart);
 }
+.intro:not([data-state="wipe"]) { clip-path: inset(0 0 0 0); }
 
-/* ---------- logo ---------- */
+/* ---------- background ---------- */
 
-.intro__logo {
-  flex: none;
-  line-height: 0;
-  /* Hidden until the zoom layer lands exactly on this slot. */
+.intro__bg { position: absolute; inset: 0; pointer-events: none; }
+.intro__grid, .intro__bars, .intro__vignette { position: absolute; inset: 0; }
+
+.intro__grid {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 59px, rgba(255, 31, 61, 0.09) 59px 60px),
+    repeating-linear-gradient(180deg, transparent 0 59px, rgba(255, 31, 61, 0.06) 59px 60px);
   opacity: 0;
+  transition: opacity 600ms ease;
 }
-
-.logo {
-  display: block;
-  width: var(--logo-size);
-  height: var(--logo-size);
-  color: var(--fg);
-}
-
-/* ---------- brand text ---------- */
-
-.intro__brand {
-  flex: none;
-  margin: 0;
-  font-size: var(--brand-size);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1;
-  white-space: nowrap;
-  user-select: none;
-}
-
-.brand__letters {
-  display: block;
-}
-
-/* One mask per glyph — the inner span rises up through it. */
-.brand__ch {
-  display: inline-block;
-  overflow: hidden;
-  /* room for ascenders/descenders so the mask doesn't shave glyphs */
-  padding: 0.1em 0 0.16em;
-  margin: -0.1em 0 -0.16em;
-  vertical-align: top;
-}
-
-.brand__ch--space {
-  width: 0.28em;
-}
-
-.brand__in {
-  display: inline-block;
-  transform: translate3d(0, 115%, 0);
-  will-change: transform;
-}
-
-/* ============================================================
-   Timeline states — each step is driven by data-state on .intro
-   ============================================================ */
-
-/* 1 — the zoom layer has arrived: swap it for the real logo. No fade —
-   the two are pixel-identical at this instant, so the cut is invisible. */
-.intro[data-state="logo"] .intro__logo,
-.intro[data-state="slide"] .intro__logo,
-.intro[data-state="letters"] .intro__logo,
-.intro[data-state="wipe"] .intro__logo,
-.intro[data-state="done"] .intro__logo {
-  opacity: 1;
-}
-
-/* 2 — row slides left so logo + text end up centred together */
-.intro[data-state="slide"] .intro__row,
-.intro[data-state="letters"] .intro__row,
-.intro[data-state="wipe"] .intro__row,
-.intro[data-state="done"] .intro__row {
-  transform: translate3d(0, 0, 0);
-  transition: transform var(--t-slide) var(--ease-in-out-cubic);
-}
-
-/* 3 — letters rise, bottom to top, staggered (delay set inline by JS) */
-.intro[data-state="letters"] .brand__in,
-.intro[data-state="wipe"] .brand__in,
-.intro[data-state="done"] .brand__in {
-  transform: translate3d(0, 0, 0);
-  transition: transform var(--t-letter) var(--ease-out-expo);
-  transition-delay: var(--d, 0ms);
-}
-
-/* 4 — circle mask closes upward and carries everything out of frame */
-.intro[data-state="wipe"] .intro__stage,
-.intro[data-state="done"] .intro__stage {
-  clip-path: circle(0% at 50% -30%);
-  transform: translate3d(0, -26vh, 0) scale(0.94);
-  transition:
-    clip-path var(--t-wipe) var(--ease-in-out-quart),
-    transform var(--t-wipe) var(--ease-in-out-quart);
-}
-
-.intro[data-state="done"] {
-  pointer-events: none;
-}
-
-/* ---------- reduced motion: show the end frame, skip the theatre ---------- */
-
-@media (prefers-reduced-motion: reduce) {
-  .intro__logo,
-  .intro__row,
-  .brand__in,
-  .intro__stage {
-    transition: none !important;
-  }
-  .intro[data-state="idle"] .intro__logo { opacity: 1; }
-  .intro[data-state="idle"] .intro__row  { transform: none; }
-  .intro[data-state="idle"] .brand__in   { transform: none; }
-}
-
-/* ---------- mobile note under the lockup ---------- */
-
-.intro__note {
-  display: none;
-  margin-top: clamp(18px, 3.4vh, 30px);
-  text-align: center;
-}
-
-.intro__note-line {
-  display: block;
-  overflow: hidden;
-  padding: 0.12em 0 0.18em;
-  margin: -0.12em 0 -0.18em;
-}
-
-.intro__note-line i {
-  display: inline-block;
-  font-style: normal;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--fg);
-  transform: translate3d(0, 115%, 0);
-  will-change: transform;
-}
-
-.intro__note-line--sub i {
-  margin-top: 5px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.42);
-}
-
-.intro[data-state="letters"] .intro__note-line i,
-.intro[data-state="wipe"] .intro__note-line i,
-.intro[data-state="done"] .intro__note-line i {
-  transform: translate3d(0, 0, 0);
-  transition: transform var(--t-letter) var(--ease-out-expo);
-  transition-delay: 620ms;
-}
-
-.intro[data-state="letters"] .intro__note-line--sub i,
-.intro[data-state="wipe"] .intro__note-line--sub i,
-.intro[data-state="done"] .intro__note-line--sub i {
-  transition-delay: 760ms;
-}
-
-@media (max-width: 620px) {
-  .intro__note { display: block; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .intro__note-line i { transform: none; transition: none; }
-}
-
-/* ============================================================
-   Blackwall breach
-
-   The timing and the state machine above are unchanged. This
-   dresses them: hex traffic pours through the wall, ICE windows
-   snap open across it, a scan sweep runs the screen, and the
-   mark punches through on the flash.
-   ============================================================ */
-
-.intro {
-  --bg: #05060A;
-  --red: #FF1F3D;
-  --red-hot: #FF4D5F;
-  background: var(--bg);
-}
-
-.intro__brand { font-family: 'Chakra Petch', 'Inter', system-ui, sans-serif; }
-.intro__note-line i { font-family: 'Chakra Petch', 'Inter', system-ui, sans-serif; letter-spacing: 0.08em; }
-
-.intro__breach {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 320ms ease;
-}
-
-.intro[data-state="idle"]  .intro__breach { opacity: 1; }
-.intro[data-state="zoom"]  .intro__breach { opacity: 1; }
-.intro[data-state="logo"]  .intro__breach { opacity: 0.72; }
-.intro[data-state="slide"] .intro__breach { opacity: 0.4; }
-.intro[data-state="letters"] .intro__breach { opacity: 0.18; }
-
-/* ---------- vertical filaments ---------- */
+.intro:not([data-state="idle"]) .intro__grid { opacity: 1; }
 
 .intro__bars {
-  position: absolute;
-  inset: 0;
   background: repeating-linear-gradient(
-    90deg,
-    transparent 0 26px,
-    rgba(255, 31, 61, 0.13) 26px 27px,
-    transparent 27px 72px);
-  mask-image: radial-gradient(120% 90% at 50% 50%, #000 20%, transparent 80%);
-  animation: breachDrift 7s linear infinite;
+    90deg, transparent 0 26px, rgba(255, 31, 61, 0.1) 26px 27px, transparent 27px 74px);
+  animation: introDrift 8s linear infinite;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+.intro:not([data-state="idle"]) .intro__bars { opacity: 1; }
+
+.intro__vignette {
+  background: radial-gradient(118% 88% at 50% 50%, transparent 32%, rgba(5, 6, 10, 0.86) 82%);
 }
 
-@keyframes breachDrift {
+@keyframes introDrift {
   from { background-position: 0 0; }
-  to   { background-position: 72px 0; }
-}
-
-/* ---------- hex traffic ---------- */
-
-.intro__rain { position: absolute; inset: 0; }
-
-.intro__col {
-  position: absolute;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  translate: -50% 0;
-  font-family: 'Chakra Petch', ui-monospace, monospace;
-  font-size: clamp(9px, 1.1vw, 13px);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  animation-name: breachFall;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-.intro__b {
-  color: rgba(255, 31, 61, 0.5);
-  font-style: normal;
-  animation: breachFlicker 1.6s steps(2, end) infinite;
-}
-
-/* the head of each stream burns brighter, the way the real readout does */
-.intro__b--lead {
-  color: #fff;
-  text-shadow: 0 0 10px var(--red), 0 0 22px rgba(255, 31, 61, 0.7);
-}
-
-@keyframes breachFall {
-  from { transform: translate3d(0, -62%, 0); }
-  to   { transform: translate3d(0, 102%, 0); }
-}
-
-@keyframes breachFlicker {
-  0%, 44%  { opacity: 0.85; }
-  46%, 52% { opacity: 0.2; }
-  54%, 100% { opacity: 0.7; }
+  to   { background-position: 74px 0; }
 }
 
 /* ---------- ICE windows ---------- */
 
-.intro__wins { position: absolute; inset: 0; }
+.intro__wins { position: absolute; inset: 0; pointer-events: none; }
 
 .intro__win {
   position: absolute;
-  background: rgba(255, 31, 61, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(255, 31, 61, 0.55),
-              0 0 30px rgba(255, 31, 61, 0.22);
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  opacity: 0;
-  transform: scaleY(0.04);
-  transform-origin: 50% 50%;
-}
-
-/* they snap open during the pull-back, one after another */
-.intro[data-state="zoom"] .intro__win,
-.intro[data-state="logo"] .intro__win {
-  opacity: 1;
-  transform: scaleY(1);
-  transition: transform 190ms cubic-bezier(0.2, 1.4, 0.4, 1) var(--wd, 0ms),
-              opacity 110ms linear var(--wd, 0ms);
-}
-
-.intro[data-state="slide"] .intro__win,
-.intro[data-state="letters"] .intro__win {
-  opacity: 0;
-  transform: scaleY(0.04);
-  transition: transform 240ms var(--ease-in-out-cubic), opacity 200ms ease;
-}
-
-.intro__win-grid {
-  position: absolute;
-  inset: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 3px 7px;
   overflow: hidden;
-  font-family: 'Chakra Petch', ui-monospace, monospace;
+  background: rgba(10, 2, 5, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(255, 31, 61, 0.5),
+              0 0 34px rgba(255, 31, 61, 0.18);
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+
+  /* they grow out of nothing, height first */
+  transform: scaleY(0);
+  transform-origin: 50% 50%;
+  opacity: 0;
+}
+
+.intro[data-state="windows"] .intro__win,
+.intro[data-state="decrypt"] .intro__win {
+  transform: scaleY(1);
+  opacity: 1;
+  transition: transform 420ms var(--ease-snap) var(--wd, 0ms),
+              opacity 160ms linear var(--wd, 0ms);
+}
+
+/* they dim away as the lockup takes over */
+.intro[data-state="lockup"] .intro__win,
+.intro[data-state="hold"] .intro__win,
+.intro[data-state="wipe"] .intro__win {
+  transform: scaleY(1);
+  opacity: 0.22;
+  transition: opacity 520ms ease;
+}
+
+.intro__win-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  background: rgba(255, 31, 61, 0.16);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--intro-hot);
+}
+.intro__win-bar b { font-weight: 700; }
+
+.intro__win-body {
+  padding: 7px 9px;
+  display: grid;
+  gap: 3px;
   font-size: 10px;
   font-weight: 600;
-  line-height: 1;
-  color: rgba(255, 77, 95, 0.85);
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  color: rgba(255, 31, 61, 0.78);
+  word-break: break-all;
 }
-.intro__win-grid i { font-style: normal; animation: breachFlicker 1.1s steps(2, end) infinite; }
+.intro__win-body .is-done { color: #fff; text-shadow: 0 0 9px rgba(255, 31, 61, 0.8); }
 
 /* ---------- scan sweep ---------- */
 
 .intro__sweep {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--red-hot) 18%, #fff 50%, var(--red-hot) 82%, transparent);
-  box-shadow: 0 0 18px var(--red), 0 0 46px rgba(255, 31, 61, 0.6);
+  background: linear-gradient(90deg, transparent, var(--intro-hot) 16%, #fff 50%, var(--intro-hot) 84%, transparent);
+  box-shadow: 0 0 20px var(--intro-red), 0 0 52px rgba(255, 31, 61, 0.55);
   opacity: 0;
 }
 
-.intro[data-state="zoom"] .intro__sweep {
-  animation: breachSweep 1250ms cubic-bezier(0.5, 0, 0.3, 1) forwards;
+.intro[data-state="windows"] .intro__sweep,
+.intro[data-state="decrypt"] .intro__sweep {
+  animation: introSweep 2600ms cubic-bezier(0.45, 0, 0.3, 1) infinite;
 }
 
-@keyframes breachSweep {
+@keyframes introSweep {
   0%   { top: -2%;  opacity: 0; }
-  8%   { opacity: 1; }
-  88%  { opacity: 1; }
+  6%   { opacity: 1; }
+  92%  { opacity: 1; }
   100% { top: 102%; opacity: 0; }
 }
 
-/* ---------- breach flash ---------- */
+/* ---------- the lockup window ---------- */
 
-.intro__flash {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 50% at 50% 50%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 31, 61, 0.5) 38%, transparent 72%);
+.intro__main {
+  position: relative;
+  z-index: 3;
+  width: min(86vw, 640px);
+  background: rgba(8, 2, 4, 0.94);
+  box-shadow: inset 0 0 0 1px rgba(255, 31, 61, 0.75),
+              0 0 70px rgba(255, 31, 61, 0.32),
+              0 0 160px rgba(255, 31, 61, 0.14);
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  transform: scaleY(0);
+  transform-origin: 50% 50%;
   opacity: 0;
 }
 
-.intro[data-state="logo"] .intro__flash { animation: breachFlash 620ms ease-out forwards; }
-
-@keyframes breachFlash {
-  0%   { opacity: 0.95; transform: scale(0.82); }
-  100% { opacity: 0;    transform: scale(1.5); }
+.intro[data-state="lockup"] .intro__main,
+.intro[data-state="hold"] .intro__main,
+.intro[data-state="wipe"] .intro__main {
+  transform: scaleY(1);
+  opacity: 1;
+  transition: transform 560ms var(--ease-snap), opacity 180ms linear;
 }
 
-/* ---------- the mark comes through hot ---------- */
+.intro__main-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 14px;
+  background: rgba(255, 31, 61, 0.18);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  color: var(--intro-hot);
+}
+.intro__main-dots { display: inline-flex; gap: 5px; }
+.intro__main-dots i { width: 6px; height: 6px; background: var(--intro-red); rotate: 45deg; }
 
-.intro[data-state="zoom"] .intro__zoom {
-  filter: drop-shadow(0 0 46px rgba(255, 31, 61, 0.65));
-  animation: breachJitter 160ms steps(2, end) infinite;
+.intro__main-in {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 30px);
+  padding: clamp(26px, 5vw, 48px) clamp(18px, 4vw, 40px);
 }
 
-@keyframes breachJitter {
-  0%   { transform: translate3d(0, 0, 0); }
-  25%  { transform: translate3d(-2px, 1px, 0); }
-  50%  { transform: translate3d(2px, -1px, 0); }
-  75%  { transform: translate3d(-1px, -2px, 0); }
-  100% { transform: translate3d(0, 0, 0); }
+.intro__main-mark {
+  flex: 0 0 auto;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  color: #fff;
+  filter: drop-shadow(0 0 22px rgba(255, 31, 61, 0.6));
 }
 
-.intro[data-state="logo"] .intro__logo,
-.intro[data-state="slide"] .intro__logo { filter: drop-shadow(0 0 22px rgba(255, 31, 61, 0.5)); }
+.intro__main-text { min-width: 0; }
 
-/* ---------- the wordmark resolves out of the split ---------- */
+.intro__brand {
+  margin: 0;
+  font-size: var(--brand-size);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  color: #fff;
+}
 
-.intro__brand { position: relative; }
+.intro__welcome {
+  margin: 8px 0 0;
+  font-size: clamp(10px, 1.5vw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.42em;
+  color: var(--intro-red);
+}
 
-.intro[data-state="letters"] .intro__brand::before,
-.intro[data-state="letters"] .intro__brand::after {
-  content: attr(data-text);
+/* ---------- mobile note ---------- */
+
+.intro__note {
+  display: none;
   position: absolute;
-  left: 0; top: 0;
-  width: 100%;
-  pointer-events: none;
+  left: 0; right: 0;
+  bottom: clamp(26px, 7vh, 60px);
+  text-align: center;
+  z-index: 3;
 }
-.intro[data-state="letters"] .intro__brand::before {
-  color: var(--red);
-  animation: brandSplitA 520ms steps(2, end) 2;
+.intro__note-line { display: block; overflow: hidden; padding: 0.12em 0 0.18em; }
+.intro__note-line i {
+  display: inline-block;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--intro-red);
+  transform: translate3d(0, 115%, 0);
 }
-.intro[data-state="letters"] .intro__brand::after {
-  color: #00E5FF;
-  animation: brandSplitB 520ms steps(2, end) 2;
+.intro__note-line--sub i { font-size: 11px; color: rgba(255, 255, 255, 0.45); }
+
+.intro[data-state="lockup"] .intro__note-line i,
+.intro[data-state="hold"] .intro__note-line i,
+.intro[data-state="wipe"] .intro__note-line i {
+  transform: none;
+  transition: transform 620ms var(--ease-out-expo);
 }
 
-@keyframes brandSplitA {
-  0%   { transform: translate3d(-5px, 0, 0); clip-path: inset(0 0 68% 0); opacity: 0.85; }
-  45%  { transform: translate3d(4px, 0, 0);  clip-path: inset(44% 0 26% 0); opacity: 0.7; }
-  100% { transform: none; clip-path: inset(0 0 100% 0); opacity: 0; }
+@media (max-width: 620px) {
+  .intro__note { display: block; }
+  .intro__main-in { flex-direction: column; text-align: center; }
 }
-@keyframes brandSplitB {
-  0%   { transform: translate3d(5px, 0, 0);  clip-path: inset(62% 0 10% 0); opacity: 0.7; }
-  45%  { transform: translate3d(-4px, 0, 0); clip-path: inset(16% 0 56% 0); opacity: 0.6; }
-  100% { transform: none; clip-path: inset(100% 0 0 0); opacity: 0; }
-}
+
+/* ---------- motion off ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .intro__breach { display: none; }
-  .intro[data-state="letters"] .intro__brand::before,
-  .intro[data-state="letters"] .intro__brand::after { display: none; }
+  .intro__bars, .intro__sweep { display: none; }
+  .intro__win, .intro__main { transform: none; opacity: 1; transition: none; }
+  .intro__note-line i { transform: none; }
 }
