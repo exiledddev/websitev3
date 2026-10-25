@@ -54,7 +54,13 @@ window.MEMatrix = (function () {
            '</div>';
   }
 
-  /* Returns a stop(). Pass speed in ms per pick. */
+  /* Returns a stop(). Pass speed in ms per pick.
+
+     The cursor alternates between being locked to a row and locked to a
+     column - that is the actual mechanic. Both the row and the column it
+     currently sits on are lit faintly, so you can read where it came from
+     and where it can go next; the cell under it carries a box, because
+     that cell is the cursor. */
   function run(root, n, speed) {
     var cells = root.querySelectorAll('.matrix__cells i');
     if (!cells.length) return function () {};
@@ -66,39 +72,33 @@ window.MEMatrix = (function () {
 
     function idx(row, col) { return row * n + col; }
 
-    function clear(cls) {
-      for (var i = 0; i < cells.length; i++) cells[i].classList.remove(cls);
-    }
-
-    function paintAxis() {
-      clear('is-axis');
-      for (var k = 0; k < n; k++) {
-        cells[axis === 0 ? idx(r, k) : idx(k, c)].classList.add('is-axis');
+    function clear() {
+      for (var i = 0; i < cells.length; i++) {
+        cells[i].classList.remove('is-row', 'is-col', 'is-head');
       }
     }
 
     function reset() {
-      clear('is-picked');
-      clear('is-axis');
-      clear('is-head');
-      axis = 0; r = 0; c = 0; picks = 0;
-      // reshuffle so the same square never solves the same way twice
       for (var i = 0; i < cells.length; i++) {
+        cells[i].classList.remove('is-picked', 'is-row', 'is-col', 'is-head');
         cells[i].textContent = BYTES[(Math.random() * BYTES.length) | 0];
       }
+      axis = 0; r = 0; c = 0; picks = 0;
     }
 
     function step() {
-      if (picks >= n + 2) { reset(); }
-
-      paintAxis();
+      if (picks >= n + 3) { reset(); }
 
       if (axis === 0) c = (Math.random() * n) | 0;
       else            r = (Math.random() * n) | 0;
 
-      var cell = cells[idx(r, c)];
-      clear('is-head');
-      cell.classList.add('is-picked', 'is-head');
+      clear();
+      for (var k = 0; k < n; k++) {
+        cells[idx(r, k)].classList.add('is-row');
+        cells[idx(k, c)].classList.add('is-col');
+      }
+
+      cells[idx(r, c)].classList.add('is-picked', 'is-head');
 
       axis = axis ? 0 : 1;
       picks++;
@@ -180,7 +180,8 @@ window.MEMatrix = (function () {
      over a juddering page, red on black. These are real navigations, so
      the tear has to finish before the browser leaves; the next document
      opens with the same tear clearing. Without JS the link is a link. */
-  var LEAVE = 640;
+  /* every transition stays inside a second, door to door */
+  var LEAVE = 460;
   var tear  = document.getElementById('tear');
   var halves = document.getElementById('tearHalves');
   var page  = document.getElementById('page');
@@ -239,7 +240,7 @@ window.MEMatrix = (function () {
       tear.classList.remove('is-on', 'is-arriving');
       if (page) page.classList.remove('is-tearing-page');
       if (halves) halves.innerHTML = '';
-    }, 680);
+    }, 540);
   }
 
   /* ---------- start ---------- */

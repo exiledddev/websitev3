@@ -69,7 +69,7 @@
     var html = '';
     for (var i = 0; i < spots.length; i++) {
       var sp = spots[i];
-      var size = narrow ? 4 : (Math.random() > 0.5 ? 5 : 4);
+      var size = narrow ? 6 : (Math.random() > 0.5 ? 7 : 6);
 
       html += '<div class="intro__win" style="left:' + sp[0] + '%;top:' + sp[1] + '%;' +
               'width:' + sp[2] + '%" data-n="' + size + '">' +
@@ -123,7 +123,7 @@
       if (!root) return;
       var n = parseInt(win.getAttribute('data-n'), 10) || 5;
       window.setTimeout(function () {
-        stops.push(window.MEMatrix.run(root, n, 80 + (i % 3) * 22));
+        stops.push(window.MEMatrix.run(root, n, 95 + (i % 3) * 24));
       }, i * 70);
     });
 

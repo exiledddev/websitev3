@@ -344,14 +344,14 @@
   function runMatrix(done) {
     if (!breach || !breachGrid || !window.MEMatrix || reduced) { done(); return; }
 
-    var n = window.innerWidth < 620 ? 4 : 5;
+    var n = window.innerWidth < 620 ? 6 : 7;
     breachGrid.innerHTML = window.MEMatrix.html(n, 'Code Matrix');
     breach.hidden = false;
     breach.classList.remove('is-solved');
     breach.classList.add('is-live');
 
     if (breachStop) breachStop();
-    breachStop = window.MEMatrix.run(breachGrid.querySelector('.matrix'), n, 70);
+    breachStop = window.MEMatrix.run(breachGrid.querySelector('.matrix'), n, 85);
 
     window.setTimeout(function () {
       if (breachStop) { breachStop(); breachStop = null; }
