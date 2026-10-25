@@ -1,0 +1,428 @@
+/* ============================================================
+   Blackwall — reset, typography, shared primitives
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* The horizontal guard lives on html, not body: any overflow value on body
+   turns it into a scroll container, and position:sticky then resolves against
+   the body box instead of the viewport - which silently breaks the nav. */
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { max-width: 100%; }
+a { color: inherit; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.shell {
+  width: min(1240px, 100%);
+  margin-inline: auto;
+  padding-inline: var(--edge);
+}
+
+/* ---------- type ---------- */
+
+h1, h2, h3, h4 {
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+/* The technical eyebrow. The trailing underscore is drawn in CSS so it
+   never lands in the document's text - the copy stays exactly as written. */
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wall);
+  margin: 0;
+}
+.label::before {
+  content: '';
+  width: 18px; height: 1px;
+  background: var(--wall);
+}
+.label::after { content: '_'; opacity: 0.8; }
+
+/* ---------- chamfered surfaces ---------- */
+
+/* clip-path destroys borders, so the rule is drawn as a filled parent
+   with the surface inset inside it. Both get the same cut. */
+.panel {
+  --c: var(--chamfer);
+  position: relative;
+  background: var(--hairline);
+  padding: 1px;
+  clip-path: var(--cut);
+}
+.panel--live { background: var(--wall-45); }
+
+.panel__in {
+  --c: calc(var(--chamfer) - 1px);
+  position: relative;
+  height: 100%;
+  background: var(--panel);
+  clip-path: var(--cut);
+}
+
+/* corner brackets, drawn just inside the cut */
+.brackets { position: absolute; inset: 0; pointer-events: none; }
+.brackets::before,
+.brackets::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  border: 2px solid var(--wall);
+}
+.brackets::before { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+.brackets::after  { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+
+/* ---------- buttons ---------- */
+
+.btn {
+  --c: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 26px;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ground);
+  background: var(--wall);
+  border: 0;
+  clip-path: var(--cut);
+  cursor: pointer;
+  transition: background 180ms var(--ease-out), color 180ms var(--ease-out);
+}
+.btn:hover { background: var(--wall-hot); }
+
+/* An inset outline gets sliced open by the chamfer and reads as a broken
+   box, so the secondary button is a translucent fill instead. */
+.btn--ghost {
+  color: var(--ink);
+  background: var(--wall-12);
+}
+.btn--ghost:hover { background: var(--wall-24); color: var(--wall-hot); }
+
+/* ---------- glitch ---------- */
+
+/* The element carries data-text; the two pseudo-elements are the split
+   channels. Only runs while .is-glitching is set, or on hover. */
+.glitch { position: relative; display: inline-block; }
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+.glitch::before { color: var(--wall); }
+.glitch::after  { color: var(--ice); }
+
+.glitch.is-glitching::before,
+.glitch:hover::before {
+  opacity: 0.9;
+  animation: splitA 620ms steps(2, end) 2;
+}
+.glitch.is-glitching::after,
+.glitch:hover::after {
+  opacity: 0.75;
+  animation: splitB 620ms steps(2, end) 2;
+}
+
+@keyframes splitA {
+  0%   { transform: translate3d(0,0,0);     clip-path: inset(0 0 72% 0); }
+  20%  { transform: translate3d(-4px,0,0);  clip-path: inset(28% 0 44% 0); }
+  40%  { transform: translate3d(3px,0,0);   clip-path: inset(62% 0 14% 0); }
+  60%  { transform: translate3d(-2px,0,0);  clip-path: inset(10% 0 80% 0); }
+  80%  { transform: translate3d(2px,0,0);   clip-path: inset(46% 0 36% 0); }
+  100% { transform: translate3d(0,0,0);     clip-path: inset(0 0 100% 0); }
+}
+@keyframes splitB {
+  0%   { transform: translate3d(0,0,0);     clip-path: inset(70% 0 8% 0); }
+  20%  { transform: translate3d(4px,0,0);   clip-path: inset(12% 0 66% 0); }
+  40%  { transform: translate3d(-3px,0,0);  clip-path: inset(40% 0 30% 0); }
+  60%  { transform: translate3d(3px,0,0);   clip-path: inset(76% 0 6% 0); }
+  80%  { transform: translate3d(-2px,0,0);  clip-path: inset(22% 0 58% 0); }
+  100% { transform: translate3d(0,0,0);     clip-path: inset(100% 0 0 0); }
+}
+
+/* ---------- the Blackwall ---------- */
+
+/* Pure CSS: vertical ICE filaments, a drifting scan band, and a deep
+   red horizon. No rAF loop, so it costs nothing on a phone. */
+.blackwall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.blackwall__bars,
+.blackwall__scan,
+.blackwall__glow { position: absolute; inset: 0; }
+
+.blackwall__bars {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 22px,
+    var(--wall-12) 22px 23px,
+    transparent 23px 64px
+  );
+  mask-image: radial-gradient(130% 90% at 50% 100%, #000 10%, transparent 72%);
+  animation: wallDrift 24s linear infinite;
+}
+
+.blackwall__scan {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--wall-24) 46%,
+    var(--wall-45) 50%,
+    var(--wall-24) 54%,
+    transparent 100%
+  );
+  height: 46%;
+  filter: blur(14px);
+  opacity: 0.55;
+  animation: wallScan 11s var(--ease-in) infinite;
+}
+
+.blackwall__glow {
+  background:
+    radial-gradient(90% 58% at 50% 108%, var(--wall-24) 0%, transparent 68%),
+    radial-gradient(60% 40% at 50% 118%, var(--wall-45) 0%, transparent 70%);
+}
+
+@keyframes wallDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 64px 0; }
+}
+@keyframes wallScan {
+  0%   { transform: translate3d(0, -60%, 0); opacity: 0; }
+  12%  { opacity: 0.55; }
+  88%  { opacity: 0.4; }
+  100% { transform: translate3d(0, 190%, 0); opacity: 0; }
+}
+
+/* ---------- nav ---------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-inline: var(--edge);
+  background: rgba(5, 6, 10, 0.82);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.nav__mark { width: 30px; height: 30px; color: var(--ink); }
+.nav__word {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.nav {  }
+.nav__cta { --c: 9px; padding: 10px 20px; font-size: 12px; white-space: nowrap; }
+
+/* the pointer sits just under the CTA and nudges up at it */
+.nav__point {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: calc(var(--edge) + 52px);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--wall);
+  animation: pointNudge 1.8s var(--ease-in) infinite;
+}
+@keyframes pointNudge {
+  0%, 100% { transform: translateY(2px); opacity: 0.55; }
+  50%      { transform: translateY(-2px); opacity: 1; }
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  border-top: 1px solid var(--hairline);
+  background: var(--panel);
+  padding: clamp(40px, 7vw, 72px) 0 36px;
+  margin-top: clamp(60px, 10vw, 120px);
+}
+.footer__top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px 48px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.footer__brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
+.footer__mark { width: 34px; height: 34px; color: var(--wall); }
+.footer__word { font-family: var(--display); font-size: 19px; font-weight: 700; }
+.footer__tag {
+  margin: 8px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.footer__links { display: flex; flex-wrap: wrap; gap: 28px 44px; }
+.footer__col { display: flex; flex-direction: column; gap: 9px; }
+.footer__col > .label { margin-bottom: 4px; }
+.footer__col a {
+  color: var(--ink-60);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 160ms var(--ease-out);
+}
+.footer__col a:hover { color: var(--wall); }
+
+.footer__base {
+  margin-top: clamp(28px, 5vw, 48px);
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+  font-size: 12px;
+  color: var(--ink-40);
+}
+
+/* ---------- entrance ---------- */
+
+.reveal { opacity: 0; transform: translate3d(0, 16px, 0); }
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+  transition: opacity 620ms var(--ease-out) var(--rd, 0ms),
+              transform 720ms var(--ease-out) var(--rd, 0ms);
+}
+
+/* ---------- motion off ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+  .blackwall__scan { display: none; }
+  .glitch::before, .glitch::after { display: none; }
+}
+
+/* ---------- page transition ---------- */
+
+/* These are real navigations, so the veil covers before the browser
+   leaves and the next document lifts it on arrival. */
+.swipe {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.swipe[data-state="idle"] { visibility: hidden; }
+
+.swipe__veil {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 260vmax;
+  height: 260vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #05060A 70%, #0B0D12 92%, #14060A 100%);
+  box-shadow: 0 0 0 2px var(--wall-45), 0 0 48px var(--wall-24), 0 0 140px var(--wall-12);
+  transform: translate(-50%, 58%) scale(0.04);
+  transform-origin: 50% 100%;
+}
+
+.swipe__mark {
+  position: relative;
+  width: clamp(64px, 12vw, 128px);
+  color: var(--wall);
+  opacity: 0;
+  transform: scale(0.82);
+}
+
+.swipe[data-state="cover"] { visibility: visible; }
+.swipe[data-state="cover"] .swipe__veil {
+  transform: translate(-50%, 58%) scale(1);
+  transition: transform 620ms cubic-bezier(0.38, 0, 0.28, 1);
+}
+.swipe[data-state="cover"] .swipe__mark {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 240ms ease 170ms, transform 420ms var(--ease-out) 150ms;
+}
+
+.swipe[data-state="uncover"] { visibility: visible; }
+.swipe[data-state="uncover"] .swipe__veil {
+  transform: translate(-50%, 58%) scale(0.04);
+  transition: transform 720ms var(--ease-out);
+}
+.swipe[data-state="uncover"] .swipe__mark {
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe { display: none; }
+}
+
+/* ---------- nav on small screens ---------- */
+
+/* "Promote Your Business" is long; at 350px it wraps to three lines and
+   triples the nav height. The mark alone carries the brand there - the
+   wordmark is still in the footer. */
+@media (max-width: 620px) {
+  .nav__word { display: none; }
+  .nav__cta { padding: 9px 14px; font-size: 10.5px; letter-spacing: 0.12em; }
+  .nav__point { right: calc(var(--edge) + 34px); }
+}

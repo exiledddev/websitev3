@@ -1,0 +1,602 @@
+/* ============================================================
+   Blackwall — promote
+   Normal document flow. The old build scaled this whole block to
+   fit a fixed stage; nothing is scaled here, so nothing clips.
+   ============================================================ */
+
+/* ---------- hero ---------- */
+
+.pyb-hero {
+  position: relative;
+  min-height: calc(100svh - var(--nav-h));
+  display: grid;
+  place-content: center;
+  padding: clamp(48px, 10vh, 110px) 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+.pyb-hero__inner { position: relative; z-index: 2; text-align: center; }
+
+.pyb-hero__title {
+  position: relative;
+  margin: 0 auto;
+  max-width: 17ch;
+  font-size: clamp(2.3rem, 7vw, 5.6rem);
+  letter-spacing: -0.03em;
+}
+.pyb-hero__short { display: none; }
+
+.hint-word, .hint-target { display: inline; }
+.hint-target { color: var(--wall); }
+
+
+.pyb-hero__note {
+  margin: clamp(26px, 4vh, 44px) 0 0;
+  font-size: 15px;
+  color: var(--ink-40);
+}
+
+.pyb-hero__cue {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 4vh, 34px);
+  translate: -50% 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+.pyb-hero__cue-arrow { animation: scrollNudge 2.1s var(--ease-in) infinite; }
+
+.hint-fx,
+.hint-burst {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.hint-fx {
+  color: var(--wall);
+  opacity: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 31, 61, 0.85));
+}
+
+/* stroke-dasharray / offset are set from JS once the path is measured */
+.hint-fx__head { opacity: 0; }
+
+.pyb-hero.is-hinting .hint-fx        { animation: fxShow 4.8s linear forwards; }
+.pyb-hero.is-hinting .hint-fx__curve { animation: fxDraw 4.8s ease-in-out forwards; }
+.pyb-hero.is-hinting .hint-fx__head  { animation: fxHead 4.8s ease forwards; }
+.pyb-hero.is-hinting .hint-target    { animation: targetGlow 4.8s ease forwards; }
+
+@keyframes fxShow {
+  0%, 2% { opacity: 0; }
+  5%, 82% { opacity: 1; }
+  100%   { opacity: 0; }
+}
+
+/* drawn in, held, then erased from the tail - per-segment easing, since a
+   single timing function across the whole keyframe set reads as linear */
+@keyframes fxDraw {
+  0%, 3% {
+    stroke-dashoffset: var(--dash, 400px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  27% {
+    stroke-dashoffset: 0;
+    animation-timing-function: linear;
+  }
+  54% {
+    stroke-dashoffset: 0;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  80%, 100% {
+    stroke-dashoffset: calc(var(--dash, 400px) * -1);
+  }
+}
+
+@keyframes fxHead {
+  0%, 23% { opacity: 0; }
+  28%     { opacity: 1; }
+  72%     { opacity: 1; }
+  80%     { opacity: 0; }
+  100%    { opacity: 0; }
+}
+
+/* lights up as the curve lands, holds ~2.5s, settles back */
+@keyframes targetGlow {
+  0%, 23% {
+    color: #ffffff;
+    text-shadow: none;
+  }
+  29%, 75% {
+    color: var(--wall);
+    text-shadow:
+      0 0 18px rgba(255, 31, 61, 0.85),
+      0 0 46px rgba(255, 31, 61, 0.45);
+  }
+  100% {
+    color: #ffffff;
+    text-shadow: none;
+  }
+}
+
+/* ---------- burst ---------- */
+
+.hint-burst b {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--w, 5px);
+  height: var(--h, 11px);
+  margin: calc(var(--h, 11px) / -2) 0 0 calc(var(--w, 5px) / -2);
+  border-radius: 999px;
+  background: var(--wall);
+  box-shadow: 0 0 9px rgba(255, 31, 61, 0.8);
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(var(--r0, 0deg)) scale(0.5);
+}
+
+.pyb-hero.is-hinting .hint-burst b {
+  animation: burst 1500ms 1.12s forwards;
+}
+
+@keyframes burst {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(var(--r0, 0deg)) scale(0.5);
+    animation-timing-function: cubic-bezier(0.1, 0.9, 0.3, 1);
+  }
+  10% {
+    opacity: 1;
+    transform:
+      translate3d(calc(var(--dx) * 0.34), var(--lift, -16px), 0)
+      rotate(calc(var(--r0, 0deg) + 34deg)) scale(1);
+    /* and from here it is falling, accelerating, with no pause */
+    animation-timing-function: cubic-bezier(0.34, 0, 0.9, 0.42);
+  }
+  88% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform:
+      translate3d(var(--dx), var(--fall, 240px), 0)
+      rotate(var(--spin, 260deg)) scale(0.86);
+  }
+}
+
+
+/* the price keeps its own underline sweep */
+.offer__price-value::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--wall);
+  box-shadow:
+    0 0 10px rgba(255, 31, 61, 0.95),
+    0 0 26px rgba(255, 31, 61, 0.55);
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pyb-hero.is-hinting .offer__price-value::after {
+  animation: hintSweep 4.2s ease 0.9s forwards;
+}
+
+@keyframes hintSweep {
+  0%   { transform: scaleX(0); opacity: 0; }
+  8%   { opacity: 1; }
+  24%  { transform: scaleX(1); opacity: 1; }
+  80%  { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pyb-hero.is-hinting .hint-fx,
+  .pyb-hero.is-hinting .hint-fx__curve,
+  .pyb-hero.is-hinting .hint-fx__head,
+  .pyb-hero.is-hinting .hint-target,
+  .pyb-hero.is-hinting .hint-burst b,
+  .pyb-hero.is-hinting .offer__price-value::after { animation: none; }
+}
+
+/* ---------- notice ---------- */
+
+.offers-block { padding: clamp(50px, 9vh, 110px) 0 0; }
+
+.notice {
+  --c: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto clamp(34px, 6vh, 64px);
+  padding: 12px 20px;
+  background: var(--wall-12);
+  box-shadow: inset 0 0 0 1px var(--wall-45);
+  clip-path: var(--cut);
+}
+.notice__icon { flex: 0 0 auto; width: 18px; height: 18px; fill: var(--wall); }
+.notice__title { margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink); }
+
+/* ---------- service switcher ---------- */
+
+.picker { display: none; position: relative; margin: 0 auto clamp(22px, 4vh, 34px); max-width: 420px; }
+
+.picker__btn {
+  --c: 10px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--panel-hi);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  clip-path: var(--cut);
+  cursor: pointer;
+}
+.picker__caret { width: 12px; height: 8px; color: var(--wall); transition: transform 220ms var(--ease-out); }
+.picker.is-open .picker__caret { transform: rotate(180deg); }
+
+.picker__menu {
+  position: absolute;
+  left: 0; right: 0; top: calc(100% + 8px);
+  z-index: 20;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--panel-hi);
+  box-shadow: inset 0 0 0 1px var(--wall-45), 0 18px 46px rgba(0, 0, 0, 0.7);
+  clip-path: var(--cut);
+}
+.picker__menu li {
+  padding: 12px 14px;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-60);
+  cursor: pointer;
+}
+.picker__menu li:hover { color: var(--ink); background: var(--wall-12); }
+.picker__menu li[aria-selected="true"] { color: var(--wall); }
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: clamp(26px, 5vh, 44px);
+  border-bottom: 1px solid var(--hairline);
+}
+.tab {
+  position: relative;
+  padding: 14px 22px;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 180ms var(--ease-out);
+}
+.tab::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: var(--wall);
+  transform: scaleX(0);
+  transition: transform 260ms var(--ease-out);
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--wall); }
+.tab[aria-selected="true"]::after { transform: scaleX(1); }
+
+/* ---------- offer panels ---------- */
+
+.offer {
+  max-width: var(--measure);
+  margin-inline: auto;
+  text-align: center;
+}
+.offer[hidden] { display: none; }
+
+.offer__title { font-size: clamp(1.5rem, 3.6vw, 2.4rem); margin: 0 0 16px; }
+.offer__text  { margin: 0 auto 22px; max-width: 58ch; color: var(--ink-60); }
+
+.offer__list { margin: 0 auto 26px; padding: 0; list-style: none; display: grid; gap: 10px; max-width: 56ch; }
+.offer__list li { color: var(--ink-60); font-size: 15px; }
+.offer__list--long { text-align: left; gap: 14px; }
+.offer__list--long li { padding-left: 16px; border-left: 2px solid var(--wall-24); }
+.offer__list--long b { color: var(--ink); }
+
+.offer__note { margin: 0 auto 22px; max-width: 54ch; font-size: 14px; color: var(--ink-40); font-style: italic; }
+
+.offer__price { margin-top: clamp(26px, 4vh, 40px); }
+.offer__price-label {
+  margin: 0 0 8px;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+.offer__price-value {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 4.6vw, 3rem);
+  font-weight: 700;
+  color: var(--wall);
+}
+.offer__price-unit { font-size: 0.42em; color: var(--ink-60); letter-spacing: 0.08em; }
+.offer__price-note { margin: 10px auto 0; max-width: 44ch; font-size: 13px; color: var(--ink-40); }
+
+/* ---------- currency ---------- */
+
+.currency { max-width: var(--measure); margin: clamp(44px, 8vh, 86px) auto 0; text-align: center; }
+.currency__label {
+  margin: 0 0 10px;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+.currency__lead { margin: 0 0 16px; font-family: var(--display); font-size: clamp(1.1rem, 2.4vw, 1.5rem); font-weight: 700; }
+.currency__text { margin: 0 auto; max-width: 60ch; font-size: 15px; color: var(--ink-60); }
+.currency__text b { color: var(--ink); }
+.currency__terms {
+  --c: 10px;
+  display: inline-block;
+  margin: 26px auto 0;
+  padding: 12px 22px;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--panel-hi);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  clip-path: var(--cut);
+}
+
+/* ---------- the agreement ---------- */
+
+.doc-block { position: relative; padding: clamp(60px, 11vh, 140px) 0 0; }
+.doc-block__inner { position: relative; }
+
+.doc-seal {
+  display: block;
+  width: clamp(42px, 6vw, 66px);
+  margin: 0 auto clamp(20px, 3vh, 32px);
+  color: var(--wall);
+}
+
+/* chapter rail - a thin spine beside the document, filled as you read */
+/* The rail hangs off the agreement column, not the shell: the shell is
+   the full 1240 and its padding box starts near the viewport edge, so
+   -34px from there put the rail off-screen. */
+.doc-track {
+  position: absolute;
+  left: max(0px, calc(50% - (var(--measure) / 2) - 34px));
+  top: 0;
+  bottom: 0;
+  width: 2px;
+}
+.doc-track__line, .doc-track__fill { position: absolute; inset: 0; }
+.doc-track__line { background: var(--hairline); }
+.doc-track__fill { background: var(--wall); transform-origin: 50% 0; transform: scaleY(var(--doc-p, 0)); }
+.doc-track__marks { position: absolute; inset: 0; }
+.doc-track__mark {
+  position: absolute;
+  left: 50%;
+  width: 7px; height: 7px;
+  translate: -50% -50%;
+  background: var(--ground);
+  box-shadow: inset 0 0 0 1.5px var(--hairline);
+  rotate: 45deg;
+}
+.doc-track__mark.is-on { background: var(--wall); box-shadow: inset 0 0 0 1.5px var(--wall); }
+
+.agreement { max-width: var(--measure); margin-inline: auto; }
+.agreement__eyebrow {
+  margin: 0 0 10px;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--wall);
+  text-align: center;
+}
+.agreement__title { font-size: clamp(1.7rem, 4.4vw, 3rem); text-align: center; margin: 0 0 18px; }
+.agreement__lead { margin: 0 auto clamp(30px, 5vh, 52px); max-width: 56ch; text-align: center; color: var(--ink-60); }
+
+.toc {
+  --c: 10px;
+  margin: 0 0 clamp(34px, 6vh, 58px);
+  padding: 20px 22px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  clip-path: var(--cut);
+}
+.toc__label {
+  margin: 0 0 12px;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+.toc__list { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.toc__list a { color: var(--ink-60); text-decoration: none; font-size: 15px; }
+.toc__list a:hover { color: var(--wall); }
+
+.doc { color: var(--ink-60); }
+.doc > p { margin: 0 0 18px; }
+.doc h3 {
+  margin: clamp(38px, 6vh, 60px) 0 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--hairline);
+  font-size: clamp(1.25rem, 2.6vw, 1.7rem);
+  color: var(--ink);
+  scroll-margin-top: calc(var(--nav-h) + 24px);
+}
+.doc h4 {
+  margin: 26px 0 10px;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--wall);
+}
+.doc ul { margin: 0 0 18px; padding-left: 20px; display: grid; gap: 10px; }
+.doc li { font-size: 15px; }
+.doc b { color: var(--ink); }
+
+/* ---------- the gate ---------- */
+
+.agree {
+  margin: clamp(44px, 8vh, 80px) auto 0;
+  text-align: center;
+}
+
+.agree__btn {
+  --glow: 255, 31, 61;
+  --c: 12px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 17px 34px;
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  background: rgba(var(--glow), 0.14);
+  border: 1px solid rgba(var(--glow), 0.5);
+  cursor: pointer;
+  backdrop-filter: blur(4px) saturate(2.2) contrast(1.15) brightness(1.1);
+  box-shadow:
+    inset 2px -2px 1px -1px rgba(255, 255, 255, 0.8),
+    inset -2px 2px 1px -1px rgba(255, 255, 255, 0.8),
+    inset 7px -7px 2px -7px rgba(var(--glow), 0.95),
+    inset -7px 7px 2px -7px rgba(var(--glow), 0.95),
+    inset 0 0 18px rgba(var(--glow), 0.22),
+    inset 0 0 2px rgba(0, 0, 0, 0.65),
+    0 6px 30px rgba(var(--glow), 0.42),
+    0 0 58px rgba(var(--glow), 0.30);
+}
+
+.agree__ring {
+  position: absolute;
+  overflow: visible;
+  /* the ring is deliberately wider than the button it wraps, and the
+     global `svg { max-width: 100% }` would clamp it back to the button's
+     padding box - which is exactly how the gap goes uneven on the right */
+  max-width: none;
+  color: rgba(var(--glow), 0.95);
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(var(--glow), 0.85)) drop-shadow(0 0 18px rgba(var(--glow), 0.45));
+}
+.agree__ring path {
+  stroke-width: 2.6;
+  stroke-dasharray: var(--ring-len, 600px);
+  stroke-dashoffset: var(--ring-len, 600px);
+  transition: stroke-dashoffset 680ms var(--ease-in);
+}
+.agree__btn:hover .agree__ring path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 760ms cubic-bezier(0.62, 0.02, 0.2, 1);
+}
+
+.agree__note { margin: 16px 0 0; font-size: 13px; color: var(--ink-40); }
+
+/* ---------- contact ---------- */
+
+.contact-block { padding: clamp(70px, 13vh, 160px) 0 0; }
+.contact { text-align: center; }
+
+.contact__icon { display: block; width: clamp(44px, 6vw, 62px); margin: 0 auto clamp(18px, 3vh, 28px); color: var(--wall); }
+
+.contact__head { font-size: clamp(2rem, 6vw, 4.2rem); margin: 0 0 clamp(14px, 2.4vh, 22px); }
+.contact__word { position: relative; display: inline-block; color: var(--wall); }
+.contact__word-base { position: relative; }
+.contact__word-sel {
+  position: absolute;
+  left: -0.09em; right: -0.09em; top: -0.05em; bottom: -0.05em;
+  padding: 0.05em 0.09em;
+  background: var(--wall);
+  color: var(--ground);
+  clip-path: inset(0 100% 0 0);
+}
+.contact__word.is-selecting .contact__word-sel {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 760ms cubic-bezier(0.62, 0.02, 0.2, 1);
+}
+.contact__word.is-clearing .contact__word-sel {
+  clip-path: inset(0 0 0 100%);
+  transition: clip-path 680ms var(--ease-in);
+}
+.contact__dot { color: var(--wall); }
+
+.contact__email {
+  display: inline-block;
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 2.8vw, 1.7rem);
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--wall);
+  padding-bottom: 3px;
+}
+.contact__email:hover { color: var(--wall); }
+.contact__note { margin: 20px auto 0; max-width: 46ch; font-size: 14px; color: var(--ink-40); }
+
+/* ---------- mobile ---------- */
+
+@media (max-width: 860px) {
+  .doc-track { display: none; }
+}
+
+@media (max-width: 620px) {
+  .tabs { display: none; }
+  .picker { display: block; }
+
+  .pyb-hero__title { font-size: clamp(2rem, 8.4vw, 3rem); max-width: 100%; }
+  .hint-fx, .hint-burst { display: none; }
+
+  .notice { width: auto; max-width: 320px; padding: 11px 14px; gap: 10px; }
+  .notice__title { font-size: 12.5px; }
+
+  .offer__list--long li { padding-left: 13px; }
+  .toc { padding: 16px 16px; }
+  .toc__list { padding-left: 18px; }
+}
+
+/* The short headline exists because the old pinned hero forced one line.
+   Nothing is pinned now, so the full sentence wraps and stays - swapping it
+   out was the regression last time. Only a genuinely tiny screen gets the
+   short version. */
+@media (max-width: 330px) {
+  .pyb-hero__long { display: none; }
+  .pyb-hero__short { display: inline; }
+}

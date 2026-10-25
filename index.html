@@ -9,7 +9,7 @@
 <link rel="canonical" href="https://www.markedexiled.com/">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="author" content="Exiled">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#05060A">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MarkedExiled">
@@ -31,9 +31,10 @@
 <link rel="apple-touch-icon" href="assets/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/site.css">
-<link rel="stylesheet" href="css/pyb.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/intro.css">
 
 <script type="application/ld+json">
@@ -46,7 +47,9 @@
       "url": "https://www.markedexiled.com/",
       "name": "MarkedExiled",
       "inLanguage": "en",
-      "publisher": { "@id": "https://www.markedexiled.com/#org" }
+      "publisher": {
+        "@id": "https://www.markedexiled.com/#org"
+      }
     },
     {
       "@type": "Person",
@@ -56,7 +59,11 @@
       "url": "https://www.markedexiled.com/",
       "image": "https://www.markedexiled.com/assets/og-image.png",
       "description": "Creator and director of scripted cinematic Minecraft series, including Island Realm.",
-      "jobTitle": ["Content Creator", "Director", "Video Producer"],
+      "jobTitle": [
+        "Content Creator",
+        "Director",
+        "Video Producer"
+      ],
       "knowsAbout": [
         "Content creation",
         "YouTube sponsorships",
@@ -70,10 +77,15 @@
         "https://www.youtube.com/@markedexiled",
         "https://discord.gg/67BKy5rFru"
       ],
-      "worksFor": { "@id": "https://www.markedexiled.com/#org" }
+      "worksFor": {
+        "@id": "https://www.markedexiled.com/#org"
+      }
     },
     {
-      "@type": ["Organization", "ProfessionalService"],
+      "@type": [
+        "Organization",
+        "ProfessionalService"
+      ],
       "@id": "https://www.markedexiled.com/#org",
       "name": "MarkedExiled",
       "alternateName": "MarkedExiled Media & Entertainment",
@@ -87,7 +99,9 @@
       },
       "image": "https://www.markedexiled.com/assets/og-image.png",
       "description": "Media and entertainment studio producing scripted cinematic Minecraft series, and offering sponsorships, product videos, cinematic video production and long-term brand partnerships.",
-      "founder": { "@id": "https://www.markedexiled.com/#person" },
+      "founder": {
+        "@id": "https://www.markedexiled.com/#person"
+      },
       "areaServed": "Worldwide",
       "currenciesAccepted": "EUR",
       "sameAs": [
@@ -99,79 +113,6 @@
         "contactType": "sales",
         "email": "business@markedexiled.com",
         "availableLanguage": "English"
-      },
-      "hasOfferCatalog": {
-        "@type": "OfferCatalog",
-        "name": "Promote your business",
-        "itemListElement": [
-          {
-            "@type": "Offer",
-            "name": "Sponsorship section",
-            "description": "A dedicated section inside an upcoming video advertising your service, plus a link in the description and a pinned comment.",
-            "priceCurrency": "EUR",
-            "priceSpecification": {
-              "@type": "PriceSpecification",
-              "priceCurrency": "EUR",
-              "minPrice": 1500,
-              "maxPrice": 10000
-            },
-            "itemOffered": {
-              "@type": "Service",
-              "name": "YouTube sponsorship",
-              "serviceType": "Influencer marketing",
-              "provider": { "@id": "https://www.markedexiled.com/#org" }
-            }
-          },
-          {
-            "@type": "Offer",
-            "name": "Product video",
-            "description": "A full video built around your product, with a detailed review, unboxing and relevant tests.",
-            "priceCurrency": "EUR",
-            "priceSpecification": {
-              "@type": "PriceSpecification",
-              "priceCurrency": "EUR",
-              "minPrice": 2500,
-              "maxPrice": 5000
-            },
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Product review video",
-              "serviceType": "Branded content production",
-              "provider": { "@id": "https://www.markedexiled.com/#org" }
-            }
-          },
-          {
-            "@type": "Offer",
-            "name": "Video production services",
-            "description": "A full cinematic video covering an event, server or project, billed against the runtime of the delivered video.",
-            "priceCurrency": "EUR",
-            "priceSpecification": {
-              "@type": "UnitPriceSpecification",
-              "priceCurrency": "EUR",
-              "price": 1800,
-              "unitText": "hour of final video runtime"
-            },
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Cinematic video production",
-              "serviceType": "Video production",
-              "provider": { "@id": "https://www.markedexiled.com/#org" }
-            }
-          },
-          {
-            "@type": "Offer",
-            "name": "Long-term partnership",
-            "description": "Ongoing collaboration where the partner supplies hardware, software or merchandise in exchange for continued exposure.",
-            "priceCurrency": "EUR",
-            "price": 0,
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Brand partnership",
-              "serviceType": "Brand partnership",
-              "provider": { "@id": "https://www.markedexiled.com/#org" }
-            }
-          }
-        ]
       }
     },
     {
@@ -179,19 +120,28 @@
       "@id": "https://www.markedexiled.com/#island-realm",
       "name": "Island Realm",
       "description": "A cinematic Minecraft sci-fi series set in a world of floating islands above the void.",
-      "genre": ["Science fiction", "Machinima"],
-      "creator": { "@id": "https://www.markedexiled.com/#person" },
-      "productionCompany": { "@id": "https://www.markedexiled.com/#org" },
+      "genre": [
+        "Science fiction",
+        "Machinima"
+      ],
+      "creator": {
+        "@id": "https://www.markedexiled.com/#person"
+      },
+      "productionCompany": {
+        "@id": "https://www.markedexiled.com/#org"
+      },
       "url": "https://northstarmedia.cc/island-realm"
     }
   ]
 }
 </script>
-</head>
-<body data-view="hero" data-route="home">
 
-  <!-- The mark, defined once and referenced by both the zoom layer and the lockup. -->
-  <svg class="mark-defs" width="0" height="0" aria-hidden="true" focusable="false">
+</head>
+
+<body data-page="home">
+
+<!-- The mark, defined once and referenced by the nav, footer, intro and wipe. -->
+<svg class="mark-defs" width="0" height="0" aria-hidden="true" focusable="false">
     <defs>
       <g id="exiledMark" transform="translate(0,600) scale(0.1,-0.1)" fill="currentColor" stroke="none">
         <path d="M986 4429 c-2 -8 -9 -70 -14 -139 -11 -136 -10 -140 43 -140 17 0 280 -16 584 -35 305 -19 555 -34 557 -33 7 8 24 272 17 278 -4 4 -244 21 -533 39 -289 18 -553 35 -587 38 -48 4 -64 3 -67 -8z"/>
@@ -202,96 +152,99 @@
     </defs>
   </svg>
 
+<div class="page" id="page">
 
-  <!-- ===== Main page (revealed as the intro's circle mask lifts) ===== -->
-  <div class="page" id="page">
+  <header class="nav">
+    <a class="nav__brand" href="/" aria-label="MarkedExiled — home">
+      <svg class="nav__mark" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
+        <use href="#exiledMark"/>
+      </svg>
+      <span class="nav__word">MarkedExiled</span>
+    </a>
 
-    <header class="nav reveal" style="--rd: 0ms">
-      <a class="nav__brand" href="#/" data-goto="home" aria-label="MarkedExiled — home">
-        <svg class="nav__mark" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
-          <use href="#exiledMark"/>
-        </svg>
-        <span class="nav__word">MarkedExiled</span>
-      </a>
+    <a class="btn nav__cta" href="/promote/" data-wipe>Promote Your Business</a>
 
-      <!-- Centred regardless of how wide the logo is. Wired up later. -->
-      <button class="nav__cta" id="navCta" type="button" data-nav="toggle-route">
-        <span class="nav__cta-text">Promote Your Business</span>
-        <span class="nav__dot" aria-hidden="true"></span>
-      </button>
+    <span class="nav__point" aria-hidden="true">&#9650;</span>
+  </header>
 
-      <span class="nav__point" aria-hidden="true">&#9650;</span>
-    </header>
+  <main>
 
-    <main class="routes">
+    <section class="hero" id="top">
+      <div class="blackwall" aria-hidden="true">
+        <span class="blackwall__bars"></span>
+        <span class="blackwall__scan"></span>
+        <span class="blackwall__glow"></span>
+      </div>
 
-      <!-- ===== Home ===== -->
-      <div class="route route--home" id="route-home">
-        <div class="stage">
+      <svg class="hero__watermark" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
+        <use href="#exiledMark"/>
+      </svg>
 
-      <section class="panel hero" id="top">
-        <svg class="hero__watermark" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
-          <use href="#exiledMark"/>
-        </svg>
+      <div class="shell hero__inner">
+        <h1 class="hero__title glitch reveal" data-text="I create stories." style="--rd: 60ms">I create stories.</h1>
 
-        <h1 class="hero__title reveal" style="--rd: 60ms">I create stories.</h1>
-
-        <p class="hero__stat">
+        <p class="hero__stat reveal" style="--rd: 220ms">
           <b class="hero__stat-num" data-count-to="1400000">0</b><span class="hero__stat-plus">+</span>
           <span class="hero__stat-label">views and counting</span>
         </p>
+      </div>
 
-        <p class="hero__scroll" aria-hidden="true">
-          Scroll for more
-          <span class="hero__scroll-arrow">&#8595;</span>
-        </p>
-      </section>
+      <p class="hero__scroll" aria-hidden="true">
+        Scroll for more
+        <span class="hero__scroll-arrow">&#8595;</span>
+      </p>
+    </section>
 
-      <section class="panel work" id="work">
-        <div class="work__inner">
-          <div class="cards">
+    <section class="work" id="work">
+      <div class="shell">
+        <div class="cards">
 
-            <a class="card card--yt" style="--rd: 60ms"
-               href="https://www.youtube.com/@markedexiled" target="_blank" rel="noopener">
+          <a class="card panel reveal" style="--rd: 60ms"
+             href="https://www.youtube.com/@markedexiled" target="_blank" rel="noopener">
+            <div class="panel__in card__in">
+              <span class="brackets" aria-hidden="true"></span>
               <div class="card__body">
-                <p class="card__label">YouTube</p>
+                <p class="label card__label">YouTube</p>
                 <h2 class="card__title">@markedexiled</h2>
                 <p class="card__text">
                   I create content on YouTube, direct movies and produce for events.
                 </p>
-                <span class="btn btn--pill">Watch</span>
+                <span class="btn btn--ghost card__cta">Watch</span>
               </div>
               <div class="card__art" aria-hidden="true">
                 <svg viewBox="0 0 120 120" focusable="false">
                   <defs>
                     <linearGradient id="gradYt" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%"   stop-color="#FF9A5B"/>
-                      <stop offset="52%"  stop-color="#FF2E63"/>
-                      <stop offset="100%" stop-color="#9B0F63"/>
+                      <stop offset="0%"   stop-color="#FF7A86"/>
+                      <stop offset="52%"  stop-color="#FF1F3D"/>
+                      <stop offset="100%" stop-color="#8B0A1E"/>
                     </linearGradient>
                   </defs>
                   <path fill="url(#gradYt)" fill-rule="evenodd" d="M28 26 h64 a20 20 0 0 1 20 20 v28 a20 20 0 0 1 -20 20 h-64 a20 20 0 0 1 -20 -20 v-28 a20 20 0 0 1 20 -20 z M50 46 L80 60 L50 74 Z"/>
                 </svg>
               </div>
-            </a>
+            </div>
+          </a>
 
-            <a class="card card--ir" style="--rd: 150ms"
-               href="https://northstarmedia.cc/island-realm" target="_blank" rel="noopener">
+          <a class="card panel reveal" style="--rd: 150ms"
+             href="https://northstarmedia.cc/island-realm" target="_blank" rel="noopener">
+            <div class="panel__in card__in">
+              <span class="brackets" aria-hidden="true"></span>
               <div class="card__body">
-                <p class="card__label">Current project</p>
+                <p class="label card__label">Current project</p>
                 <h2 class="card__title">Island Realm</h2>
                 <p class="card__text">
                   Island Realm is a Minecraft Movie set in a world of floating Islands.
                 </p>
-                <span class="btn btn--pill">Enter the realm</span>
+                <span class="btn btn--ghost card__cta">Enter the realm</span>
               </div>
               <div class="card__art" aria-hidden="true">
                 <svg viewBox="0 0 120 120" focusable="false">
                   <defs>
                     <linearGradient id="gradIr" x1="0.1" y1="0" x2="0.9" y2="1">
-                      <stop offset="0%"   stop-color="#7BF0FF"/>
-                      <stop offset="48%"  stop-color="#7C5CFF"/>
-                      <stop offset="100%" stop-color="#2B1470"/>
+                      <stop offset="0%"   stop-color="#FFB3BC"/>
+                      <stop offset="48%"  stop-color="#E01236"/>
+                      <stop offset="100%" stop-color="#4A0512"/>
                     </linearGradient>
                   </defs>
                   <g fill="url(#gradIr)">
@@ -306,415 +259,70 @@
                   </g>
                 </svg>
               </div>
-            </a>
-
-          </div>
-        </div>
-      </section>
+            </div>
+          </a>
 
         </div>
       </div>
+    </section>
 
-      <!-- ===== Promote Your Business ===== -->
-      <div class="route route--pyb" id="route-pyb" hidden>
-        <div class="deck" id="deck">
+  </main>
 
-          <!-- Stages 0 and 1 share the hero: it starts centred, then shrinks
-               to the top to make room for what you are buying. -->
-          <div class="deck__hero" id="deckHero">
-            <section class="pyb-hero">
-                      <h1 class="pyb-hero__title"><span class="pyb-hero__long">Get your business the <span class="hint-word">engagement</span> it <span class="hint-target">deserves</span>.</span><span class="pyb-hero__short">The engagement you deserve.</span><svg class="hint-fx" aria-hidden="true" focusable="false"><path class="hint-fx__curve" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path class="hint-fx__head" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="hint-burst" aria-hidden="true"></span></h1>
-                      <p class="pyb-hero__note">All of it runs on my YouTube channel.</p>
-            </section>
-            <p class="deck__cue" id="deckCue">
-              <span>Scroll</span>
-              <span class="deck__cue-arrow" aria-hidden="true">&#8595;</span>
-            </p>
-          </div>
+  <footer class="footer">
+    <div class="shell">
+      <div class="footer__top">
 
-          <!-- Stage 1 -->
-          <div class="deck__layer deck__layer--offers" id="stageOffers">
-            <div class="deck__scroll">
-                            <section class="notice" role="note" aria-label="Pricing update">
-                        <svg class="notice__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                          <path d="M3.5 9.5v5a1 1 0 0 0 1 1h2.2l1 4.1a1 1 0 0 0 1 .8h1.2a1 1 0 0 0 1-1.2l-.9-3.7h1.3l6.2 3.4a1 1 0 0 0 1.5-.9V6a1 1 0 0 0-1.5-.9l-6.2 3.4H4.5a1 1 0 0 0-1 1z"/>
-                        </svg>
-                        <p class="notice__title">As of 1 January 2027, these changes officially go into effect.</p>
-                      </section>
-              <section class="offers" aria-labelledby="offersHeading">
-                        <h2 class="visually-hidden" id="offersHeading">Ways to work together</h2>
-              
-                        <div class="picker" id="picker">
-            <button class="picker__btn" id="pickerBtn" type="button"
-                    aria-haspopup="listbox" aria-expanded="false">
-              <span class="picker__value" id="pickerValue">Sponsorship</span>
-              <svg class="picker__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false">
-                <path d="M1 1.5 6 6.5l5-5" fill="none" stroke="currentColor"
-                      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-
-            <ul class="picker__menu" id="pickerMenu" role="listbox" aria-label="Choose a service" hidden>
-              <li role="option" data-tab="tab-sponsorship" aria-selected="true">Sponsorship</li>
-              <li role="option" data-tab="tab-product" aria-selected="false">Product Video</li>
-              <li role="option" data-tab="tab-production" aria-selected="false">Video Production Services</li>
-              <li role="option" data-tab="tab-partnership" aria-selected="false">Partnership</li>
-            </ul>
-          </div>
-
-          <div class="tabs" role="tablist" aria-label="Ways to work together">
-                          <button class="tab" role="tab" type="button" id="tab-sponsorship"
-                                  aria-controls="panel-sponsorship" aria-selected="true">Sponsorship</button>
-                          <button class="tab" role="tab" type="button" id="tab-product"
-                                  aria-controls="panel-product" aria-selected="false" tabindex="-1">Product Video</button>
-                          <button class="tab" role="tab" type="button" id="tab-production"
-                                  aria-controls="panel-production" aria-selected="false" tabindex="-1">Video Production Services</button>
-                          <button class="tab" role="tab" type="button" id="tab-partnership"
-                                  aria-controls="panel-partnership" aria-selected="false" tabindex="-1">Partnership</button>
-                        </div>
-
-            <div class="deck__fit" id="offersFit">
-              
-                        <div class="offer" role="tabpanel" id="panel-sponsorship" aria-labelledby="tab-sponsorship" tabindex="0">
-                          <h3 class="offer__title">A section in my next video</h3>
-                          <p class="offer__text">
-                            I advertise your service in a short section of my next video, and explain why
-                            people should use it. I have done this enough times to know what works.
-                          </p>
-                          <ul class="offer__list">
-                            <li>A section inside the video</li>
-                            <li>A link in the description</li>
-                            <li>A pinned comment about your business</li>
-                          </ul>
-                          <div class="offer__price">
-                            <p class="offer__price-label">Pricing</p>
-                            <p class="offer__price-value">&euro;1,500 &ndash; &euro;10,000</p>
-                            <p class="offer__price-note">Depending on business size and monthly / yearly earnings.</p>
-                          </div>
-                        </div>
-              
-                        <div class="offer" role="tabpanel" id="panel-product" aria-labelledby="tab-product" tabindex="0" hidden>
-                          <h3 class="offer__title">A full video about your product</h3>
-                          <p class="offer__text">
-                            A whole video about your product. Length depends on the product, but the
-                            standard is 10 minutes. Proper review, unboxing, and whatever tests make sense
-                            for it.
-                          </p>
-                          <ul class="offer__list">
-                            <li>A full video about the product</li>
-                            <li>A link in the description</li>
-                            <li>A pinned comment about your business</li>
-                          </ul>
-                          <p class="offer__note">
-                            You send me the product and handle the shipping, at no cost on my end.
-                          </p>
-                          <div class="offer__price">
-                            <p class="offer__price-label">Pricing</p>
-                            <p class="offer__price-value">&euro;2,500 &ndash; &euro;5,000</p>
-                            <p class="offer__price-note">Depending on the product and the company.</p>
-                          </div>
-                        </div>
-              
-                        <div class="offer" role="tabpanel" id="panel-production" aria-labelledby="tab-production" tabindex="0" hidden>
-                          <h3 class="offer__title">A video about your event or project</h3>
-                          <p class="offer__text">
-                            A full video about an event you are hosting, a server you made, a plugin, or
-                            anything like it. My job is to turn it into a cinematic story.
-                          </p>
-                          <ul class="offer__list">
-                            <li>A full cinematic video</li>
-                            <li>Three links in the description: website, Discord, socials</li>
-                            <li>A pinned comment with those same links</li>
-                          </ul>
-                          <div class="offer__price">
-                            <p class="offer__price-label">Pricing</p>
-                            <p class="offer__price-value">&euro;1,800 <span class="offer__price-unit">per hour of final runtime</span></p>
-                            <p class="offer__price-note">
-                              Billed against the runtime of the delivered video, not against hours spent in
-                              production. A 40-minute final cut bills at &euro;1,200.
-                            </p>
-                          </div>
-                        </div>
-              
-                        <div class="offer" role="tabpanel" id="panel-partnership" aria-labelledby="tab-partnership" tabindex="0" hidden>
-                          <h3 class="offer__title">Long-term, no payment</h3>
-                          <p class="offer__text">
-                            This only works if your services are useful to me long-term and I can help you
-                            back by getting you clients or advertising your products. No payment involved,
-                            apart from special cases. Some examples:
-                          </p>
-                          <ul class="offer__list offer__list--long">
-                            <li>
-                              <b>Tech company building PCs.</b> On a timeframe we agree on, you send me your
-                              latest workstation PC, so my production setup keeps getting faster.
-                            </li>
-                            <li>
-                              <b>Tech company making other components</b>, like monitors or microphones.
-                              Same as above, with whatever you make.
-                            </li>
-                            <li>
-                              <b>Software company.</b> I get your software for free, updates included, for
-                              as long as the partnership lasts.
-                            </li>
-                            <li>
-                              <b>Merch company.</b> You create merch of me, and we split the profits.
-                            </li>
-                          </ul>
-                          <div class="offer__price">
-                            <p class="offer__price-label">Pricing</p>
-                            <p class="offer__price-value">No payment</p>
-                            <p class="offer__price-note">Long-term, built on mutual use. Special situations aside.</p>
-                          </div>
-                        </div>
-
-              <section class="currency" aria-label="How payment works">
-                                      <p class="currency__label">Payment</p>
-                                      <p class="currency__lead">All prices here are in euro, and euro is what you pay.</p>
-                                      <p class="currency__text">
-                                        &euro;1,500 means 1,500 <b>euros</b>, not $1,500. If you are paying in another
-                                        currency, convert from euro to see exactly how much to send. Transfer fees and any
-                                        taxes on the transfer are <b>added on top</b> of the price, so the amount we agreed
-                                        on is the amount that actually reaches me.
-                                      </p>
-                                      <p class="currency__terms">
-                                        Paid upfront, or in installments across two months at most.
-                                      </p>
-                                    </section>
-            </div>
-          </section>
-              
-            </div>
-          </div>
-
-          <!-- Stage 2 -->
-          <div class="deck__layer deck__layer--doc" id="stageDoc">
-
-            <svg class="doc-seal" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-              <g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M24 6v34"/>
-                <path d="M11 12h26"/>
-                <path d="M11 12l-6 13h12z"/>
-                <path d="M37 12l6 13H31z"/>
-                <path d="M5 25a6 6 0 0 0 12 0"/>
-                <path d="M31 25a6 6 0 0 0 12 0"/>
-                <path d="M16 42h16"/>
-              </g>
+        <div>
+          <a class="footer__brand" href="/" aria-label="MarkedExiled — home">
+            <svg class="footer__mark" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
+              <use href="#exiledMark"/>
             </svg>
-
-            <div class="doc-track" id="docTrack" aria-hidden="true">
-              <span class="doc-track__line"></span>
-              <span class="doc-track__fill"></span>
-              <div class="doc-track__marks" id="docMarks"></div>
-            </div>
-
-            <div class="deck__scroll" id="docScroll">
-              <section class="agreement" id="agreement" aria-labelledby="agreementHeading">
-                        <p class="agreement__eyebrow">Binding terms</p>
-                        <h2 class="agreement__title" id="agreementHeading">Sponsorship &amp; Partnership Agreement</h2>
-                        <p class="agreement__lead">
-                          By signing with me or otherwise proceeding with a deal, you agree to everything
-                          below. These terms apply to all tiers of service.
-                        </p>
-              
-                        <nav class="toc" aria-label="Agreement contents">
-                          <p class="toc__label">Jump to</p>
-                          <ol class="toc__list">
-                            <li><a href="#ch1" data-jump>Services &amp; Pricing</a></li>
-                            <li><a href="#ch2" data-jump>Payment Terms &amp; Trust</a></li>
-                            <li><a href="#ch3" data-jump>Brand Safety &amp; Honesty</a></li>
-                            <li><a href="#ch4" data-jump>Confidentiality &amp; NDAs</a></li>
-                            <li><a href="#ch5" data-jump>Legal &amp; Operational</a></li>
-                          </ol>
-                        </nav>
-              
-                        <div class="doc">
-                          <p>
-                            This document outlines the standard terms, services, and legally binding
-                            conditions for any sponsorships, product integrations, or long-term partnerships
-                            exclusively for the MarkedExiled YouTube channel.
-                          </p>
-              
-                          <h3 id="ch1">1. Services &amp; Pricing</h3>
-              
-                          <h4>1.1. Sponsorship Section</h4>
-                          <ul>
-                            <li><b>Service:</b> A dedicated short section within an upcoming video advertising your service. The integration will delve into why audiences should use your service, utilizing proven marketing methods and extensive content creation experience.</li>
-                            <li><b>Deliverables:</b> In-video integration, 1 link in the top of the description, and 1 pinned comment.</li>
-                            <li><b>Pricing:</b> &euro;1,500 &ndash; &euro;10,000 (depending on business size and monthly/yearly earnings).</li>
-                          </ul>
-              
-                          <h4>1.2. Product Video</h4>
-                          <ul>
-                            <li><b>Service:</b> A full, dedicated video (standard ~10 minutes) focused entirely on your product. This includes a detailed review, unboxing, and relevant tests to showcase why audiences should purchase/use it.</li>
-                            <li><b>Deliverables:</b> Dedicated full-length video, 1 link in the description, and 1 pinned comment.</li>
-                            <li><b>Pricing:</b> &euro;2,500 &ndash; &euro;5,000 (depending on the product/company).</li>
-                            <li><i>Note: The sponsor is responsible for sending the product and covering all shipping costs upfront.</i></li>
-                          </ul>
-              
-                          <h4>1.3. Video Production Services</h4>
-                          <ul>
-                            <li><b>Service:</b> A full video documenting an event you are hosting, a server creation, a plugin, etc. The primary mission is to craft a high-quality cinematic story from the subject matter.</li>
-                            <li><b>Deliverables:</b> Full cinematic video, 3 reserved links in the description (e.g., website, Discord server, socials), and a pinned comment.</li>
-                            <li><b>Pricing:</b> &euro;1,800 per hour of final video runtime, billed against the runtime of the delivered video rather than hours spent in production and pro-rated for partial hours.</li>
-                          </ul>
-              
-                          <h4>1.4. Partnerships</h4>
-                          <p>
-                            Long-term collaborations, available only if the services provide ongoing, mutual
-                            value. Example structures include:
-                          </p>
-                          <ul>
-                            <li><b>Custom PC Manufacturers:</b> The sponsor provides their latest workstation PC at negotiated intervals to continuously upgrade and accelerate the production environment.</li>
-                            <li><b>Hardware/Peripheral Brands:</b> The sponsor provides their latest components (e.g., monitors, microphones, studio gear).</li>
-                            <li><b>Software Companies:</b> Access to the software is provided free of charge, including free updates for the duration of the partnership.</li>
-                            <li><b>Merchandise Companies:</b> The sponsor designs and creates merchandise; profits are split based on an agreed-upon percentage.</li>
-                          </ul>
-              
-                          <h3 id="ch2">2. Payment Terms &amp; Trust</h3>
-                          <p>
-                            The price for the chosen service must be paid in full upfront prior to the
-                            commencement of the project, or in agreed-upon installments spanning a maximum of
-                            two (2) months.
-                          </p>
-                          <p>
-                            All pricing is denominated in euro (EUR) and all payments are settled in euro.
-                            A quoted figure of &euro;1,500 means 1,500 euros, not 1,500 units of any other
-                            currency; parties paying in another currency are responsible for converting from
-                            euro to determine the exact amount owed. Any taxes, transfer charges or bank fees
-                            incurred during the transfer are added on top of the agreed price and are borne by
-                            the sponsor, so that the full agreed sum is received net of such charges.
-                          </p>
-                          <p>
-                            My reputation regarding past sponsorships and client work is squeaky clean. My
-                            content creation career relies heavily on mutual trust with business owners,
-                            ensuring complete reliability in the execution of these deliverables.
-                          </p>
-              
-                          <h3 id="ch3">3. Brand Safety, Honesty, and Morals Clauses</h3>
-              
-                          <h4>3.1. Public Expose &amp; Ongoing Investigations</h4>
-                          <p>
-                            If your company, or you as an individual, is exposed for derivative negative
-                            actions, controversies, or severe allegations while a sponsorship is ongoing, the
-                            campaign will be immediately paused pending the conclusion of independent
-                            investigations.
-                          </p>
-                          <ul>
-                            <li>If the allegations are definitively debunked, the sponsorship will resume as planned.</li>
-                            <li>If the allegations are proven true or remain unresolved in a highly damaging manner, the sponsorship will be instantly terminated with <b>no refund</b>.</li>
-                          </ul>
-              
-                          <h4>3.2. Creator Honesty &amp; Anti-Scam Protection</h4>
-                          <p>
-                            I maintain complete honesty in my videos. While I am generally a
-                            positive/optimistic creator who loves highlighting the best details of a product
-                            or service, my audience's trust is paramount. If, upon internal inspection, I
-                            discover that your product or service is intentionally built to scam customers,
-                            mislead them, or bring a financial/data loss to buyers, the sponsorship will be
-                            instantly terminated with <b>no refund</b>.
-                          </p>
-              
-                          <h3 id="ch4">4. Confidentiality &amp; NDAs</h3>
-                          <p>
-                            I do not sign gray-area Non-Disclosure Agreements (NDAs). I am open to signing an
-                            NDA strictly if confidential inside-information is to be revealed. However, this
-                            is only applicable if the NDA is well-structured, strictly defined without gray
-                            areas, and the signing party is legally recognized as over 18 years of age.
-                          </p>
-              
-                          <h3 id="ch5">5. Standard Legal &amp; Operational Provisions</h3>
-              
-                          <h4>5.1. Content Ownership &amp; Intellectual Property</h4>
-                          <p>
-                            MarkedExiled retains full creative control, copyright, and ownership of the final
-                            video content. The sponsor retains all rights to their respective trademarks,
-                            logos, and provided assets.
-                          </p>
-              
-                          <h4>5.2. Usage Rights &amp; Licensing (Organic Only)</h4>
-                          <p>
-                            The sponsor may share the final video organically on their own social media pages
-                            or website. Any use of the creator's content, face, or voice for paid advertising
-                            campaigns (e.g., whitelisting, paid Meta/TikTok/YouTube ads) requires a separate
-                            licensing addendum and additional compensation.
-                          </p>
-              
-                          <h4>5.3. Revision Policy</h4>
-                          <p>
-                            To ensure production efficiency, the sponsor is entitled to one (1) round of minor
-                            revisions prior to final publication, provided the changes requested do not
-                            require reshooting footage that adhered to the initially agreed-upon creative
-                            brief.
-                          </p>
-              
-                          <h4>5.4. Regulatory Disclosure</h4>
-                          <p>
-                            All sponsored content will be clearly, audibly, and visually disclosed to the
-                            audience in accordance with relevant advertising regulations to maintain legal
-                            compliance.
-                          </p>
-              
-                          <h4>5.5. Governing Law</h4>
-                          <p>
-                            This agreement shall be governed by and construed in accordance with the laws of
-                            Romania.
-                          </p>
-                        </div>
-              
-                      </section>
-              <div class="agree">
-                <button class="agree__btn" id="agreeBtn" type="button">
-                  <svg class="agree__ring" id="agreeRing" aria-hidden="true" focusable="false">
-                    <path fill="none" stroke="currentColor" stroke-linecap="round"/>
-                  </svg>
-                  <span class="agree__label">I agree to the Sponsorship Agreement</span>
-                </button>
-                <p class="agree__note">Agreeing takes you to my business email.</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stage 3 -->
-          <div class="deck__layer deck__layer--contact" id="stageContact">
-            <div class="deck__scroll">
-              <section class="contact" id="contact" aria-labelledby="contactHeading">
-                <svg class="contact__icon" viewBox="0 0 48 34" aria-hidden="true" focusable="false">
-                  <rect x="1.4" y="1.4" width="45.2" height="31.2" rx="5"
-                        fill="none" stroke="currentColor" stroke-width="2.4"/>
-                  <path d="M3.5 4.5 24 19.5 44.5 4.5" fill="none" stroke="currentColor"
-                        stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-
-                <h2 class="contact__head" id="contactHeading">
-                  Let&rsquo;s do <span class="contact__word"><span class="contact__word-base">business</span><span class="contact__word-sel" aria-hidden="true">business</span></span><span class="contact__dot">.</span>
-                </h2>
-
-                <a class="contact__email" href="mailto:business@markedexiled.com?subject=Promote%20my%20business">business@markedexiled.com</a>
-                <p class="contact__note">
-                  Tell me what you are promoting, your budget, and when you need it out.
-                </p>
-              </section>
-            </div>
-          </div>
-
+            <span class="footer__word">MarkedExiled</span>
+          </a>
+          <p class="footer__tag">Media &amp; Entertainment</p>
         </div>
+
+        <nav class="footer__links" aria-label="Footer">
+          <div class="footer__col">
+            <p class="label">Channel</p>
+            <a href="https://www.youtube.com/@markedexiled" target="_blank" rel="noopener">YouTube</a>
+            <a href="https://discord.gg/67BKy5rFru" target="_blank" rel="noopener">Discord</a>
+          </div>
+          <div class="footer__col">
+            <p class="label">Work</p>
+            <a href="/promote/" data-wipe>Promote Your Business</a>
+            <a href="https://northstarmedia.cc/island-realm" target="_blank" rel="noopener">Island Realm</a>
+          </div>
+          <div class="footer__col">
+            <p class="label">Contact</p>
+            <a href="mailto:business@markedexiled.com">business@markedexiled.com</a>
+          </div>
+        </nav>
+
       </div>
 
-    </main>
+      <p class="footer__base">&copy; 2026 MarkedExiled. All rights reserved.</p>
+    </div>
+  </footer>
 
-  </div>
+</div>
 
-  <!-- ===== Route transition: the mark floods in, then lifts away ===== -->
-  <div class="swipe" id="swipe" data-state="idle" aria-hidden="true">
-    <span class="swipe__veil" aria-hidden="true"></span>
-    <span class="swipe__ring" aria-hidden="true"></span>
-    <svg class="swipe__mark" viewBox="0 0 600 600" focusable="false">
-      <use href="#exiledMark"/>
-    </svg>
-  </div>
+<!-- ===== Page transition: the wall floods in, then lifts away ===== -->
+<div class="swipe" id="swipe" data-state="idle" aria-hidden="true">
+  <span class="swipe__veil" aria-hidden="true"></span>
+  <svg class="swipe__mark" viewBox="0 0 600 600" focusable="false">
+    <use href="#exiledMark"/>
+  </svg>
+</div>
 
-  <!-- ===== Intro sequence ===== -->
+<!-- ===== Intro sequence ===== -->
   <div class="intro" id="intro" data-state="idle">
+
+    <!-- the wall the mark breaches through -->
+    <div class="intro__wall" aria-hidden="true">
+      <span class="intro__wall-bars"></span>
+      <span class="intro__wall-tear"></span>
+    </div>
 
     <!-- Zoom layer: starts framed so tightly inside the mark that the whole
          screen is solid white, then pulls back to the lockup's logo slot.
@@ -749,7 +357,7 @@
     </div>
   </div>
 
-  <script src="js/intro.js"></script>
-  <script src="js/site.js"></script>
+<script src="js/intro.js"></script>
+<script src="js/site.js"></script>
 </body>
 </html>

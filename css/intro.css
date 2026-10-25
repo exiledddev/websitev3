@@ -25,21 +25,13 @@
 
 * { box-sizing: border-box; }
 
-html, body {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* The old build pinned html and body to 100% and scrolled the body, because
+   the page was one fixed-height document. These are real scrolling pages now,
+   so html is the only scroller and the intro simply locks it while it plays.
+   data-intro is absent until the sequence finishes or is skipped. */
+body:not([data-intro]) {
   overflow: hidden;
-}
-
-body[data-intro="done"] {
-  overflow: auto;
+  height: 100%;
 }
 
 .mark-defs {
@@ -300,4 +292,87 @@ body[data-intro="done"] {
 
 @media (prefers-reduced-motion: reduce) {
   .intro__note-line i { transform: none; transition: none; }
+}
+
+/* ============================================================
+   Blackwall skin
+   The timing and the state machine above are unchanged — this
+   only re-dresses them: the mark now breaches a red ICE wall
+   instead of pulling back out of plain white.
+   ============================================================ */
+
+.intro {
+  --bg: #05060A;
+  background: var(--bg);
+}
+
+.intro__brand { font-family: 'Chakra Petch', 'Inter', system-ui, sans-serif; }
+
+/* The wall itself: filaments plus a horizon glow, sitting under the
+   lockup and above the page. */
+.intro__wall {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 420ms var(--ease-out-quint);
+}
+
+.intro[data-state="idle"] .intro__wall,
+.intro[data-state="zoom"] .intro__wall { opacity: 1; }
+
+.intro[data-state="logo"] .intro__wall,
+.intro[data-state="slide"] .intro__wall { opacity: 0.55; }
+
+.intro[data-state="letters"] .intro__wall { opacity: 0.3; }
+
+.intro__wall-bars,
+.intro__wall-tear { position: absolute; inset: 0; }
+
+.intro__wall-bars {
+  background:
+    repeating-linear-gradient(90deg,
+      transparent 0 26px,
+      rgba(255, 31, 61, 0.14) 26px 27px,
+      transparent 27px 72px),
+    radial-gradient(80% 60% at 50% 50%, rgba(255, 31, 61, 0.18) 0%, transparent 70%);
+  animation: introDrift 9s linear infinite;
+}
+
+/* The breach: a hot seam that splits outward as the mark pulls back. */
+.intro__wall-tear {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 31, 61, 0.0) 44%,
+    #FF4D5F 50%,
+    rgba(255, 31, 61, 0.0) 56%,
+    transparent 100%);
+  filter: blur(10px);
+  opacity: 0;
+  transform: scaleX(0.12);
+}
+
+.intro[data-state="zoom"] .intro__wall-tear {
+  opacity: 0.85;
+  transform: scaleX(1);
+  transition: transform 1150ms var(--ease-out-expo), opacity 460ms ease;
+}
+
+.intro[data-state="logo"] .intro__wall-tear,
+.intro[data-state="slide"] .intro__wall-tear { opacity: 0; transition: opacity 520ms ease; }
+
+@keyframes introDrift {
+  from { background-position: 0 0, 50% 50%; }
+  to   { background-position: 72px 0, 50% 50%; }
+}
+
+/* The mark reads as the thing cutting through, so it carries the heat. */
+.intro[data-state="zoom"] .intro__zoom { filter: drop-shadow(0 0 42px rgba(255, 31, 61, 0.55)); }
+
+.intro__note-line i { font-family: 'Chakra Petch', 'Inter', system-ui, sans-serif; letter-spacing: 0.08em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro__wall-bars { animation: none; }
+  .intro__wall-tear { display: none; }
 }

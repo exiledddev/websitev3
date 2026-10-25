@@ -47,6 +47,19 @@
 
   if (!intro || !zoom || !row || !brand || !letters) return;
 
+  /* The breach is a first-impression, not a toll gate. Now that the site is
+     real pages rather than one document, playing it on every navigation
+     would mean sitting through it again just to read the terms. Once per
+     session is the whole point of it. */
+  var alreadyPlayed = false;
+  try { alreadyPlayed = window.sessionStorage.getItem('me:intro') === '1'; } catch (err) {}
+
+  if (alreadyPlayed) {
+    intro.setAttribute('data-state', 'done');
+    document.body.setAttribute('data-intro', 'skip');
+    return;
+  }
+
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var timers  = [];
   var raf     = 0;

@@ -1,0 +1,59 @@
+/* ============================================================
+   Blackwall — design tokens
+   The Blackwall is the crimson ICE barrier holding rogue AIs
+   out of the Net. Red carries every accent; cyan appears only
+   as the companion channel inside an RGB split, never as a
+   second brand colour.
+   ============================================================ */
+
+:root {
+  /* red */
+  --wall:       #FF1F3D;
+  --wall-hot:   #FF4D5F;
+  --wall-deep:  #8B0A1E;
+  --wall-12:    rgba(255, 31, 61, 0.12);
+  --wall-24:    rgba(255, 31, 61, 0.24);
+  --wall-45:    rgba(255, 31, 61, 0.45);
+
+  /* the split channel - glitch only */
+  --ice:        #00E5FF;
+
+  /* ground */
+  --ground:     #05060A;
+  --panel:      #0B0D12;
+  --panel-hi:   #11141C;
+
+  /* ink - names kept from the old sheet so markup ports cleanly */
+  --ink:        #ffffff;
+  --ink-60:     rgba(255, 255, 255, 0.62);
+  --ink-40:     rgba(255, 255, 255, 0.42);
+  --hairline:   rgba(255, 255, 255, 0.12);
+
+  /* geometry */
+  --nav-h:      68px;
+  --edge:       clamp(18px, 4vw, 56px);
+  --chamfer:    14px;
+  --measure:    68ch;
+
+  /* type */
+  --display: 'Chakra Petch', 'Inter', system-ui, sans-serif;
+  --body:    'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  /* motion */
+  --ease-out:  cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in:   cubic-bezier(0.55, 0.05, 0.25, 1);
+}
+
+/* The chamfer polygon, cut on two opposite corners. Any element can
+   opt in with `clip-path: var(--cut)` and tune its own --c. */
+:root {
+  --c: var(--chamfer);
+  --cut: polygon(
+    var(--c) 0,
+    100% 0,
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    0 100%,
+    0 var(--c)
+  );
+}

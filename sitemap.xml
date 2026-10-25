@@ -11,7 +11,7 @@
     
     <url>
         <loc>https://www.markedexiled.com/</loc>
-        <lastmod>2026-09-19</lastmod>
+        <lastmod>2026-10-25</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
 
@@ -19,6 +19,19 @@
             <image:loc>https://www.markedexiled.com/assets/og-image.png</image:loc>
             <image:caption>MarkedExiled — scripted cinematic Minecraft series, sponsorships and video production.</image:caption>
             <image:title>MarkedExiled</image:title>
+        </image:image>
+    </url>
+
+    <url>
+        <loc>https://www.markedexiled.com/promote/</loc>
+        <lastmod>2026-10-25</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+
+        <image:image>
+            <image:loc>https://www.markedexiled.com/assets/og-image.png</image:loc>
+            <image:caption>Sponsorships, product videos, cinematic video production and long-term partnerships, with pricing published up front.</image:caption>
+            <image:title>Promote Your Business</image:title>
         </image:image>
     </url>
 </urlset>
