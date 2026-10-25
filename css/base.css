@@ -441,74 +441,133 @@ h1, h2, h3, h4 {
   .tearlines { display: none; }
 }
 
-/* ---------- page transition ---------- */
+/* ---------- code matrix ---------- */
 
-/* These are real navigations, so the veil covers before the browser
-   leaves and the next document lifts it on arrival. */
-.swipe {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  pointer-events: none;
+.matrix { position: relative; }
+
+.matrix__cells {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 5), 1fr);
+  gap: 2px;
+}
+
+.matrix__cells i {
   display: grid;
   place-items: center;
+  padding: 2px 0;
+  font-family: var(--display);
+  font-size: clamp(8px, 0.95vw, 12px);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  color: rgba(255, 31, 61, 0.42);
+  transition: color 90ms linear, background 90ms linear;
+}
+
+/* the row or column the cursor is locked to */
+.matrix__cells i.is-axis {
+  color: var(--wall-hot);
+  background: rgba(255, 31, 61, 0.12);
+}
+
+/* taken into the buffer */
+.matrix__cells i.is-picked {
+  color: var(--ground);
+  background: var(--wall);
+}
+
+/* where the cursor is right now */
+.matrix__cells i.is-head {
+  background: #fff;
+  color: var(--ground);
+  box-shadow: 0 0 12px var(--wall-hot);
+}
+
+/* ---------- scan-line tear (transitions) ---------- */
+
+/* Horizontal bars that rip across the screen, half-lines displaced
+   sideways, red on black. This is the transition - no veil, no mark. */
+.tear {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+  opacity: 0;
   overflow: hidden;
 }
-.swipe[data-state="idle"] { visibility: hidden; }
 
-.swipe__veil {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 260vmax;
-  height: 260vmax;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, #05060A 70%, #0B0D12 92%, #14060A 100%);
-  box-shadow: 0 0 0 2px var(--wall-45), 0 0 48px var(--wall-24), 0 0 140px var(--wall-12);
-  transform: translate(-50%, 58%) scale(0.04);
-  transform-origin: 50% 100%;
-}
+.tear__bars,
+.tear__slabs,
+.tear__wash { position: absolute; inset: -10% 0; }
 
-.swipe__mark {
-  position: relative;
-  width: clamp(64px, 12vw, 128px);
-  color: var(--wall);
-  opacity: 0;
-  transform: scale(0.82);
+/* fine scan lines */
+.tear__bars {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 31, 61, 0.55) 0 2px,
+    transparent 2px 5px,
+    rgba(255, 31, 61, 0.22) 5px 6px,
+    transparent 6px 11px);
 }
 
-.swipe[data-state="cover"] { visibility: visible; }
-.swipe[data-state="cover"] .swipe__veil {
-  transform: translate(-50%, 58%) scale(1);
-  transition: transform 620ms cubic-bezier(0.38, 0, 0.28, 1);
-}
-.swipe[data-state="cover"] .swipe__mark {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 240ms ease 170ms, transform 420ms var(--ease-out) 150ms;
+/* fat displaced slabs, the ones that read as the picture tearing */
+.tear__slabs {
+  background:
+    linear-gradient(180deg, transparent 0 6%,  var(--wall) 6% 8%,   transparent 8% 18%),
+    linear-gradient(180deg, transparent 0 23%, #fff 23% 23.7%,      transparent 23.7% 31%),
+    linear-gradient(180deg, transparent 0 38%, var(--wall-hot) 38% 41%, transparent 41% 49%),
+    linear-gradient(180deg, transparent 0 56%, var(--wall) 56% 57%,  transparent 57% 66%),
+    linear-gradient(180deg, transparent 0 71%, #fff 71% 71.6%,       transparent 71.6% 79%),
+    linear-gradient(180deg, transparent 0 86%, var(--wall) 86% 89%,  transparent 89% 96%);
 }
 
-.swipe[data-state="uncover"] { visibility: visible; }
-.swipe[data-state="uncover"] .swipe__veil {
-  transform: translate(-50%, 58%) scale(0.04);
-  transition: transform 720ms var(--ease-out);
+.tear__wash { background: var(--ground); opacity: 0; }
+
+.tear.is-on { opacity: 1; }
+.tear.is-on .tear__bars  { animation: tearScan 460ms steps(3, end) infinite; }
+.tear.is-on .tear__slabs { animation: tearSlab 300ms steps(2, end) infinite; }
+.tear.is-leaving .tear__wash  { animation: tearWash 620ms ease-in forwards; }
+
+/* leaving: the wash goes opaque so the next document can load behind it */
+@keyframes tearWash {
+  0%   { opacity: 0; }
+  55%  { opacity: 0.55; }
+  100% { opacity: 1; }
 }
-.swipe[data-state="uncover"] .swipe__mark {
-  opacity: 0;
-  transition: opacity 260ms ease;
+
+@keyframes tearScan {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0.9; }
+  33%  { transform: translate3d(-9px, 7px, 0); opacity: 0.5; }
+  66%  { transform: translate3d(7px, -5px, 0); opacity: 0.85; }
+  100% { transform: translate3d(0, 3px, 0); opacity: 0.6; }
+}
+
+@keyframes tearSlab {
+  0%   { transform: translate3d(0, 0, 0)     scaleY(1); opacity: 0.85; }
+  25%  { transform: translate3d(-26px, 0, 0) scaleY(1.4); opacity: 1; }
+  50%  { transform: translate3d(18px, 0, 0)  scaleY(0.7); opacity: 0.7; }
+  75%  { transform: translate3d(-11px, 0, 0) scaleY(1.2); opacity: 1; }
+  100% { transform: translate3d(0, 0, 0)     scaleY(1); opacity: 0.8; }
+}
+
+/* arriving: the wash starts opaque and lifts away */
+.tear.is-arriving .tear__wash { animation: tearClear 520ms ease-out forwards; }
+@keyframes tearClear {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* the page itself judders while the tear runs */
+.is-tearing-page { animation: pageJudder 300ms steps(2, end) infinite; }
+@keyframes pageJudder {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-6px, 2px, 0); }
+  50%  { transform: translate3d(5px, -3px, 0); }
+  75%  { transform: translate3d(-3px, 1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .swipe { display: none; }
-}
-
-/* ---------- nav on small screens ---------- */
-
-/* "Promote Your Business" is long; at 350px it wraps to three lines and
-   triples the nav height. The mark alone carries the brand there - the
-   wordmark is still in the footer. */
-@media (max-width: 620px) {
-  .nav__word { display: none; }
-  .nav__cta { padding: 9px 14px; font-size: 10.5px; letter-spacing: 0.12em; }
-  .nav__point { right: calc(var(--edge) + 34px); }
+  .tear { display: none; }
+  .is-tearing-page { animation: none; }
 }

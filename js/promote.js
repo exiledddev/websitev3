@@ -333,6 +333,28 @@
   var emailText = emailEl ? emailEl.textContent : '';
   var emailRaf = 0;
 
+  /* The same grid the intro breaches with, solved once over the reveal
+     and then left on screen as the receipt for it. */
+  var breach = document.getElementById('contactBreach');
+  var breachGrid = document.getElementById('contactBreachGrid');
+  var breachStop = null;
+
+  function runMatrix() {
+    if (!breach || !breachGrid || !window.MEMatrix || reduced) return;
+
+    var n = window.innerWidth < 620 ? 4 : 5;
+    breachGrid.innerHTML = window.MEMatrix.html(n);
+    breach.classList.add('is-live');
+
+    if (breachStop) breachStop();
+    breachStop = window.MEMatrix.run(breachGrid.querySelector('.matrix'), n, 80);
+
+    window.setTimeout(function () {
+      if (breachStop) { breachStop(); breachStop = null; }
+      breach.classList.add('is-solved');
+    }, 1500);
+  }
+
   function decryptEmail() {
     if (!emailEl) return;
     if (reduced) { emailEl.textContent = emailText; return; }
@@ -377,6 +399,7 @@
           behavior: reduced ? 'auto' : 'smooth',
           block: 'center'
         });
+        runMatrix();
         decryptEmail();
         runSelection();
         buildDocTrack();

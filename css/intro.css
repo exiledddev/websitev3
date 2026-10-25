@@ -60,12 +60,12 @@ body:has(.intro:not([data-state="done"])) {
 
 .intro[data-state="done"] { display: none; }
 
-/* the whole layer lifts on the wipe */
+/* The handover is the page tear, not a clip of this layer - the intro
+   just drops out behind it so the two read as one effect. */
 .intro[data-state="wipe"] {
-  clip-path: inset(0 0 100% 0);
-  transition: clip-path 820ms var(--ease-in-out-quart);
+  opacity: 0;
+  transition: opacity 260ms linear 120ms;
 }
-.intro:not([data-state="wipe"]) { clip-path: inset(0 0 0 0); }
 
 /* ---------- background ---------- */
 
@@ -148,18 +148,7 @@ body:has(.intro:not([data-state="done"])) {
 }
 .intro__win-bar b { font-weight: 700; }
 
-.intro__win-body {
-  padding: 7px 9px;
-  display: grid;
-  gap: 3px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: 0.06em;
-  color: rgba(255, 31, 61, 0.78);
-  word-break: break-all;
-}
-.intro__win-body .is-done { color: #fff; text-shadow: 0 0 9px rgba(255, 31, 61, 0.8); }
+.intro__win-body { padding: 6px 7px; }
 
 /* ---------- scan sweep ---------- */
 

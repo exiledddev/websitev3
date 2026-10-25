@@ -5,7 +5,7 @@
 
    1. the grid comes up out of black
    2. ICE windows scale open out of nothing, height first
-   3. the traffic inside them decrypts into readable strings
+   3. a code matrix in each one solves itself, row then column
    4. the lockup is the last window through, and says WELCOME
    5. the whole layer lifts
 
@@ -20,7 +20,7 @@
   var TIMING = {
     boot:     520,   // grid and bars rise out of black
     windows: 1700,   // ICE windows snap open, staggered
-    decrypt: 1500,   // the traffic resolves
+    decrypt: 1500,   // the matrices keep working
     lockup:   820,   // the lockup window comes through
     hold:    1000,   // long enough to actually read it
     wipe:     820
@@ -36,108 +36,65 @@
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var timers  = [];
-  var raf     = 0;
 
-  var GLYPHS = '0123456789ABCDEF#$%&/\\|<>[]{}=+*';
-  var BYTES  = ['1C', '55', '7A', 'BD', 'E9', 'FF', 'A3', '0D', 'B6', 'F8', '06', '2E'];
-
+  var BYTES = ['1C', '55', '7A', 'BD', 'E9', 'FF'];
   function pick(a) { return a[(Math.random() * a.length) | 0]; }
-  function glyph()  { return GLYPHS.charAt((Math.random() * GLYPHS.length) | 0); }
-  function hex(n)   { var o = []; while (n--) o.push(pick(BYTES)); return o.join(' '); }
 
   /* ---------- build ---------- */
 
   /* Windows sit down the flanks; the middle band is left clear so the
      lockup has somewhere to land that is not already covered. */
   var SPOTS = [
-    [4,  10, 21, 17], [75, 7,  21, 15],
-    [7,  60, 19, 19], [78, 55, 19, 21],
-    [27, 5,  18, 12], [55, 78, 22, 14],
-    [3,  36, 15, 14], [84, 32, 14, 16]
+    [4,  9,  22, 21], [74, 6,  22, 20],
+    [6,  58, 20, 24], [77, 52, 21, 26],
+    [27, 4,  18, 15], [54, 79, 23, 17],
+    [2,  34, 16, 17], [84, 30, 14, 18]
   ];
 
-  var lines = [];   // every decrypting line on screen
+  var stops = [];   // one stop() per running matrix
+
+  function clearMatrices() {
+    stops.forEach(function (fn) { fn(); });
+    stops = [];
+  }
 
   function buildWindows() {
+    clearMatrices();
+
     var narrow = window.innerWidth < 720;
     var spots = narrow ? SPOTS.slice(0, 4) : SPOTS;
+    var M = window.MEMatrix;
 
     var html = '';
     for (var i = 0; i < spots.length; i++) {
-      var s = spots[i];
-      var body = '';
-      var rows = 2 + ((Math.random() * 2) | 0);
+      var sp = spots[i];
+      var size = narrow ? 4 : (Math.random() > 0.5 ? 5 : 4);
 
-      for (var r = 0; r < rows; r++) {
-        var text = (r === rows - 1 && Math.random() > 0.45)
-          ? pick(['ICE BYPASSED', 'LAYER OPEN', 'DAEMON OK', 'KEY ACCEPTED', 'TRACE CLEAR'])
-          : hex(3);
-        body += '<span data-target="' + text + '"></span>';
-      }
-
-      html += '<div class="intro__win" style="left:' + s[0] + '%;top:' + s[1] + '%;' +
-              'width:' + s[2] + '%;height:' + s[3] + '%;--wd:' + (i * 135) + 'ms">' +
-                '<div class="intro__win-bar"><b>0x' + pick(BYTES) + pick(BYTES) + '</b><b>//</b></div>' +
-                '<div class="intro__win-body">' + body + '</div>' +
+      html += '<div class="intro__win" style="left:' + sp[0] + '%;top:' + sp[1] + '%;' +
+              'width:' + sp[2] + '%;height:' + sp[3] + '%;--wd:' + (i * 120) + 'ms">' +
+                '<div class="intro__win-bar"><b>CODE MATRIX</b><b>0x' + pick(BYTES) + '</b></div>' +
+                '<div class="intro__win-body" data-n="' + size + '">' +
+                  (M ? M.html(size) : '') +
+                '</div>' +
               '</div>';
     }
     wins.innerHTML = html;
-
-    lines = Array.prototype.map.call(
-      wins.querySelectorAll('[data-target]'),
-      function (el, i) {
-        return { el: el, target: el.getAttribute('data-target'), start: i * 55 };
-      }
-    );
-
-    // start every line as noise so nothing pops in empty
-    lines.forEach(function (l) { paint(l, 0); });
   }
 
-  /* ---------- decrypt ---------- */
+  /* The solve only starts once the windows are open, and runs fast -
+     this is a machine working through a grid, not a readout. */
+  function startMatrices() {
+    if (reduced || !window.MEMatrix) return;
+    clearMatrices();
 
-  /* Characters resolve left to right; anything not yet resolved keeps
-     churning. p is 0..1 across the line's own window of the phase. */
-  function paint(line, p) {
-    var t = line.target;
-    var settled = Math.floor(t.length * p);
-    var out = '';
-
-    for (var i = 0; i < t.length; i++) {
-      if (t.charAt(i) === ' ') { out += ' '; continue; }
-      out += i < settled ? t.charAt(i) : glyph();
-    }
-
-    line.el.textContent = out;
-    line.el.classList.toggle('is-done', p >= 1);
-  }
-
-  function runDecrypt(duration) {
-    if (reduced) { finishText(); return; }
-
-    var t0 = 0;
-    cancelAnimationFrame(raf);
-
-    raf = requestAnimationFrame(function step(now) {
-      if (!t0) t0 = now;
-      var elapsed = now - t0;
-
-      lines.forEach(function (l) {
-        var p = (elapsed - l.start) / (duration * 0.72);
-        paint(l, Math.min(1, Math.max(0, p)));
-      });
-
-      if (elapsed < duration) raf = requestAnimationFrame(step);
-      else finishText();
+    Array.prototype.forEach.call(wins.querySelectorAll('.intro__win-body'), function (body, i) {
+      var root = body.querySelector('.matrix');
+      if (!root) return;
+      var n = parseInt(body.getAttribute('data-n'), 10) || 5;
+      window.setTimeout(function () {
+        stops.push(window.MEMatrix.run(root, n, 90 + (i % 3) * 25));
+      }, i * 90);
     });
-  }
-
-  /* Force every line to its final value. Called when the phase ends, so
-     a throttled tab cannot leave half-decrypted noise on screen. */
-  function finishText() {
-    cancelAnimationFrame(raf);
-    raf = 0;
-    lines.forEach(function (l) { paint(l, 1); });
   }
 
   /* ---------- sequence ---------- */
@@ -146,6 +103,7 @@
   function setState(n) { intro.setAttribute('data-state', n); }
 
   function finish() {
+    clearMatrices();
     setState('done');
     document.dispatchEvent(new CustomEvent('intro:done'));
   }
@@ -154,7 +112,6 @@
     buildWindows();
 
     if (reduced) {
-      finishText();
       setState('lockup');
       document.dispatchEvent(new CustomEvent('intro:reveal'));
       at(900, finish);
@@ -168,15 +125,13 @@
     var winsAt = TIMING.boot;
     at(winsAt, function () { setState('windows'); });
 
+    at(winsAt + 260, startMatrices);
+
     var decryptAt = winsAt + TIMING.windows;
-    at(decryptAt, function () {
-      setState('decrypt');
-      runDecrypt(TIMING.decrypt);
-    });
+    at(decryptAt, function () { setState('decrypt'); });
 
     var lockupAt = decryptAt + TIMING.decrypt;
     at(lockupAt, function () {
-      finishText();
       setState('lockup');
       if (brand) {
         brand.classList.add('is-glitching');
@@ -207,7 +162,7 @@
     window.clearTimeout(rebuild);
     rebuild = window.setTimeout(function () {
       buildWindows();
-      if (state === 'decrypt' || state === 'lockup') finishText();
+      startMatrices();
     }, 200);
   });
 
@@ -215,7 +170,7 @@
   function skip() {
     timers.forEach(window.clearTimeout);
     timers = [];
-    cancelAnimationFrame(raf);
+    clearMatrices();
     document.dispatchEvent(new CustomEvent('intro:reveal'));
     setState('wipe');
     window.setTimeout(finish, TIMING.wipe);

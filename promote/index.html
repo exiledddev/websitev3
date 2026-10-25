@@ -547,6 +547,11 @@
       <span class="tearlines" aria-hidden="true"></span>
       <div class="shell">
         <section class="contact" id="contact" aria-labelledby="contactHeading">
+                <div class="contact__breach" id="contactBreach" aria-hidden="true">
+                  <p class="contact__breach-bar"><b>CODE MATRIX</b><b>SEQUENCE ACCEPTED</b></p>
+                  <div class="contact__breach-grid" id="contactBreachGrid"></div>
+                </div>
+
                 <svg class="contact__icon" viewBox="0 0 48 34" aria-hidden="true" focusable="false">
                   <rect x="1.4" y="1.4" width="45.2" height="31.2" rx="5"
                         fill="none" stroke="currentColor" stroke-width="2.4"/>
@@ -607,12 +612,11 @@
 
 </div>
 
-<!-- ===== Page transition: the wall floods in, then lifts away ===== -->
-<div class="swipe" id="swipe" data-state="idle" aria-hidden="true">
-  <span class="swipe__veil" aria-hidden="true"></span>
-  <svg class="swipe__mark" viewBox="0 0 600 600" focusable="false">
-    <use href="#exiledMark"/>
-  </svg>
+<!-- ===== Page transition: the picture tears ===== -->
+<div class="tear" id="tear" aria-hidden="true">
+  <span class="tear__bars"></span>
+  <span class="tear__slabs"></span>
+  <span class="tear__wash"></span>
 </div>
 
 <script src="../js/site.js"></script>

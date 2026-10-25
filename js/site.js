@@ -3,6 +3,90 @@
    Loaded on every page. Page-specific work lives elsewhere
    (js/promote.js), so the home page no longer ships the deck.
    ============================================================ */
+/* ============================================================
+   Code matrix
+
+   The Breach Protocol grid: a square of hex bytes solved by
+   alternating between a row and a column. The cursor locks to a
+   row, takes a cell, locks to that cell's column, takes another,
+   and so on - which is what gives it its rhythm.
+
+   Shared, because the intro and the contact reveal both use it.
+   ============================================================ */
+window.MEMatrix = (function () {
+  'use strict';
+
+  var BYTES = ['1C', '55', '7A', 'BD', 'E9', 'FF'];
+
+  function html(n) {
+    var cells = '';
+    for (var i = 0; i < n * n; i++) {
+      cells += '<i>' + BYTES[(Math.random() * BYTES.length) | 0] + '</i>';
+    }
+    return '<div class="matrix" style="--n:' + n + '">' +
+             '<div class="matrix__cells">' + cells + '</div>' +
+           '</div>';
+  }
+
+  /* Returns a stop(). Pass speed in ms per pick. */
+  function run(root, n, speed) {
+    var cells = root.querySelectorAll('.matrix__cells i');
+    if (!cells.length) return function () {};
+
+    var axis = 0;        // 0 = locked to a row, 1 = locked to a column
+    var r = 0, c = 0;
+    var picks = 0;
+    var timer = 0;
+
+    function idx(row, col) { return row * n + col; }
+
+    function clear(cls) {
+      for (var i = 0; i < cells.length; i++) cells[i].classList.remove(cls);
+    }
+
+    function paintAxis() {
+      clear('is-axis');
+      for (var k = 0; k < n; k++) {
+        cells[axis === 0 ? idx(r, k) : idx(k, c)].classList.add('is-axis');
+      }
+    }
+
+    function reset() {
+      clear('is-picked');
+      clear('is-axis');
+      clear('is-head');
+      axis = 0; r = 0; c = 0; picks = 0;
+      // reshuffle so the same square never solves the same way twice
+      for (var i = 0; i < cells.length; i++) {
+        cells[i].textContent = BYTES[(Math.random() * BYTES.length) | 0];
+      }
+    }
+
+    function step() {
+      if (picks >= n + 2) { reset(); }
+
+      paintAxis();
+
+      if (axis === 0) c = (Math.random() * n) | 0;
+      else            r = (Math.random() * n) | 0;
+
+      var cell = cells[idx(r, c)];
+      clear('is-head');
+      cell.classList.add('is-picked', 'is-head');
+
+      axis = axis ? 0 : 1;
+      picks++;
+    }
+
+    timer = window.setInterval(step, speed || 110);
+    step();
+
+    return function () { window.clearInterval(timer); };
+  }
+
+  return { html: html, run: run };
+})();
+
 (function () {
   'use strict';
 
@@ -66,16 +150,19 @@
 
   /* ---------- page transition ---------- */
 
-  /* These are real navigations now, so the wipe has to finish before the
-     browser leaves. Covering takes COVER ms; the next document lifts its
-     own veil on load. Without JS the link is just a link. */
-  var COVER = 620;
-  var swipe = document.getElementById('swipe');
+  /* The picture tears rather than fading: scan lines and displaced slabs
+     over a juddering page, red on black. These are real navigations, so
+     the tear has to finish before the browser leaves; the next document
+     opens with the same tear clearing. Without JS the link is a link. */
+  var LEAVE = 620;
+  var tear  = document.getElementById('tear');
+  var page  = document.getElementById('page');
 
   function leaveTo(url) {
-    if (!swipe || reduced) { window.location.href = url; return; }
-    swipe.setAttribute('data-state', 'cover');
-    window.setTimeout(function () { window.location.href = url; }, COVER);
+    if (!tear || reduced) { window.location.href = url; return; }
+    tear.classList.add('is-on', 'is-leaving');
+    if (page) page.classList.add('is-tearing-page');
+    window.setTimeout(function () { window.location.href = url; }, LEAVE);
   }
 
   document.addEventListener('click', function (e) {
@@ -87,11 +174,16 @@
     leaveTo(a.getAttribute('href'));
   });
 
-  /* Arriving: if the previous page covered the screen, lift it. */
-  function uncover() {
-    if (!swipe) return;
-    swipe.setAttribute('data-state', 'uncover');
-    window.setTimeout(function () { swipe.setAttribute('data-state', 'idle'); }, 760);
+  /* Arriving: the tear is already over the screen, so glitch it away. */
+  function arrive() {
+    if (!tear || reduced) return;
+    tear.classList.add('is-on', 'is-arriving');
+    if (page) page.classList.add('is-tearing-page');
+
+    window.setTimeout(function () {
+      tear.classList.remove('is-on', 'is-arriving');
+      if (page) page.classList.remove('is-tearing-page');
+    }, 560);
   }
 
   /* ---------- start ---------- */
@@ -118,8 +210,11 @@
     document.dispatchEvent(new CustomEvent('site:ready'));
   }
 
+  /* The intro hands over through the same tear the pages use, so the
+     sequence and the navigation read as one effect. */
   document.addEventListener('intro:reveal', function () {
     body.setAttribute('data-reveal', 'in');
+    arrive();
   });
 
   document.addEventListener('intro:done', function () {
@@ -136,7 +231,7 @@
   function skipIntro() {
     body.setAttribute('data-intro', 'done');
     body.setAttribute('data-reveal', 'in');
-    uncover();
+    arrive();
     begin();
   }
 
