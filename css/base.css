@@ -902,21 +902,45 @@ h1, h2, h3, h4 {
 
 /* ---------- attribution ---------- */
 
-/* Sits above the copyright, deliberately quiet - it should be findable
-   rather than announced. */
-.footer__credit {
-  margin: clamp(26px, 5vw, 44px) 0 0;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--ink-40);
+/* A card, built from the same chamfered panel and corner brackets as the
+   ones on the home page, sitting under the footer brand. The first pass
+   was an 11px caption above the copyright and was far too easy to miss. */
+.credit {
+  --c: 11px;
+  display: inline-block;
+  margin-top: clamp(18px, 3vw, 26px);
+  max-width: 300px;
 }
-.footer__credit a {
+.credit:hover { background: var(--wall-45); }
+
+.credit__in {
+  padding: 15px 18px 16px;
+  transition: background 220ms var(--ease-out);
+}
+.credit:hover .credit__in { background: var(--panel-hi); }
+
+.credit__label { margin: 0 0 9px; font-size: 10px; }
+
+.credit__line {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
   color: var(--ink-60);
+}
+.credit__line a {
+  /* inline-block so a narrow card breaks between the two titles rather
+     than through the middle of one of them */
+  display: inline-block;
+  color: var(--ink);
   text-decoration: none;
-  border-bottom: 1px solid var(--wall-24);
+  border-bottom: 1px solid var(--wall-45);
   transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
 }
-.footer__credit a:hover { color: var(--wall); border-bottom-color: var(--wall); }
-.footer__slash { color: var(--wall-45); margin: 0 2px; }
+.credit__line a:hover { color: var(--wall); border-bottom-color: var(--wall); }
+.credit__slash { color: var(--wall); margin: 0 3px; }
 
-.footer__credit + .footer__base { margin-top: 14px; padding-top: 14px; }
+@media (max-width: 620px) {
+  .credit { max-width: 100%; }
+}
