@@ -180,8 +180,8 @@ window.MEMatrix = (function () {
      over a juddering page, red on black. These are real navigations, so
      the tear has to finish before the browser leaves; the next document
      opens with the same tear clearing. Without JS the link is a link. */
-  /* every transition stays inside a second, door to door */
-  var LEAVE = 460;
+  var LEAVE  = 400;    // glitch, then flat black
+  var ARRIVE = 1000;   // black fading up into the page
   var tear  = document.getElementById('tear');
   var halves = document.getElementById('tearHalves');
   var page  = document.getElementById('page');
@@ -230,17 +230,16 @@ window.MEMatrix = (function () {
   });
 
   /* Arriving: the tear is already over the screen, so glitch it away. */
+  /* Arriving is a plain fade up from black - no half-lines built, and the
+     page is not juddered. The glitch belongs to the exit; doing it again
+     on entry made every navigation feel like two separate events. */
   function arrive() {
     if (!tear || reduced) return;
-    buildTear();
     tear.classList.add('is-on', 'is-arriving');
-    if (page) page.classList.add('is-tearing-page');
 
     window.setTimeout(function () {
       tear.classList.remove('is-on', 'is-arriving');
-      if (page) page.classList.remove('is-tearing-page');
-      if (halves) halves.innerHTML = '';
-    }, 540);
+    }, ARRIVE + 40);
   }
 
   /* ---------- start ---------- */

@@ -646,8 +646,8 @@ h1, h2, h3, h4 {
   mix-blend-mode: lighten;
 }
 
-.tear.is-on .tear__feed    { animation: feedIn 760ms steps(4, end) forwards; }
-.tear.is-on .tear__feed--b { animation: feedInB 760ms steps(3, end) forwards; }
+.tear.is-leaving .tear__feed    { animation: feedIn 400ms steps(4, end) forwards; }
+.tear.is-leaving .tear__feed--b { animation: feedInB 400ms steps(3, end) forwards; }
 
 @keyframes feedIn {
   0%   { opacity: 0;    transform: translate3d(0, 0, 0) scale(1.04); }
@@ -663,7 +663,9 @@ h1, h2, h3, h4 {
   100% { opacity: 0.58; }
 }
 
-/* fine full-width scan lines */
+/* Fine full-width scan lines. These need an explicit opacity:0 base -
+   the layer is otherwise always painted, and the arriving fade then had
+   static lines sitting over the page it was revealing. */
 .tear__bars {
   background: repeating-linear-gradient(
     180deg,
@@ -672,6 +674,7 @@ h1, h2, h3, h4 {
     rgba(255, 255, 255, 0.07) 3px 4px,
     transparent 4px 7px);
   mix-blend-mode: screen;
+  opacity: 0;
 }
 
 /* the half-lines themselves */
@@ -687,8 +690,8 @@ h1, h2, h3, h4 {
   box-shadow: 0 0 16px #fff, 0 0 34px var(--wall-hot);
 }
 
-.tear.is-on .tear__half {
-  animation: halfRip 280ms steps(2, end) infinite;
+.tear.is-leaving .tear__half {
+  animation: halfRip 200ms steps(2, end) infinite;
   animation-delay: var(--d, 0ms);
 }
 
@@ -709,14 +712,14 @@ h1, h2, h3, h4 {
   mix-blend-mode: screen;
   opacity: 0;
 }
-.tear.is-on .tear__glow { animation: tearGlow 520ms ease-out infinite alternate; }
+.tear.is-leaving .tear__glow { animation: tearGlow 300ms ease-out infinite alternate; }
 
 @keyframes tearGlow {
   0%   { opacity: 0.35; }
   100% { opacity: 0.85; }
 }
 
-.tear.is-on .tear__bars { animation: tearScan 300ms steps(3, end) infinite; }
+.tear.is-leaving .tear__bars { animation: tearScan 190ms steps(3, end) infinite; }
 
 @keyframes tearScan {
   0%   { transform: translate3d(0, 0, 0);     opacity: 0.9; }
@@ -725,24 +728,31 @@ h1, h2, h3, h4 {
   100% { transform: translate3d(0, 2px, 0);    opacity: 0.6; }
 }
 
-/* leaving: the wash is opaque well before the browser navigates */
-.tear.is-leaving .tear__wash { animation: tearWash 240ms ease-in forwards; }
+/* Leaving: 400ms of glitch, and the wash is solid black by the end of it
+   so the document swap happens behind a flat screen. */
+.tear.is-leaving .tear__wash { animation: tearWash 340ms ease-in forwards; }
 @keyframes tearWash {
   0%   { opacity: 0; }
+  70%  { opacity: 0.9; }
   100% { opacity: 1; }
 }
 
-/* arriving: the wash starts opaque and lifts away */
-.tear.is-arriving .tear__wash { animation: tearClear 460ms ease-out forwards; }
+/* Arriving is not a glitch - the new page comes up out of flat black, so
+   the only thing running is the wash lifting. The feed, half-lines, bars
+   and bloom are all scoped to .is-leaving and never fire here. */
+.tear.is-arriving .tear__wash {
+  background: var(--ground);
+  animation: tearClear 1000ms cubic-bezier(0.33, 0, 0.2, 1) forwards;
+}
 @keyframes tearClear {
   0%   { opacity: 1; }
-  70%  { opacity: 0.5; }
+  38%  { opacity: 0.88; }
   100% { opacity: 0; }
 }
 
 /* A nudge, not a shake - the tear carries the violence, the page just
    loses its footing slightly. */
-.is-tearing-page { animation: pageJudder 420ms steps(2, end) infinite; }
+.is-tearing-page { animation: pageJudder 300ms steps(2, end) infinite; }
 @keyframes pageJudder {
   0%   { transform: translate3d(0, 0, 0); }
   30%  { transform: translate3d(-2px, 1px, 0); }
