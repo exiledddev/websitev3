@@ -34,4 +34,17 @@
             <image:title>Promote Your Business</image:title>
         </image:image>
     </url>
+
+    <url>
+        <loc>https://www.markedexiled.com/islandrealm/</loc>
+        <lastmod>2026-10-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+
+        <image:image>
+            <image:loc>https://www.markedexiled.com/assets/og-image.png</image:loc>
+            <image:caption>The cast behind Island Realm: Cuski, Exiled and EpicClutch.</image:caption>
+            <image:title>Island Realm - Cast &amp; Socials</image:title>
+        </image:image>
+    </url>
 </urlset>

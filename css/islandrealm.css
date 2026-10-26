@@ -1,0 +1,189 @@
+/* ============================================================
+   Island Realm — cast and socials
+
+   Three equal panels, one per cast member, each with its own
+   colour. Comic treatment: halftone, hard gutters, chamfered
+   corners and titlecard lettering with a solid offset shadow.
+
+   The hero face on cyberpunk.net is Blender Pro (Alias), which
+   is commercial and cannot ship here. Oxanium is the closest
+   free match for its squared, technical cut - swap the
+   --titlecard stack below if the real one is ever licensed.
+   ============================================================ */
+
+:root {
+  --titlecard: 'Oxanium', 'Chakra Petch', system-ui, sans-serif;
+
+  --ir-blue:   #2D7DFF;
+  --ir-red:    #FF1F3D;
+  --ir-amber:  #FFA524;
+
+  --ir-nav-h:  86px;
+  --gutter:    4px;
+}
+
+body[data-page="islandrealm"] { background: #04050A; }
+
+/* ---------- nav ---------- */
+
+.ir-nav { height: var(--ir-nav-h); }
+
+.watch {
+  --c: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px 28px;
+  background: var(--ink);
+  color: #06070C;
+  text-decoration: none;
+  clip-path: var(--cut);
+  transition: background 200ms var(--ease-out), color 200ms var(--ease-out);
+}
+.watch:hover { background: var(--ir-red); color: #fff; }
+
+.watch__icon { width: 26px; height: 26px; fill: currentColor; flex: 0 0 auto; }
+
+.watch__text {
+  font-family: var(--titlecard);
+  font-size: clamp(13px, 1.5vw, 17px);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---------- the three panels ---------- */
+
+.cast {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gutter);
+  min-height: calc(100svh - var(--ir-nav-h));
+  background: #000;
+  padding: var(--gutter);
+}
+
+.cast__panel {
+  --c: 22px;
+  /* the name is sized against the panel, not the viewport - at 5.4vw the
+     longest of the three ran 228px past its own column */
+  container-type: inline-size;
+  position: relative;
+  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  isolation: isolate;
+  padding: clamp(24px, 3vw, 46px) clamp(18px, 2.4vw, 38px);
+  background: #07080E;
+  clip-path: var(--cut);
+}
+
+.cast__panel--cuski  { --ink: var(--ir-blue); }
+.cast__panel--exiled { --ink: var(--ir-red); }
+.cast__panel--epic   { --ink: var(--ir-amber); }
+
+/* colour bleeding down from the top of each panel */
+.cast__wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ink) 34%, transparent) 0%, transparent 52%),
+    radial-gradient(120% 52% at 50% 0%, color-mix(in srgb, var(--ink) 44%, transparent) 0%, transparent 70%);
+}
+
+/* comic halftone, densest at the top where the colour is */
+.cast__halftone {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: radial-gradient(var(--ink) 1.1px, transparent 1.2px);
+  background-size: 7px 7px;
+  opacity: 0.26;
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.35) 42%, transparent 78%);
+}
+
+.cast__top { position: relative; z-index: 2; }
+
+.cast__role {
+  margin: 0 0 10px;
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* titlecard lettering: heavy, tight, with a solid offset shadow the way
+   comic nameplates are set */
+.cast__name {
+  margin: 0;
+  font-family: var(--titlecard);
+  font-size: clamp(1.7rem, 10.5cqw, 4.2rem);
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow:
+    3px 3px 0 var(--ink),
+    6px 6px 0 rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- socials (filled in later) ---------- */
+
+.cast__socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(20px, 2.6vw, 34px);
+}
+
+.cast__slot {
+  --c: 8px;
+  width: 46px;
+  height: 46px;
+  border: 2px dashed color-mix(in srgb, var(--ink) 55%, transparent);
+  clip-path: var(--cut);
+}
+
+/* ---------- art (dropped in later) ---------- */
+
+.cast__art {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(30px, 5vh, 70px);
+  min-height: clamp(160px, 34vh, 340px);
+  display: grid;
+  place-items: center;
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+}
+.cast__art span {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+/* ---------- stacked on small screens ---------- */
+
+@media (max-width: 900px) {
+  .cast { grid-template-columns: 1fr; min-height: 0; }
+  .cast__panel { min-height: 70svh; }
+  .cast__art { min-height: clamp(140px, 26vh, 240px); }
+}
+
+@media (max-width: 620px) {
+  .ir-nav { height: 72px; }
+  .watch { padding: 11px 15px; gap: 9px; }
+  .watch__icon { width: 20px; height: 20px; }
+  .watch__text { font-size: 11px; letter-spacing: 0.07em; }
+  .cast__name { font-size: clamp(1.9rem, 13cqw, 3.4rem); }
+}
