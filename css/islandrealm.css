@@ -27,6 +27,9 @@
 :root {
   --titlecard: 'Integral CF', 'Archivo Black', 'Chakra Petch', system-ui, sans-serif;
 
+  /* the Edgerunners hero yellow, straight off cyberpunk.net */
+  --ir-yellow: #FCEE0A;
+
   --ir-blue:   #2D7DFF;
   --ir-red:    #FF1F3D;
   --ir-amber:  #FFA524;
@@ -39,31 +42,76 @@ body[data-page="islandrealm"] { background: #04050A; }
 
 /* ---------- nav ---------- */
 
-.ir-nav { height: var(--ir-nav-h); }
+/* Three columns so the button is centred on the viewport rather than
+   pushed around by however wide the brand happens to be. */
+.ir-nav {
+  height: var(--ir-nav-h);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+.ir-nav__pad { display: block; }
 
 .watch {
   --c: 13px;
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   gap: 13px;
-  padding: 15px 28px;
-  background: var(--ink);
-  color: #06070C;
+  padding: 15px 30px;
+  background: var(--ir-red);
+  color: #0A0206;
   text-decoration: none;
   clip-path: var(--cut);
-  transition: background 200ms var(--ease-out), color 200ms var(--ease-out);
+  box-shadow: 0 0 30px rgba(255, 31, 61, 0.4), 0 0 80px rgba(255, 31, 61, 0.18);
+  transition: box-shadow 200ms var(--ease-out);
 }
-.watch:hover { background: var(--ir-red); color: #fff; }
 
-.watch__icon { width: 26px; height: 26px; fill: currentColor; flex: 0 0 auto; }
+.watch__icon { width: 26px; height: 26px; fill: currentColor; flex: 0 0 auto; position: relative; z-index: 1; }
 
 .watch__text {
+  position: relative;
+  z-index: 1;
   font-family: var(--titlecard);
   font-size: clamp(13px, 1.5vw, 17px);
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+/* It glitches on its own every few seconds so it pulls the eye, and
+   holds the glitch while hovered. */
+.watch__text::before,
+.watch__text::after { animation-iteration-count: 1; }
+
+.watch { animation: watchJudder 5.5s steps(2, end) infinite; }
+.watch .tearlines { animation: watchBars 5.5s steps(2, end) infinite; }
+.watch__text.glitch::before { animation: tearRed 5.5s steps(2, end) infinite; }
+.watch__text.glitch::after  { animation: tearDark 5.5s steps(2, end) infinite; }
+
+/* hover drops the long quiet stretch and just runs it */
+.watch:hover { box-shadow: 0 0 44px rgba(255, 31, 61, 0.6), 0 0 110px rgba(255, 31, 61, 0.26); }
+.watch:hover { animation: watchJudder 260ms steps(2, end) infinite; }
+.watch:hover .tearlines { animation: tearBars 300ms steps(2, end) infinite; }
+.watch:hover .watch__text.glitch::before { animation: tearRed 420ms steps(2, end) infinite; }
+.watch:hover .watch__text.glitch::after  { animation: tearDark 420ms steps(2, end) infinite; }
+
+/* mostly still, with a short burst near the end of each cycle */
+@keyframes watchJudder {
+  0%, 86%  { transform: translate3d(0, 0, 0); }
+  89%      { transform: translate3d(-3px, 1px, 0); }
+  92%      { transform: translate3d(3px, -1px, 0); }
+  95%      { transform: translate3d(-2px, 0, 0); }
+  100%     { transform: translate3d(0, 0, 0); }
+}
+@keyframes watchBars {
+  0%, 85%  { opacity: 0; transform: translate3d(0, 0, 0); }
+  88%      { opacity: 0.85; transform: translate3d(-4px, 2px, 0); }
+  93%      { opacity: 0.6;  transform: translate3d(3px, -2px, 0); }
+  97%      { opacity: 0; }
+  100%     { opacity: 0; }
 }
 
 /* ---------- the three panels ---------- */
@@ -143,12 +191,12 @@ body[data-page="islandrealm"] { background: #04050A; }
   line-height: 0.88;
   letter-spacing: -0.015em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--ir-yellow);
   /* a long name stacks on the <wbr> rather than running out of its panel */
   overflow-wrap: break-word;
   text-shadow:
     4px 4px 0 var(--ink),
-    8px 8px 0 rgba(0, 0, 0, 0.55);
+    8px 8px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* ---------- socials (filled in later) ---------- */
