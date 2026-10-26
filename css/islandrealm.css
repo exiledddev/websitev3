@@ -5,14 +5,27 @@
    colour. Comic treatment: halftone, hard gutters, chamfered
    corners and titlecard lettering with a solid offset shadow.
 
-   The hero face on cyberpunk.net is Blender Pro (Alias), which
-   is commercial and cannot ship here. Oxanium is the closest
-   free match for its squared, technical cut - swap the
-   --titlecard stack below if the real one is ever licensed.
+   Titlecards are set in Integral CF (Connary Fagen), which is
+   commercial and cannot be bundled here. It is first in the
+   stack, so a licensed or locally installed copy wins; Archivo
+   Black ships as the fallback, being the closest free match for
+   its heavy geometric cut.
+
+   To use the real one, drop the licensed files in
+   assets/fonts/ and uncomment the @font-face below.
    ============================================================ */
 
+/*
+@font-face {
+  font-family: 'Integral CF';
+  src: url('../assets/fonts/IntegralCF-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+*/
+
 :root {
-  --titlecard: 'Oxanium', 'Chakra Petch', system-ui, sans-serif;
+  --titlecard: 'Integral CF', 'Archivo Black', 'Chakra Petch', system-ui, sans-serif;
 
   --ir-blue:   #2D7DFF;
   --ir-red:    #FF1F3D;
@@ -125,15 +138,17 @@ body[data-page="islandrealm"] { background: #04050A; }
 .cast__name {
   margin: 0;
   font-family: var(--titlecard);
-  font-size: clamp(1.7rem, 10.5cqw, 4.2rem);
-  font-weight: 800;
-  line-height: 0.94;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.4rem, 20cqw, 7.5rem);
+  font-weight: 700;
+  line-height: 0.88;
+  letter-spacing: -0.015em;
   text-transform: uppercase;
   color: #fff;
+  /* a long name stacks on the <wbr> rather than running out of its panel */
+  overflow-wrap: break-word;
   text-shadow:
-    3px 3px 0 var(--ink),
-    6px 6px 0 rgba(0, 0, 0, 0.55);
+    4px 4px 0 var(--ink),
+    8px 8px 0 rgba(0, 0, 0, 0.55);
 }
 
 /* ---------- socials (filled in later) ---------- */
@@ -185,5 +200,5 @@ body[data-page="islandrealm"] { background: #04050A; }
   .watch { padding: 11px 15px; gap: 9px; }
   .watch__icon { width: 20px; height: 20px; }
   .watch__text { font-size: 11px; letter-spacing: 0.07em; }
-  .cast__name { font-size: clamp(1.9rem, 13cqw, 3.4rem); }
+  .cast__name { font-size: clamp(2.6rem, 22cqw, 5.5rem); }
 }
