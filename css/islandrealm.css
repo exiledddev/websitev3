@@ -146,8 +146,18 @@ body[data-page="islandrealm"] { background: #04050A; }
 .cast__panel--exiled { --ink: var(--ir-red); }
 .cast__panel--epic   { --ink: var(--ir-amber); }
 
-/* Comic halftone, now kept clear of the lettering and building toward
-   the art block instead. Nothing coloured sits behind the names. */
+/* colour bleeding down from the top of each panel */
+.cast__wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ink) 34%, transparent) 0%, transparent 52%),
+    radial-gradient(120% 52% at 50% 0%, color-mix(in srgb, var(--ink) 44%, transparent) 0%, transparent 70%);
+}
+
+/* comic halftone, densest at the top where the colour is */
 .cast__halftone {
   position: absolute;
   inset: 0;
@@ -155,8 +165,8 @@ body[data-page="islandrealm"] { background: #04050A; }
   pointer-events: none;
   background-image: radial-gradient(var(--ink) 1.1px, transparent 1.2px);
   background-size: 7px 7px;
-  opacity: 0.2;
-  mask-image: linear-gradient(180deg, transparent 0%, transparent 34%, rgba(0, 0, 0, 0.5) 58%, #000 100%);
+  opacity: 0.26;
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.35) 42%, transparent 78%);
 }
 
 .cast__top { position: relative; z-index: 2; }
