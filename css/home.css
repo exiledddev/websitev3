@@ -109,3 +109,60 @@
   .card__in { flex-direction: column-reverse; align-items: flex-start; min-height: 0; }
   .card__art { width: 72px; }
 }
+
+/* ---------- coming soon ---------- */
+
+/* Sits at the top-left of the page, just under the sticky nav. The hero
+   is already a positioning context, so it anchors there rather than
+   needing one added to the page wrapper. */
+.soon {
+  --c: 11px;
+  position: absolute;
+  z-index: 3;
+  top: clamp(16px, 3vh, 30px);
+  left: var(--edge);
+  max-width: min(260px, 62vw);
+  padding: 13px 18px 15px;
+  background: var(--wall);
+  color: #0A0206;
+  clip-path: var(--cut);
+  box-shadow: 0 10px 34px rgba(255, 31, 61, 0.3);
+}
+
+.soon p { margin: 0; }
+
+.soon__label {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.soon__title {
+  margin-top: 3px;
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 2vw, 1.4rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+
+.soon__sub {
+  margin-top: 5px;
+  font-family: var(--display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  opacity: 0.78;
+}
+
+@media (max-width: 620px) {
+  .soon {
+    padding: 10px 13px 12px;
+    max-width: 58vw;
+  }
+  .soon__label { font-size: 8.5px; letter-spacing: 0.18em; }
+  .soon__sub { font-size: 9px; }
+}

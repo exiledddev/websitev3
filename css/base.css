@@ -944,3 +944,14 @@ h1, h2, h3, h4 {
 @media (max-width: 620px) {
   .credit { max-width: 100%; }
 }
+
+/* ---------- nav on small screens ---------- */
+
+/* "Promote Your Business" is long; at 350px it wraps to three lines and
+   triples the nav height. The mark alone carries the brand there - the
+   wordmark is still in the footer. */
+@media (max-width: 620px) {
+  .nav__word { display: none; }
+  .nav__cta { padding: 9px 14px; font-size: 10.5px; letter-spacing: 0.12em; }
+  .nav__point { right: calc(var(--edge) + 34px); }
+}
