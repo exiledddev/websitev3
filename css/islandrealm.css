@@ -194,9 +194,6 @@ body[data-page="islandrealm"] { background: #04050A; }
   color: var(--ir-yellow);
   /* a long name stacks on the <wbr> rather than running out of its panel */
   overflow-wrap: break-word;
-  text-shadow:
-    5px 5px 0 #000,
-    9px 9px 0 rgba(0, 0, 0, 0.45);
 }
 
 /* ---------- socials (filled in later) ---------- */
