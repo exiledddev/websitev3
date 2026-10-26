@@ -423,3 +423,108 @@ body:has(.intro:not([data-state="done"])) {
   .intro__scan-hot, .intro__scan-white { display: none; }
   .intro__scan { animation: none; }
 }
+
+/* ---------- instrument windows ---------- */
+
+/* Only the Breach grids are square; the readouts, meters and streams
+   size to their own content the way a real overlay does. */
+.intro__win[data-kind="matrix"] .matrix { aspect-ratio: 1 / 1; }
+
+.ro, .mt, .st {
+  background: rgba(8, 2, 4, 0.9);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 31, 61, 0.8),
+    0 0 0 1px rgba(255, 31, 61, 0.25),
+    0 0 18px rgba(255, 31, 61, 0.2);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  font-family: 'Chakra Petch', ui-monospace, monospace;
+}
+
+.ro__bar, .mt__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 3px 6px;
+  background: var(--intro-red);
+  color: #120206;
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* ---- trace log ---- */
+
+.ro__rows { display: grid; gap: 2px; padding: 5px 6px; }
+.ro__rows span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 7.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ro__rows i { font-style: normal; color: rgba(255, 31, 61, 0.55); }
+.ro__rows b { color: rgba(255, 120, 135, 0.95); font-weight: 700; }
+.ro__rows span:nth-child(2n) b { animation: roFlick 820ms steps(2, end) infinite; }
+
+@keyframes roFlick {
+  0%, 60% { opacity: 1; }
+  66%     { opacity: 0.2; }
+  72%     { opacity: 1; }
+  100%    { opacity: 0.85; }
+}
+
+/* ---- level meter ---- */
+
+.mt__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 36px;
+  padding: 5px 6px;
+}
+.mt__bars i {
+  flex: 1;
+  height: var(--h, 50%);
+  background: linear-gradient(180deg, #fff 0%, var(--intro-red) 38%, rgba(255, 31, 61, 0.35) 100%);
+  animation: mtPulse 700ms steps(3, end) infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes mtPulse {
+  0%   { transform: scaleY(1);    opacity: 0.9; }
+  33%  { transform: scaleY(0.42); opacity: 0.55; }
+  66%  { transform: scaleY(1.15); opacity: 1; }
+  100% { transform: scaleY(0.75); opacity: 0.8; }
+}
+
+/* ---- byte stream ---- */
+
+.st { padding: 5px 6px; }
+.st__lines { display: grid; gap: 2px; }
+.st__lines span {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(255, 31, 61, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  animation: stRun 900ms steps(2, end) infinite;
+  animation-delay: var(--d, 0ms);
+}
+.st__lines span:nth-child(3n) { color: #fff; text-shadow: 0 0 8px var(--intro-red); }
+
+@keyframes stRun {
+  0%, 70% { opacity: 1;    transform: translate3d(0, 0, 0); }
+  78%     { opacity: 0.25; transform: translate3d(-4px, 0, 0); }
+  88%     { opacity: 1;    transform: translate3d(3px, 0, 0); }
+  100%    { opacity: 0.8;  transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ro__rows b, .mt__bars i, .st__lines span { animation: none; }
+}

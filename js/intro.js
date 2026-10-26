@@ -42,14 +42,56 @@
 
   /* ---------- build ---------- */
 
-  /* Windows sit down the flanks; the middle band is left clear so the
-     lockup has somewhere to land that is not already covered. */
-  var SPOTS = [
-    [3,  8,  25], [72, 5,  25],
-    [5,  57, 24], [71, 54, 26],
-    [26, 3,  22], [52, 78, 26],
-    [2,  33, 21], [78, 29, 20]
-  ];
+  function rnd(lo, hi) { return lo + Math.random() * (hi - lo); }
+  function ri(lo, hi)  { return Math.floor(rnd(lo, hi + 1)); }
+
+  /* A wall of readouts rather than five copies of one widget: besides the
+     Breach grids there are trace logs, level meters and raw byte streams,
+     the way a netrunner's overlay is a pile of different instruments. */
+
+  function readout() {
+    var rows = '';
+    var LABELS = ['Trace', 'Subnet', 'Daemon', 'ICE', 'Node', 'Uplink', 'Shard', 'Ping'];
+    for (var i = 0; i < ri(3, 5); i++) {
+      rows += '<span><i>' + LABELS[ri(0, LABELS.length - 1)] + '</i>' +
+              '<b>' + pick(BYTES) + ' ' + pick(BYTES) + '</b></span>';
+    }
+    return '<div class="ro">' +
+             '<div class="ro__bar"><b>' + pick(['Trace Log', 'Subnet', 'Daemon']) + '</b><b>0x' + pick(BYTES) + '</b></div>' +
+             '<div class="ro__rows">' + rows + '</div>' +
+           '</div>';
+  }
+
+  function meter() {
+    var bars = '';
+    for (var i = 0; i < ri(9, 16); i++) {
+      bars += '<i style="--h:' + ri(18, 100) + '%;--d:' + ri(0, 900) + 'ms"></i>';
+    }
+    return '<div class="mt">' +
+             '<div class="mt__bar"><b>Signal</b><b>' + ri(10, 99) + '%</b></div>' +
+             '<div class="mt__bars">' + bars + '</div>' +
+           '</div>';
+  }
+
+  function stream() {
+    var lines = '';
+    for (var i = 0; i < ri(5, 9); i++) {
+      var row = '';
+      for (var k = 0; k < ri(3, 5); k++) row += pick(BYTES) + ' ';
+      lines += '<span style="--d:' + ri(0, 1200) + 'ms">' + row.trim() + '</span>';
+    }
+    return '<div class="st"><div class="st__lines">' + lines + '</div></div>';
+  }
+
+  /* Placed anywhere on screen, centre included. Keeping them off the
+     middle made the wall look like a frame around nothing. */
+  function place(wPct, hPct) {
+    return {
+      left: rnd(1, 99 - wPct).toFixed(2),
+      top:  rnd(1, 97 - hPct).toFixed(2),
+      w:    wPct.toFixed(2)
+    };
+  }
 
   var stops = [];   // one stop() per running matrix
 
@@ -63,18 +105,28 @@
     clearMatrices();
 
     var narrow = window.innerWidth < 720;
-    var spots = narrow ? SPOTS.slice(0, 4) : SPOTS;
+    var count = narrow ? 7 : 13;
     var M = window.MEMatrix;
 
     var html = '';
-    for (var i = 0; i < spots.length; i++) {
-      var sp = spots[i];
+    for (var i = 0; i < count; i++) {
+      /* roughly one in three is a Breach grid; the rest are instruments */
+      var kind = i % 3 === 0 ? 'matrix' : pick(['readout', 'meter', 'stream']);
       var size = narrow ? 6 : (Math.random() > 0.5 ? 7 : 6);
 
-      html += '<div class="intro__win" style="left:' + sp[0] + '%;top:' + sp[1] + '%;' +
-              'width:' + sp[2] + '%" data-n="' + size + '">' +
-                (M ? M.html(size, 'Code Matrix') : '') +
-              '</div>';
+      var wPct = kind === 'matrix' ? rnd(narrow ? 24 : 15, narrow ? 34 : 23)
+                                   : rnd(narrow ? 20 : 12, narrow ? 30 : 19);
+      var hGuess = kind === 'matrix' ? wPct * 1.6 : 16;
+      var pos = place(wPct, Math.min(hGuess, 34));
+
+      var body = kind === 'matrix' ? (M ? M.html(size, 'Code Matrix') : '')
+               : kind === 'readout' ? readout()
+               : kind === 'meter'   ? meter()
+               : stream();
+
+      html += '<div class="intro__win" data-kind="' + kind + '" data-n="' + size + '" ' +
+              'style="left:' + pos.left + '%;top:' + pos.top + '%;width:' + pos.w + '%;' +
+              '--wd:' + (i * 85) + 'ms">' + body + '</div>';
     }
     wins.innerHTML = html;
   }
@@ -118,7 +170,7 @@
     if (reduced || !window.MEMatrix) return;
     clearMatrices();
 
-    Array.prototype.forEach.call(wins.querySelectorAll('.intro__win'), function (win, i) {
+    Array.prototype.forEach.call(wins.querySelectorAll('.intro__win[data-kind="matrix"]'), function (win, i) {
       var root = win.querySelector('.matrix');
       if (!root) return;
       var n = parseInt(win.getAttribute('data-n'), 10) || 5;
