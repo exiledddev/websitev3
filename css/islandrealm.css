@@ -205,12 +205,31 @@ body[data-page="islandrealm"] { background: #04050A; }
   margin-top: clamp(20px, 2.6vw, 34px);
 }
 
-.cast__slot {
-  --c: 8px;
-  width: 46px;
-  height: 46px;
-  border: 2px dashed color-mix(in srgb, var(--ink) 55%, transparent);
+.cast__social {
+  --c: 9px;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.42);
+  box-shadow: inset 0 0 0 2px currentColor;
   clip-path: var(--cut);
+  transition: background 180ms var(--ease-out), color 180ms var(--ease-out),
+              transform 180ms var(--ease-out);
+}
+.cast__social svg { width: 23px; height: 23px; fill: currentColor; }
+
+.cast__social:hover {
+  background: var(--ink);
+  color: #06070C;
+  transform: translateY(-3px);
+}
+.cast__social:focus-visible { outline: 2px solid var(--ir-yellow); outline-offset: 3px; }
+
+@media (max-width: 620px) {
+  .cast__social { width: 44px; height: 44px; }
+  .cast__social svg { width: 20px; height: 20px; }
 }
 
 /* ---------- art (dropped in later) ---------- */
