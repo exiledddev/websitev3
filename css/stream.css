@@ -1,0 +1,348 @@
+/* ============================================================
+   Starting Soon — 1920x1080 broadcast graphic
+
+   Built as a fixed-size stage scaled to the window, so the
+   composition is identical whether it is a full-screen OBS
+   source or a thumbnail preview. Loops forever; nothing here
+   depends on a page transition or a scroll position.
+   ============================================================ */
+
+html, body { height: 100%; }
+
+body.ss {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--display);
+}
+
+/* Centred by absolute position rather than by a grid, because the child
+   is larger than the viewport before it is scaled and centring an
+   oversized grid item is not reliable. */
+.stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: radial-gradient(130% 90% at 50% 8%, #10050B 0%, #05060A 58%, #020308 100%);
+  transform: translate(-50%, -50%) scale(var(--s, 1));
+  transform-origin: center center;
+}
+
+/* ---------- stage-wide texture ---------- */
+
+.stage__grid, .stage__scan, .stage__roll {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.stage__grid {
+  z-index: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 79px, rgba(255, 31, 61, 0.07) 79px 80px),
+    repeating-linear-gradient(180deg, transparent 0 79px, rgba(255, 31, 61, 0.05) 79px 80px);
+}
+
+.stage__scan {
+  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0 1px, transparent 1px 3px);
+  animation: ssCreep 1.2s linear infinite;
+}
+@keyframes ssCreep { from { background-position: 0 0; } to { background-position: 0 4px; } }
+
+/* a sync-fault band rolling down the frame */
+.stage__roll {
+  inset: auto 0 auto 0;
+  height: 14%;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(255, 31, 61, 0.12) 36%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 31, 61, 0.12) 64%,
+    transparent 100%);
+  animation: ssRoll 5.2s linear infinite;
+}
+@keyframes ssRoll {
+  0%   { top: -16%; opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { top: 102%; opacity: 0; }
+}
+
+/* ---------- brand lockup ---------- */
+
+.ss-brand {
+  position: absolute;
+  top: 64px;
+  left: 72px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+.ss-brand__mark { width: 116px; height: 116px; color: #fff; filter: drop-shadow(0 0 26px rgba(255, 31, 61, 0.55)); }
+.ss-brand__word {
+  margin: 0;
+  font-size: 62px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #fff;
+}
+.ss-brand__sub {
+  margin: 10px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--wall);
+}
+
+/* ---------- terminal ---------- */
+
+.term {
+  position: absolute;
+  left: 72px;
+  top: 262px;
+  width: 440px;
+  height: 624px;
+  z-index: 3;
+  background: rgba(7, 2, 5, 0.86);
+  box-shadow: inset 0 0 0 2px var(--wall), 0 0 40px rgba(255, 31, 61, 0.22);
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  display: flex;
+  flex-direction: column;
+}
+.term__bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--wall);
+  color: #0A0206;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.term__body {
+  flex: 1;
+  padding: 18px 20px;
+  font-size: 17px;
+  line-height: 1.62;
+  color: rgba(255, 90, 110, 0.9);
+  overflow: hidden;
+}
+.term__line { white-space: pre; }
+.term__line b { color: #fff; font-weight: 700; }
+.term__line i { font-style: normal; color: var(--wall-hot); }
+.term__cursor {
+  display: inline-block;
+  width: 11px;
+  height: 20px;
+  margin-left: 3px;
+  background: var(--wall);
+  vertical-align: -3px;
+  animation: ssBlink 1s steps(2, end) infinite;
+}
+@keyframes ssBlink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+/* ---------- breach grids ---------- */
+
+.ss-grids { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.ss-grid {
+  position: absolute;
+  transform: scale(0);
+  transform-origin: 50% 50%;
+  opacity: 0;
+  filter: drop-shadow(0 0 24px rgba(255, 31, 61, 0.3));
+}
+.ss-grid.is-open {
+  transform: scale(1);
+  opacity: 1;
+  transition: transform 190ms cubic-bezier(0.12, 1.6, 0.3, 1), opacity 90ms linear;
+}
+.ss-grid:not(.is-open) { transition: transform 140ms cubic-bezier(0.6, 0, 0.9, 0.3), opacity 110ms linear 20ms; }
+
+/* ---------- the card ---------- */
+
+.ss-card {
+  position: absolute;
+  left: 50%;
+  top: 548px;
+  translate: -50% -50%;
+  z-index: 5;
+  width: 820px;
+  overflow: hidden;
+  background: rgba(8, 2, 4, 0.95);
+  box-shadow:
+    inset 0 0 0 3px var(--wall),
+    0 0 70px rgba(255, 31, 61, 0.4),
+    0 0 180px rgba(255, 31, 61, 0.18);
+  clip-path: polygon(26px 0, 100% 0, 100% calc(100% - 26px), calc(100% - 26px) 100%, 0 100%, 0 26px);
+  animation: ssCardJudder 6s steps(2, end) infinite;
+}
+@keyframes ssCardJudder {
+  0%, 88%  { transform: translate3d(0, 0, 0); }
+  90%      { transform: translate3d(-6px, 2px, 0); }
+  93%      { transform: translate3d(5px, -2px, 0); }
+  96%      { transform: translate3d(-2px, 0, 0); }
+  100%     { transform: translate3d(0, 0, 0); }
+}
+
+.ss-card__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--wall);
+  color: #0A0206;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+}
+.ss-card__bar span { display: inline-flex; gap: 8px; }
+.ss-card__bar i { width: 10px; height: 10px; background: #0A0206; rotate: 45deg; }
+
+.ss-card__in { padding: 46px 48px 44px; text-align: center; }
+.ss-card__eyebrow {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--wall);
+}
+.ss-card__title {
+  margin: 0;
+  font-size: 104px;
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.ss-card__meter {
+  margin: 36px auto 0;
+  width: 70%;
+  height: 8px;
+  background: rgba(255, 31, 61, 0.18);
+  overflow: hidden;
+}
+.ss-card__meter span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--wall), #fff);
+  box-shadow: 0 0 18px var(--wall);
+}
+
+/* the card glitches on its own, hard, every few seconds */
+.ss-card .glitch::before { animation: tearRed 6s steps(2, end) infinite; }
+.ss-card .glitch::after  { animation: tearDark 6s steps(2, end) infinite; }
+.ss-card .tearlines      { animation: tearBars 6s steps(2, end) infinite; }
+
+.ss-brand .glitch::before { animation: tearRed 9s steps(2, end) infinite; }
+.ss-brand .glitch::after  { animation: tearDark 9s steps(2, end) infinite; }
+
+/* ---------- byte feed along the bottom ---------- */
+
+.ss-feed {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 150px;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  gap: 26px;
+  padding: 0 72px 26px;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+}
+.ss-feed__col {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(255, 31, 61, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ss-feed__col span.is-hot { color: #fff; text-shadow: 0 0 10px var(--wall); }
+
+/* ---------- the blackwall hit ---------- */
+
+.ss-tear {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  opacity: 0;
+  overflow: hidden;
+}
+.ss-tear.is-on { opacity: 1; }
+
+.ss-tear__wash, .ss-tear__bars, .ss-tear__halves, .ss-tear__glow { position: absolute; inset: 0; }
+
+.ss-tear__wash { background: radial-gradient(120% 80% at 50% 50%, rgba(70, 3, 14, 0.7) 0%, rgba(5, 6, 10, 0.8) 70%); opacity: 0; }
+.ss-tear.is-on .ss-tear__wash { animation: ssWash 420ms ease-out forwards; }
+@keyframes ssWash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+
+.ss-tear__bars {
+  background: repeating-linear-gradient(180deg,
+    rgba(255, 31, 61, 0.4) 0 1px, transparent 1px 3px,
+    rgba(255, 255, 255, 0.07) 3px 4px, transparent 4px 7px);
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.ss-tear.is-on .ss-tear__bars { animation: ssBars 420ms steps(3, end); }
+@keyframes ssBars {
+  0%   { opacity: 0.9; transform: translate3d(0, 0, 0); }
+  40%  { opacity: 0.5; transform: translate3d(-7px, 6px, 0); }
+  75%  { opacity: 0.8; transform: translate3d(6px, -4px, 0); }
+  100% { opacity: 0; }
+}
+
+.ss-tear__half {
+  position: absolute;
+  background: var(--wall);
+  box-shadow: 0 0 12px rgba(255, 31, 61, 0.85);
+  opacity: 0;
+}
+.ss-tear__half.is-hot { background: #fff; box-shadow: 0 0 18px #fff, 0 0 40px var(--wall-hot); }
+.ss-tear.is-on .ss-tear__half {
+  animation: ssRip 300ms steps(2, end);
+  animation-delay: var(--d, 0ms);
+}
+@keyframes ssRip {
+  0%   { opacity: 0;   transform: translate3d(0, 0, 0) scaleY(1); }
+  25%  { opacity: 1;   transform: translate3d(var(--dx, 0), 0, 0) scaleY(1.8); }
+  55%  { opacity: 0.3; transform: translate3d(calc(var(--dx, 0) * -0.5), 0, 0) scaleY(0.7); }
+  80%  { opacity: 1;   transform: translate3d(calc(var(--dx, 0) * 0.7), 0, 0) scaleY(1.3); }
+  100% { opacity: 0;   transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+.ss-tear__glow {
+  background: radial-gradient(90% 46% at 50% 44%, rgba(255, 31, 61, 0.4) 0%, transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.ss-tear.is-on .ss-tear__glow { animation: ssGlow 420ms ease-out; }
+@keyframes ssGlow { 0% { opacity: 0.8; } 100% { opacity: 0; } }
+
+/* the whole stage loses its footing on the hit */
+.stage.is-hit { animation: ssStageJudder 300ms steps(2, end); }
+@keyframes ssStageJudder {
+  0%   { transform: translate(-50%, -50%) scale(var(--s, 1)) translate3d(0, 0, 0); }
+  30%  { transform: translate(-50%, -50%) scale(var(--s, 1)) translate3d(-9px, 4px, 0); }
+  60%  { transform: translate(-50%, -50%) scale(var(--s, 1)) translate3d(8px, -5px, 0); }
+  100% { transform: translate(-50%, -50%) scale(var(--s, 1)) translate3d(0, 0, 0); }
+}
