@@ -262,7 +262,7 @@ body[data-page="islandrealm"] { background: #04050A; }
   bottom: var(--art-y, 0%);
   left: var(--art-x, 50%);
   translate: -50% 0;
-  height: var(--art-h, 100%);
+  height: var(--art-h, 93%);
   width: auto;
   /* overrides the global img { max-width: 100% } so a wide figure can
      run past its own column instead of being shrunk to fit it */
@@ -279,8 +279,8 @@ body[data-page="islandrealm"] { background: #04050A; }
    artwork, the cape filling the right half, so he is nudged across. */
 .cast__panel--epic ~ .cast__art-layer .cast__art--epic .cast__art-img,
 .cast__art--epic .cast__art-img {
-  --art-h: 132%;
-  --art-y: -32%;
+  --art-h: 142%;
+  --art-y: -50%;
   --art-x: 62%;
 }
 
