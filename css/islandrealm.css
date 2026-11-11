@@ -194,8 +194,11 @@ body[data-page="islandrealm"] { background: #04050A; }
   letter-spacing: -0.015em;
   text-transform: uppercase;
   color: var(--ir-yellow);
-  /* a long name stacks on the <wbr> rather than running out of its panel */
-  overflow-wrap: break-word;
+  /* Every name holds one line. A wrapped name would push its own header
+     - and so the figure under it - lower than the other two columns, and
+     the three heads would stop reading as a row. A name too long for its
+     panel at this size is stepped down to fit by js/islandrealm.js. */
+  white-space: nowrap;
 }
 
 /* ---------- socials (filled in later) ---------- */
@@ -272,15 +275,20 @@ body[data-page="islandrealm"] { background: #04050A; }
   filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.6));
 }
 
-/* EpicClutch carries a flame above his head and a plank below his
-   boots, so at a shared height his figure reads smaller than the other
-   two. Scaled up and dropped, he tops out level with them and only the
-   plank leaves the frame. He also stands left of centre in his own
-   artwork, the cape filling the right half, so he is nudged across. */
-.cast__panel--epic ~ .cast__art-layer .cast__art--epic .cast__art-img,
+/* EpicClutch carries a flame above his head and a plank below his boots,
+   so at a shared height his figure reads smaller than the other two and
+   his head sits lower in its own frame: measured off the artwork, the
+   heads start 1.9% (Cuski), 3.0% (Exiled) and 6.9% (EpicClutch) of the
+   way down. He is scaled up to match their build, then lifted by that
+   difference so the three heads line up, which costs only the plank at
+   the bottom of the frame. He also stands left of centre in his own
+   artwork, the cape filling the right half, so he is nudged across.
+
+   Every value here is a share of the same art box, so the heads stay
+   level at any width rather than only at the one they were set on. */
 .cast__art--epic .cast__art-img {
-  --art-h: 142%;
-  --art-y: -50%;
+  --art-h: 123%;
+  --art-y: -24%;
   --art-x: 62%;
 }
 
