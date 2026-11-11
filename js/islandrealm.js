@@ -36,14 +36,31 @@
   function fitNames() {
     names.forEach(function (name) {
       name.style.fontSize = '';
+
       var room = name.clientWidth;
       if (!room) return;
 
-      var needed = name.scrollWidth;
-      if (needed <= room) return;
+      /* The text is measured with a Range rather than by scrollWidth:
+         Firefox clamps scrollWidth to the client width on an element
+         that does not scroll, so an overflowing name reports as fitting
+         and is silently cut off at the panel edge. A Range measures the
+         text itself and agrees across engines. */
+      var span = document.createRange();
+      span.selectNodeContents(name);
 
+      var needed = span.getBoundingClientRect().width;
+      if (!needed || needed <= room) return;
+
+      /* Width tracks the font size closely but not exactly - the face is
+         hinted - so it is measured again and nudged if the first step
+         lands long. */
       var size = parseFloat(getComputedStyle(name).fontSize);
-      name.style.fontSize = (size * (room / needed) * 0.99).toFixed(2) + 'px';
+      for (var pass = 0; pass < 3 && needed > room; pass++) {
+        size = size * (room / needed) * 0.99;
+        name.style.fontSize = size.toFixed(2) + 'px';
+        span.selectNodeContents(name);
+        needed = span.getBoundingClientRect().width;
+      }
     });
   }
 
