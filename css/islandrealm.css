@@ -117,6 +117,8 @@ body[data-page="islandrealm"] { background: #04050A; }
 /* ---------- the three panels ---------- */
 
 .cast {
+  position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--gutter);
@@ -234,15 +236,25 @@ body[data-page="islandrealm"] { background: #04050A; }
 
 /* ---------- art (dropped in later) ---------- */
 
-/* The art spans the whole panel and is clipped only by the panel's own
-   edges - it rises behind the name and the socials rather than being
-   boxed in under them, which is what makes the figures feel like they
-   are standing in the panel instead of sitting in a slot. */
-.cast__art {
+/* The art sits in a layer over the panels rather than inside them. A
+   panel clips its own children - that is what gives it the chamfer - so
+   a figure placed inside can never cross the divider into the next
+   column. Up here it is cut only by the edge of the grid, which is the
+   edge of the screen.
+
+   Each box is positioned from measurements in js/islandrealm.js: the
+   panel's own column, starting below that panel's socials. */
+.cast__art-layer {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
+}
+
+.cast__art {
+  position: absolute;
+  /* left/top/width/height come from the script */
+  overflow: visible;
 }
 
 .cast__art-img {
@@ -250,27 +262,26 @@ body[data-page="islandrealm"] { background: #04050A; }
   bottom: var(--art-y, 0%);
   left: var(--art-x, 50%);
   translate: -50% 0;
-  height: var(--art-h, 88%);
+  height: var(--art-h, 100%);
   width: auto;
-  /* overrides the global img { max-width: 100% } - a wide figure bleeds
-     past its column and is clipped by the panel, rather than shrinking
-     until it stands shorter than the other two */
+  /* overrides the global img { max-width: 100% } so a wide figure can
+     run past its own column instead of being shrunk to fit it */
   max-width: none;
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.6));
 }
 
-/* EpicClutch carries a lot of empty air above the flame and a plank
-   below the boots, so at a shared height he stands noticeably smaller.
-   He is scaled up and dropped so his silhouette tops out level with the
-   other two, with only the plank leaving the frame. He also sits left
-   of centre in his own artwork, the cape filling the right half, so he
-   is nudged across to land centred in the panel. */
-.cast__panel--epic .cast__art-img {
-  --art-h: 128%;
-  --art-y: -40%;
-  --art-x: 68%;
+/* EpicClutch carries a flame above his head and a plank below his
+   boots, so at a shared height his figure reads smaller than the other
+   two. Scaled up and dropped, he tops out level with them and only the
+   plank leaves the frame. He also stands left of centre in his own
+   artwork, the cape filling the right half, so he is nudged across. */
+.cast__panel--epic ~ .cast__art-layer .cast__art--epic .cast__art-img,
+.cast__art--epic .cast__art-img {
+  --art-h: 132%;
+  --art-y: -32%;
+  --art-x: 62%;
 }
 
 /* ---------- stacked on small screens ---------- */

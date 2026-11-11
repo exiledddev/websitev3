@@ -120,10 +120,6 @@
         </div>
       </div>
 
-      <div class="cast__art">
-        <img class="cast__art-img" src="../assets/islandrealm/cuski.webp"
-             alt="Cuski — Island Realm character art" width="996" height="1100" loading="eager" decoding="async" fetchpriority="high">
-      </div>
     </section>
 
     <section class="cast__panel cast__panel--exiled">
@@ -150,10 +146,6 @@
         </div>
       </div>
 
-      <div class="cast__art">
-        <img class="cast__art-img" src="../assets/islandrealm/exiled.webp"
-             alt="Exiled — Island Realm character art" width="1035" height="1100" loading="eager" decoding="async" fetchpriority="high">
-      </div>
     </section>
 
     <section class="cast__panel cast__panel--epic">
@@ -177,11 +169,25 @@
         </div>
       </div>
 
-      <div class="cast__art">
+    </section>
+
+    <!-- Art lives above the panels, not inside them: a panel clips its
+         own children, and the figures have to be able to cross the
+         dividers and be cut only by the edge of the screen. -->
+    <div class="cast__art-layer" id="artLayer" aria-hidden="true">
+      <div class="cast__art cast__art--cuski">
+        <img class="cast__art-img" src="../assets/islandrealm/cuski.webp"
+             alt="Cuski — Island Realm character art" width="996" height="1100" loading="eager" decoding="async" fetchpriority="high">
+      </div>
+      <div class="cast__art cast__art--exiled">
+        <img class="cast__art-img" src="../assets/islandrealm/exiled.webp"
+             alt="Exiled — Island Realm character art" width="1035" height="1100" loading="eager" decoding="async" fetchpriority="high">
+      </div>
+      <div class="cast__art cast__art--epic">
         <img class="cast__art-img" src="../assets/islandrealm/epicclutch.webp"
              alt="EpicClutch — Island Realm character art" width="1175" height="1100" loading="eager" decoding="async" fetchpriority="high">
       </div>
-    </section>
+    </div>
 
   </main>
 
@@ -198,5 +204,6 @@
 </div>
 
 <script src="../js/site.js"></script>
+<script src="../js/islandrealm.js"></script>
 </body>
 </html>
