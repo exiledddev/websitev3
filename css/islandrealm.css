@@ -275,6 +275,18 @@ body[data-page="islandrealm"] { background: #04050A; }
   filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.6));
 }
 
+/* Cuski's artwork is cropped flat at its own left edge - his forearm is
+   sliced off between 38% and 50% down the frame, and that cut landed a
+   few pixels inside the page, leaving a chopped arm with background
+   beside it. He is scaled up until the cut clears the page edge, where
+   the figure just reads as running off the screen, and dropped by the
+   same amount so his head stays level with the other two. */
+.cast__art--cuski .cast__art-img {
+  --art-h: 100%;
+  --art-y: -7%;
+  --art-x: 47%;
+}
+
 /* EpicClutch carries a flame above his head and a plank below his boots,
    so at a shared height his figure reads smaller than the other two and
    his head sits lower in its own frame: measured off the artwork, the
