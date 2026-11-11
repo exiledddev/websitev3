@@ -169,7 +169,7 @@ body[data-page="islandrealm"] { background: #04050A; }
   mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.35) 42%, transparent 78%);
 }
 
-.cast__top { position: relative; z-index: 2; }
+.cast__top { position: relative; z-index: 3; }
 
 .cast__role {
   margin: 0 0 10px;
@@ -234,52 +234,43 @@ body[data-page="islandrealm"] { background: #04050A; }
 
 /* ---------- art (dropped in later) ---------- */
 
-/* The art fills whatever room is left under the socials and stands on
-   the panel's bottom edge.
-
-   The image is taken out of flow on purpose. Sized in normal flow at
-   height:100% it feeds its own intrinsic height back into the flex
-   container and the panel grows to 1100px to contain it; absolutely
-   positioned, it can only ever be as tall as the space left for it. */
+/* The art spans the whole panel and is clipped only by the panel's own
+   edges - it rises behind the name and the socials rather than being
+   boxed in under them, which is what makes the figures feel like they
+   are standing in the panel instead of sitting in a slot. */
 .cast__art {
-  position: relative;
-  z-index: 2;
-  flex: 1 1 0;
-  min-height: 0;
-  margin:
-    clamp(12px, 2vh, 24px)
-    calc(-1 * clamp(18px, 2.4vw, 38px))
-    calc(-1 * clamp(24px, 3vw, 46px));
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
 }
 
 .cast__art-img {
   position: absolute;
-  bottom: 0;
+  bottom: var(--art-y, 0%);
   left: var(--art-x, 50%);
   translate: -50% 0;
-  height: 100%;
+  height: var(--art-h, 88%);
   width: auto;
-  /* overrides the global img { max-width: 100% }: a wide figure bleeds
-     past its column and is clipped by the panel, rather than being
-     shrunk until it stands shorter than the other two */
+  /* overrides the global img { max-width: 100% } - a wide figure bleeds
+     past its column and is clipped by the panel, rather than shrinking
+     until it stands shorter than the other two */
   max-width: none;
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.6));
 }
 
-/* EpicClutch gets two corrections. His name wraps to two lines, so his
-   socials sit lower and the flex leftover under them is around 60px
-   shorter than the other two - without this he simply stands smaller.
-   Scaling him up and dropping him below the panel edge recovers that,
-   and the only thing that leaves the frame is the plank he is stood on.
-   He also sits left of centre in his own artwork, with the cape filling
-   the right half, so he is nudged across to land centred in the panel. */
+/* EpicClutch carries a lot of empty air above the flame and a plank
+   below the boots, so at a shared height he stands noticeably smaller.
+   He is scaled up and dropped so his silhouette tops out level with the
+   other two, with only the plank leaving the frame. He also sits left
+   of centre in his own artwork, the cape filling the right half, so he
+   is nudged across to land centred in the panel. */
 .cast__panel--epic .cast__art-img {
-  --art-x: 42%;
-  height: 108%;
-  bottom: -8%;
+  --art-h: 128%;
+  --art-y: -40%;
+  --art-x: 68%;
 }
 
 /* ---------- stacked on small screens ---------- */
